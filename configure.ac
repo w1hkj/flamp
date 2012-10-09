@@ -10,21 +10,21 @@ AC_PREREQ([2.63])
 
 dnl major and minor must be integers; patch may
 dnl contain other characters or be empty
-m4_define(FLICS_MAJOR,  [0])
-m4_define(FLICS_MINOR,  [3])
-m4_define(FLICS_PATCH,  [.0])
+m4_define(FLAMP_MAJOR,  [1])
+m4_define(FLAMP_MINOR,  [0])
+m4_define(FLAMP_PATCH,  [.0init])
 
-AC_INIT([FLICS], FLICS_MAJOR.FLICS_MINOR[]FLICS_PATCH, [w1hkj AT w1hkj DOT com])
+AC_INIT([FLAMP], FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH, [w1hkj AT w1hkj DOT com])
 
-AC_SUBST([FLICS_VERSION_MAJOR], [FLICS_MAJOR])
-AC_SUBST([FLICS_VERSION_MINOR], [FLICS_MINOR])
-AC_SUBST([FLICS_VERSION_PATCH], [FLICS_PATCH])
-AC_SUBST([FLICS_VERSION], [FLICS_MAJOR.FLICS_MINOR[]FLICS_PATCH])
+AC_SUBST([FLAMP_VERSION_MAJOR], [FLAMP_MAJOR])
+AC_SUBST([FLAMP_VERSION_MINOR], [FLAMP_MINOR])
+AC_SUBST([FLAMP_VERSION_PATCH], [FLAMP_PATCH])
+AC_SUBST([FLAMP_VERSION], [FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH])
 
-AC_DEFINE([FLICS_VERSION_MAJOR], [FLICS_MAJOR], [major version number])
-AC_DEFINE([FLICS_VERSION_MINOR], [FLICS_MINOR], [minor version number])
-AC_DEFINE([FLICS_VERSION_PATCH], ["FLICS_PATCH"], [patch/alpha version string])
-AC_DEFINE([FLICS_VERSION], ["FLICS_MAJOR.FLICS_MINOR[]FLICS_PATCH"], [version string])
+AC_DEFINE([FLAMP_VERSION_MAJOR], [FLAMP_MAJOR], [major version number])
+AC_DEFINE([FLAMP_VERSION_MINOR], [FLAMP_MINOR], [minor version number])
+AC_DEFINE([FLAMP_VERSION_PATCH], ["FLAMP_PATCH"], [patch/alpha version string])
+AC_DEFINE([FLAMP_VERSION], ["FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH"], [version string])
 
 AC_SUBST([AC_CONFIG_ARGS], [$ac_configure_args])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -39,7 +39,7 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([-Wall foreign std-options 1.9.6])
 
 #change the next config item for the specific application src's
-AC_CONFIG_SRCDIR([src/ics213.cxx])
+AC_CONFIG_SRCDIR([src/flamp.cxx])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -58,7 +58,7 @@ AC_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([strstr])
+AC_CHECK_FUNCS([getaddrinfo gethostbyname hstrerror gmtime_r localtime_r memmove memset mkdir select setenv snprintf socket socketpair strcasecmp strcasestr strchr strdup strerror strlcpy strncasecmp strrchr strstr strtol uname unsetenv vsnprintf])
 
 ### static flag
 # Set ac_cv_static to yes/no
@@ -83,11 +83,16 @@ AC_FL_DEBUG
 # Set DARWIN Makefile conditional
 # Substitute MAC_UNIVERSAL_CFLAGS and MAC_UNIVERSAL_LDFLAGS in Makefile
 AC_FL_MACOSX
+
 ### win32
 # Set WIN32 Makefile conditional
 # Set HAVE_WINDRES Makefile conditional
 # Substitute WINDRES in Makefile
 AC_FL_WIN32
+
+### Non-POSIX compatibility (i.e. mingw32)
+# Sets various Makefile conditionals; see m4/np-compat.m4
+AC_FLAMP_NP_COMPAT
 
 ### FLTK
 # Substitute FLTK_CFLAGS and FLTK_LIBS in Makefile
@@ -100,12 +105,26 @@ AC_CHECK_FLTK
 # Substitute XMLRPC_CFLAGS and XMLRPC_LIBS in Makefile
 # Define USE_XMLRPC in config.h
 # Set ENABLE_XMLRPC Makefile conditional
-AC_FLICS_XMLRPC
+#AC_FLAMP_XMLRPC
+
+### X11
+# Set ac_cv_x to yes/no
+# Define USE_X in config.h
+# Substitute X_CFLAGS and X_LIBS in Makefile
+if test "x$target_darwin" = "xno" && test "x$target_win32" = "xno"; then
+    AC_FLAMP_PKG_CHECK([x], [x11], [no], [yes])
+fi
+
+### asciidoc
+# substitute ASCIIDOC and A2X in doc/Makefile
+# set HAVE_ASCIIDOC Makefile conditional
+#AC_FLAMP_DOCS
 
 ### build info
 # Define various build variables in config.h
-AC_FLICS_BUILD_INFO
+AC_FLAMP_BUILD_INFO
 
+#AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
 AC_CONFIG_FILES([Makefile src/Makefile])
 
 AC_OUTPUT

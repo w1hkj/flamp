@@ -1,0 +1,114 @@
+FLAMP(1)
+=========
+
+
+== NAME ==
+flamp - AMP file transfer utility for use with fldigi
+
+
+== SYNOPSIS ==
+*flamp* ['OPTIONS']
+
+
+== DESCRIPTION ==
+*Flamp* (fast light automatic repeat request) is a file transfer application
+that is based on the Amateur Multicast Protocol originally developed by 
+Walt Fair, Jr., W5ALT, and updated by Dave Freese, W1HKJ. It is capable
+of transmitting and receiving frames of AMP data via fldigi, as well.
+
+
+== OPTIONS ==
+Long options begin with two hyphens and are handled by flamp. The option names
+may be abbreviated to any unambiguous substring, and the option argument may be
+separated from the name by a space or equals sign, as per +getopt(3)+.
+
+Short options begin with a single hyphen and are passed directly to FLTK. They
+may be abbreviated only as indicated.
+
+*--version*::
+  Print version information and exit.
+
+*--help*::
+  Print options summary and exit.
+
+=== Standard FLTK options ===
+*-bg, -background* 'COLOUR'::
+  Set the background colour.
+
+*-bg2, -background2* 'COLOUR'::
+  Set the secondary (text) background colour.
+
+*-di, -display* 'DISPLAY'::
+  Specifies the X server to connect to; see +X(7)+.
+
+*-dn, -dnd* or *-nodn, -nodnd*::
+  Enable or disable drag and drop copy and paste in text fields.
+
+*-fg, -foreground* 'COLOUR'::
+  Set the foreground colour.
+
+*-g, -geometry* 'GEOMETRY'::
+  Set the initial window size and position. *Flamp may not honour this option*.
+
+*-i, -iconic*::
+  Start flamp in iconified state. *Flamp may not honour this option*.
+
+*-k, -kbd* or *-nok, -nokbd*::
+  Enable or disable visible keyboard focus in non-text widgets.
+
+*-na, -name* 'CLASSNAME'::
+  Set the window class. Defaults to ``Flamp''.
+
+*-ti, -title* 'WINDOWTITLE'::
+  Set the window title. Defaults to ``flamp - <callsign>''.
+
+=== Additional UI options ===
+*--font* 'FONT[:SIZE]'::
+  Set the widget font and (optionally) size. Defaults to ``sans:12''.
+
+
+== FILES ==
+$HOME/.flamp::
+  The main settings file.
+
+The following directories are used for AMP file transfer:
+
+$HOME/.flamp/rx::
+  Stores received files.
+
+$HOME/.flamp/tx::
+  Stores files to be transmitted.
+
+== BUGS ==
+* There are no command line arguments to override the default configuration file
+  and AMP directories.
+
+
+== SEE ALSO ==
+fldigi(1), getaddrinfo(3), getopt(3), X(7)
+
+
+== RESOURCES ==
+Flamp web site: http://www.w1hkj.com/
+
+BerliOS project page: http://developer.berlios.de/projects/fldigi/
+
+AMP specification by Walt Fair, Jr., W5ALT: http://www.spar-hams.org/docs/amp-protocol.html
+
+AMP-2.0 specification by Dave Freese, W1HKJ: http://www.w1hkj.com/Amp.2.0.Specification.html
+
+== AUTHORS ==
+Flamp was written by David Freese, +W1HKJ+.
+
+This manual page was written by Dave Freese <w1hkj[at]w1hkj(dot)com>.
+
+
+== COPYING ==
+License GPLv3+: GNU GPL version 3 or later.
+
+////////////////////////////////////////////////////////////////////////////////
+// Emacs settings
+// Local Variables:
+// mode: doc
+// End:
+////////////////////////////////////////////////////////////////////////////////

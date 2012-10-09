@@ -1,0 +1,6 @@
+#include <windows.h> // include for version info constants
+
+#include "flamprc.h"
+
+IDI_ICON ICON DISCARDABLE "flamp.ico"
+

@@ -1,42 +1,42 @@
 # Copyright (c) 2008 Dave Freese, W1HKJ (w1hkj AT w1hkj DOT com)
 
-bin_PROGRAMS = flics
+bin_PROGRAMS = flamp
 
-flics_CPPFLAGS = @FLICS_BUILD_CPPFLAGS@
-flics_CXXFLAGS = @FLICS_BUILD_CXXFLAGS@
-flics_CFLAGS = $(flics_CXXFLAGS)
-flics_LDFLAGS = @FLICS_BUILD_LDFLAGS@
-flics_LDADD = @FLICS_BUILD_LDADD@
+flamp_CPPFLAGS = @FLAMP_BUILD_CPPFLAGS@
+flamp_CXXFLAGS = @FLAMP_BUILD_CXXFLAGS@
+flamp_CFLAGS = $(flamp_CXXFLAGS)
+flamp_LDFLAGS = @FLAMP_BUILD_LDFLAGS@
+flamp_LDADD = @FLAMP_BUILD_LDADD@
 
-MINGW32_SRC = \
-	flics-rc.rc \
-	include/flicsrc.h
+MINGW32_SRC = flamp-rc.rc include/flamprc.h \
+	utils/mingw.c include/mingw.h include/compat.h \
+	utils/getsysinfo.c
 
 # We distribute these but do not always compile them
-EXTRA_flics_SOURCES = $(FLICS_WIN32_RES_SRC) $(MINGW32_SRC)
+EXTRA_flamp_SOURCES = $(flamp_WIN32_RES_SRC) $(MINGW32_SRC)
 
-flics_SOURCES =
+flamp_SOURCES =
 
 if MINGW32
 if HAVE_WINDRES
-  flics_SOURCES += $(MINGW32_SRC)
+  flamp_SOURCES += $(MINGW32_SRC)
 endif
 endif
 
 ########################################################################
 
 
-FLICS_VERSION_MAJOR = @FLICS_VERSION_MAJOR@
-FLICS_VERSION_MINOR = @FLICS_VERSION_MINOR@
-FLICS_VERSION_PATCH = @FLICS_VERSION_PATCH@
-FLICS_VERSION = @FLICS_VERSION@
+flamp_VERSION_MAJOR = @FLAMP_VERSION_MAJOR@
+flamp_VERSION_MINOR = @FLAMP_VERSION_MINOR@
+flamp_VERSION_PATCH = @FLAMP_VERSION_PATCH@
+flamp_VERSION = @FLAMP_VERSION@
 
 .EXPORT_ALL_VARIABLES: nsisinst appbundle
 
 # Sources that are generated,
 BUILT_SOURCES =
 # not distributed,
-nodist_flics_SOURCES = $(BUILT_SOURCES)
+nodist_flamp_SOURCES = $(BUILT_SOURCES)
 # and deleted by the clean targets
 CLEANFILES = $(BUILT_SOURCES)
 CLEAN_LOCAL =
@@ -49,20 +49,20 @@ endif
 endif
 
 install-data-local:
-	if test -f $(srcdir)/../data/flics.xpm; then \
+	if test -f $(srcdir)/../data/flamp.xpm; then \
 	    $(mkinstalldirs) $(DESTDIR)/$(datadir)/pixmaps; \
-	    $(INSTALL_DATA) $(srcdir)/../data/flics.xpm $(DESTDIR)/$(datadir)/pixmaps; \
+	    $(INSTALL_DATA) $(srcdir)/../data/flamp.xpm $(DESTDIR)/$(datadir)/pixmaps; \
 	fi
-	if test -f $(srcdir)/../data/flics.desktop; then \
+	if test -f $(srcdir)/../data/flamp.desktop; then \
 	    $(mkinstalldirs) $(DESTDIR)/$(datadir)/applications; \
-	    $(INSTALL_DATA) $(srcdir)/../data/flics.desktop $(DESTDIR)/$(datadir)/applications; \
+	    $(INSTALL_DATA) $(srcdir)/../data/flamp.desktop $(DESTDIR)/$(datadir)/applications; \
 	fi
 
 uninstall-local:
-	rm -f $(DESTDIR)/$(datadir)/pixmaps/flics.xpm
-	rm -f $(DESTDIR)/$(datadir)/applications/flics.desktop
+	rm -f $(DESTDIR)/$(datadir)/pixmaps/flamp.xpm
+	rm -f $(DESTDIR)/$(datadir)/applications/flamp.desktop
 
-FL_SRC = ics213_dialog.fl
+# FL_SRC = flamp_dialog.fl
 
 if HAVE_FLUID
 flgen: $(FL_SRC)
@@ -76,8 +76,8 @@ flgen: $(FL_SRC)
 endif
 
 
-INSTALLER_FILE = flics-$(FLICS_VERSION)_setup.exe
-APPBUNDLE=flics-$(FLICS_VERSION)
+INSTALLER_FILE = flamp-$(flamp_VERSION)_setup.exe
+APPBUNDLE=flamp-$(flamp_VERSION)
 APPBUNDLE_NOLIBS=$(APPBUNDLE)-nolibs
 
 if HAVE_NSIS
@@ -96,26 +96,9 @@ clean-local:
 	-rm -rf $(CLEAN_LOCAL)
 
 # Sources that we build. It is OK to have headers here.
-flics_SOURCES += \
-	$(srcdir)/calendar.cxx \
-	$(srcdir)/combo.cxx \
-	$(srcdir)/base64.cxx \
-	$(srcdir)/date.cxx \
-	$(srcdir)/debug.cxx \
-	$(srcdir)/fileselect.cxx \
-	$(srcdir)/flinput2.cxx \
-	$(srcdir)/icons.cxx \
-	$(srcdir)/ics213.cxx \
-	$(srcdir)/ics213_template.cxx \
-	$(srcdir)/ics213_dialog.cxx \
-	$(srcdir)/parse_xml.cxx \
-	$(srcdir)/pixmaps.cxx \
-	$(srcdir)/util.cxx \
-	$(srcdir)/wrap.cxx \
-	$(srcdir)/Fl_Text_Editor_mod.cxx \
-	$(srcdir)/Fl_Text_Display_mod.cxx \
-	$(srcdir)/Fl_Native_File_Chooser.cxx \
-	$(srcdir)/FTextView.cxx \
+flamp_SOURCES += \
+	$(srcdir)/flamp.cxx \
+	$(srcdir)/flamp_dialog.cxx \
 	$(srcdir)/lzma/Alloc.h \
 	$(srcdir)/lzma/Alloc.c \
 	$(srcdir)/lzma/LzFind.c \
@@ -127,17 +110,76 @@ flics_SOURCES += \
 	$(srcdir)/lzma/LzmaEnc.h \
 	$(srcdir)/lzma/LzmaLib.c \
 	$(srcdir)/lzma/LzmaLib.h \
-	$(srcdir)/lzma/Types.h
+	$(srcdir)/lzma/Types.h \
+	$(srcdir)/utils/amp.cxx \
+	$(srcdir)/utils/base64.cxx \
+	$(srcdir)/utils/base128.cxx \
+	$(srcdir)/utils/base256.cxx \
+	$(srcdir)/utils/debug.cxx \
+	$(srcdir)/utils/socket.cxx \
+	$(srcdir)/utils/status.cxx \
+	$(srcdir)/utils/timeops.cxx \
+	$(srcdir)/utils/util.cxx \
+	$(srcdir)/utils/file_io.cxx \
+	$(srcdir)/utils/xml_io.cxx \
+	$(srcdir)/widgets/calendar.cxx \
+	$(srcdir)/widgets/combo.cxx \
+	$(srcdir)/widgets/date.cxx \
+	$(srcdir)/widgets/fileselect.cxx \
+	$(srcdir)/widgets/flinput2.cxx \
+	$(srcdir)/widgets/flslider2.cxx \
+	$(srcdir)/widgets/flstring.c \
+	$(srcdir)/widgets/Fl_BlockMap.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser.cxx \
+	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
+	$(srcdir)/widgets/FTextView.cxx \
+	$(srcdir)/widgets/icons.cxx \
+	$(srcdir)/widgets/pixmaps.cxx \
+	$(srcdir)/widgets/pixmaps_tango.cxx \
+	$(srcdir)/widgets/font_browser.cxx \
+	$(srcdir)/xmlrpcpp/XmlRpc.h \
+	$(srcdir)/xmlrpcpp/XmlRpcClient.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcClient.h \
+	$(srcdir)/xmlrpcpp/XmlRpcDispatch.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcDispatch.h \
+	$(srcdir)/xmlrpcpp/XmlRpcException.h \
+	$(srcdir)/xmlrpcpp/XmlRpcMutex.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcMutex.h \
+	$(srcdir)/xmlrpcpp/XmlRpcServer.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcServer.h \
+	$(srcdir)/xmlrpcpp/XmlRpcServerConnection.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcServerConnection.h \
+	$(srcdir)/xmlrpcpp/XmlRpcServerMethod.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcServerMethod.h \
+	$(srcdir)/xmlrpcpp/XmlRpcSocket.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcSocket.h \
+	$(srcdir)/xmlrpcpp/XmlRpcSource.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcSource.h \
+	$(srcdir)/xmlrpcpp/XmlRpcThread.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcThread.h \
+	$(srcdir)/xmlrpcpp/XmlRpcThreadedServer.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcThreadedServer.h \
+	$(srcdir)/xmlrpcpp/XmlRpcUtil.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcUtil.h \
+	$(srcdir)/xmlrpcpp/XmlRpcValue.cpp \
+	$(srcdir)/xmlrpcpp/XmlRpcValue.h \
+	$(srcdir)/xmlrpcpp/base64.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
 	$(srcdir)/config.h \
-	$(srcdir)/flnfc_common.cxx \
-	$(srcdir)/Fl_Native_File_Chooser_FLTK.cxx \
-	$(srcdir)/Fl_Native_File_Chooser_MAC.cxx \
-	$(srcdir)/Fl_Native_File_Chooser_WIN32.cxx \
-	$(srcdir)/mingw.c \
+	$(srcdir)/utils/mingw.c \
+	$(srcdir)/widgets/flnfc_common.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_FLTK.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_MAC.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_WIN32.cxx \
+	$(srcdir)/include/amp.h \
+	$(srcdir)/include/ascii.h \
 	$(srcdir)/include/base64.h \
+	$(srcdir)/include/base128.h \
+	$(srcdir)/include/base256.h \
 	$(srcdir)/include/calendar.h \
 	$(srcdir)/include/combo.h \
 	$(srcdir)/include/compat.h \
@@ -145,49 +187,68 @@ EXTRA_DIST = \
 	$(srcdir)/include/crc16.h \
 	$(srcdir)/include/date.h \
 	$(srcdir)/include/debug.h \
+	$(srcdir)/include/dirent-check.h \
 	$(srcdir)/include/fileselect.h \
-	$(srcdir)/include/flics_config.h \
-	$(srcdir)/include/flicsrc.h \
+	$(srcdir)/include/fl_lock.h \
+	$(srcdir)/include/flmisc.h \
+	$(srcdir)/include/flamp_config.h \
+	$(srcdir)/include/flamprc.h \
 	$(srcdir)/include/flinput2.h \
+	$(srcdir)/include/flslider2.h \
+	$(srcdir)/include/flstring.h \
+	$(srcdir)/include/font_browser.h \
 	$(srcdir)/include/gettext.h \
 	$(srcdir)/include/icons.h \
-	$(srcdir)/include/ics213.h \
-	$(srcdir)/include/ics213_dialog.h \
-	$(srcdir)/include/ics213_template.h \
+	$(srcdir)/include/flamp.h \
+	$(srcdir)/include/flamp_dialog.h \
+	$(srcdir)/include/socket.h \
 	$(srcdir)/include/mingw.h \
-	$(srcdir)/include/parse_xml.h \
 	$(srcdir)/include/pixmaps.h \
+	$(srcdir)/include/status.h \
+	$(srcdir)/include/threads.h \
+	$(srcdir)/include/timeops.h \
 	$(srcdir)/include/util.h \
-	$(srcdir)/include/wrap.h \
-	$(srcdir)/include/Fl_Text_Display_mod.H \
-	$(srcdir)/include/Fl_Text_Editor_mod.H \
-	$(srcdir)/include/FTextView.h \
+	$(srcdir)/include/file_io.h \
+	$(srcdir)/include/xml_io.h \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser_WIN32.H
+	$(srcdir)/include/FL/Fl_Native_File_Chooser_WIN32.H \
+	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_1.cxx \
+	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_3.cxx \
+	$(srcdir)/widgets/Fl_Text_Display_mod_1_1.cxx \
+	$(srcdir)/widgets/Fl_Text_Display_mod_1_3.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod_1_1.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod_1_3.cxx \
+	$(srcdir)/include/Fl_BlockMap.h \
+	$(srcdir)/include/Fl_Text_Buffer_mod.H \
+	$(srcdir)/include/Fl_Text_Buffer_mod_1_1.H \
+	$(srcdir)/include/Fl_Text_Buffer_mod_1_3.H \
+	$(srcdir)/include/Fl_Text_Display_mod.H \
+	$(srcdir)/include/Fl_Text_Display_mod_1_1.H \
+	$(srcdir)/include/Fl_Text_Display_mod_1_3.H \
+	$(srcdir)/include/Fl_Text_Editor_mod.H \
+	$(srcdir)/include/Fl_Text_Editor_mod_1_1.H \
+	$(srcdir)/include/Fl_Text_Editor_mod_1_3.H \
+	$(srcdir)/include/FTextView.h
 
 # Additional non-source files that are distributed
-EXTRA_DIST += \
-	$(srcdir)/../data/template.rtf \
-	$(srcdir)/../flics-doc/flics-quick-guide.html \
-	$(srcdir)/../flics-doc/flics-ss1.png \
-	$(srcdir)/../flics-doc/flics-ss4.png \
-	$(srcdir)/../flics-doc/Menu0.png \
-	$(srcdir)/../flics-doc/Menu1.png \
-	$(srcdir)/../flics-doc/Menu2.png
+#EXTRA_DIST += \
+#	$(srcdir)/../data/template.rtf
+#	$(srcdir)/../flamp-doc/flamp-quick-guide.html
 
 # Additional source files that support non-Linux cross compilation
 EXTRA_DIST += \
-	$(srcdir)/../data/flics.desktop \
-	$(srcdir)/../data/flics.xpm \
+	$(srcdir)/../data/flamp.desktop \
+	$(srcdir)/../data/flamp.xpm \
+	$(srcdir)/../data/flamp.png \
 	$(srcdir)/../data/win32/fl_app.nsi \
-	$(srcdir)/../data/win32/flics.ico \
+	$(srcdir)/../data/win32/flamp.ico \
 	$(srcdir)/../scripts/build4mingw.sh \
 	$(srcdir)/../scripts/builddist.sh \
 	$(srcdir)/../scripts/mkappbundle.sh \
 	$(srcdir)/../scripts/mknsisinst.sh \
 	$(srcdir)/../data/mac/Info.plist.in \
-	$(srcdir)/../data/mac/flics.icns \
-	$(FLICS_WIN32_SRC) \
-	$(FLICS_FL_SRC)
+	$(srcdir)/../data/mac/flamp.icns \
+	$(flamp_WIN32_SRC) \
+	$(flamp_FL_SRC)
