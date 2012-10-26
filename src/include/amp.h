@@ -59,7 +59,7 @@ private:
 	}
 	char *sz_len(std::string data) {
 		static char szlen[20];
-		snprintf(szlen, sizeof(szlen), "%d", data.length());
+		snprintf(szlen, sizeof(szlen), "%d", (int)data.length());
 		return szlen;
 	}
 	char *sz_size() {

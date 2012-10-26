@@ -46,6 +46,11 @@ struct status {
 	bool sync_mode_fldigi_flamp;
 	bool fldigi_xmt_mode_change;
 
+	int repeat_every;
+	bool repeat_at_times;
+	string repeat_times;
+	bool repeat_forever;
+
 	void saveLastState();
 	void loadLastState();
 };

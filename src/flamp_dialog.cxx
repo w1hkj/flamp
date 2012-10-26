@@ -78,6 +78,15 @@ Fl_Check_Button* btn_sync_mode_flamp_fldigi = 0;
 Fl_Check_Button* btn_sync_mode_fldigi_flamp = 0;
 Fl_Check_Button* btn_fldigi_xmt_mode_change = 0;
 
+Fl_Check_Button* btn_repeat_at_times = 0;
+Fl_ComboBox*     cbo_repeat_every = 0;
+Fl_Input2*       txt_repeat_times = 0;
+
+Fl_Check_Button* btn_repeat_forever = 0;
+Fl_Light_Button* do_events = 0;
+
+Fl_Output* outTimeValue = 0;
+
 Fl_Input2*  txt_tx_selected_blocks = 0;
 
 //----------------------------------------------------------------------
@@ -134,7 +143,7 @@ void update_cbo_modes(std::string &fldigi_modes)
 	while (s_basic_modes[i].f_cps != 0) {
 		if (fldigi_modes.find(s_basic_modes[i].s_mode) != string::npos) {
 			s_modes[j] = s_basic_modes[i];
-			cbo_modes->add(s_modes[j].s_mode.c_str()); 
+			cbo_modes->add(s_modes[j].s_mode.c_str());
 			valid_modes.append(s_modes[j].s_mode).append("|");
 			j++;
 		}
@@ -152,6 +161,19 @@ void init_cbo_modes()
 	min_modes.append("OL 4-250|OL 8-250|OL 4-500|OL 8-500|OL 16-500|OL 8-1K|OL 16-1K|");
 	min_modes.append("THOR16|THOR22");
 	update_cbo_modes(min_modes);
+}
+
+void init_cbo_events()
+{
+	cbo_repeat_every->add("5 min");
+	cbo_repeat_every->add("15 min");
+	cbo_repeat_every->add("30 min");
+	cbo_repeat_every->add("Hourly");
+	cbo_repeat_every->add("Even hours");
+	cbo_repeat_every->add("Odd hours");
+	cbo_repeat_every->add("Repeated at");
+	cbo_repeat_every->add("One time at");
+	cbo_repeat_every->index(progStatus.repeat_every);
 }
 
 void cb_cbo_modes()
@@ -180,7 +202,7 @@ Fl_Menu_Item menu_[] = {
  {_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {_("E&vents"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
- 
+
  {0,0,0,0,0,0,0,0,0}
 };
 
@@ -302,6 +324,44 @@ void cb_fldigi_xmt_mode_change(Fl_Check_Button *b, void *)
 	progStatus.fldigi_xmt_mode_change = b->value();
 }
 
+void cb_repeat_at_times(Fl_Check_Button *b, void *)
+{
+	progStatus.repeat_at_times = btn_repeat_at_times->value();
+	if (progStatus.repeat_at_times) {
+		btn_repeat_forever->value(0);
+		progStatus.repeat_forever = false;
+	}
+}
+
+void cb_repeat_every(Fl_ComboBox *cb, void *)
+{
+	progStatus.repeat_every = cbo_repeat_every->index();
+}
+
+void cb_repeat_times(Fl_Input2 *txt, void *)
+{
+	progStatus.repeat_times = txt_repeat_times->value();
+}
+
+void cb_repeat_forever(Fl_Check_Button *b, void *)
+{
+	progStatus.repeat_forever = btn_repeat_forever->value();
+	if (progStatus.repeat_forever) {
+		btn_repeat_at_times->value(0);
+		progStatus.repeat_at_times = false;
+	}
+}
+
+void cb_do_events(Fl_Light_Button *b, void*)
+{
+	if (do_events->value() == 1) {
+		do_events->label("Stop Events");
+	} else {
+		do_events->label("Start Events");
+	}
+	do_events->redraw_label();
+}
+
 Fl_Double_Window* flamp_dialog() {
 	int W = 500, H = 444;
 	int X = 2, Y = 26;
@@ -317,32 +377,32 @@ Fl_Double_Window* flamp_dialog() {
 	tabs->labelcolor(FL_BLACK);
 	tabs->selection_color(fl_rgb_color(245, 255, 250)); // mint cream
 
-	Fl_Group *rxgrp = new Fl_Group(4, y=Y+26, W-8, H-y-2, _("Receive"));
+	Fl_Group *Rx_tab = new Fl_Group(4, y=Y+26, W-8, H-y-2, _("Receive"));
 
 		y += 10;
 		txt_rx_filename = new Fl_Output(100, y, W-108, 20, _("File:"));
 		txt_rx_filename->box(FL_DOWN_BOX);
-		txt_rx_filename->tooltip(_(""));
+		txt_rx_filename->tooltip("");
 
 		txt_rx_datetime = new Fl_Output(100, y+=26, W-194, 20, _("Date time:"));
 		txt_rx_datetime->box(FL_DOWN_BOX);
-		txt_rx_datetime->tooltip(_(""));
+		txt_rx_datetime->tooltip("");
 
 		btn_save_file = new Fl_Button(W - 88, y, 80, 20, _("Save"));
 		btn_save_file->callback((Fl_Callback*)cb_btn_save_file);
-		btn_save_file->tooltip(_(""));
+		btn_save_file->tooltip("");
 
 		txt_rx_descrip = new Fl_Output(100, y+=26, W-194, 20, _("Description:"));
 		txt_rx_descrip->box(FL_DOWN_BOX);
-		txt_rx_descrip->tooltip(_(""));
+		txt_rx_descrip->tooltip("");
 
 		btn_rx_remove = new Fl_Button(W - 88, y, 80, 20, _("Remove"));
 		btn_rx_remove->callback((Fl_Callback*)cb_btn_rx_remove);
-		btn_rx_remove->tooltip(_(""));
+		btn_rx_remove->tooltip("");
 
 		txt_rx_callinfo = new Fl_Output(100, y+=26, W - 108, 20, _("Call/info"));
 		txt_rx_callinfo->box(FL_DOWN_BOX);
-		txt_rx_callinfo->tooltip(_(""));
+		txt_rx_callinfo->tooltip("");
 
 		int sp = (W-108 - 4 * 50) * 4 / 10;
 		txt_rx_filesize = new Fl_Output(100, y+=26, 50, 20, _("# bytes"));
@@ -351,11 +411,11 @@ Fl_Double_Window* flamp_dialog() {
 
 		txt_rx_numblocks = new Fl_Output(100 + (50+sp), y, 50, 20, _("Nbr blks"));
 		txt_rx_numblocks->box(FL_DOWN_BOX);
-		txt_rx_numblocks->tooltip(_(""));
+		txt_rx_numblocks->tooltip("");
 
 		txt_rx_blocksize = new Fl_Output(100 + 2*(50+sp), y, 50, 20, _("Blk size"));
 		txt_rx_blocksize->box(FL_DOWN_BOX);
-		txt_rx_blocksize->tooltip(_(""));
+		txt_rx_blocksize->tooltip("");
 
 		txt_rx_missing_blocks = new Fl_Output(100, y+=26, W-194, 20, _("Missing"));
 		txt_rx_missing_blocks->box(FL_DOWN_BOX);
@@ -368,23 +428,23 @@ Fl_Double_Window* flamp_dialog() {
 		rx_progress = new Fl_BlockMap(100, y+=26, W-108, 20, _("Blocks"));
 		rx_progress->box(FL_DOWN_BOX);
 
-		txt_rx_output = new FTextView(8, y+=26, W-16, 80, "Data");
+		txt_rx_output = new FTextView(8, y+=32, W-16, 80, "Data");
 		txt_rx_output->box(FL_DOWN_BOX);
-		txt_rx_output->align(FL_ALIGN_TOP_LEFT);
+		txt_rx_output->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 		txt_rx_output->tooltip(_("Ascii Text\nData type message"));
 
 		static const int cols[] = {60, 0};
 		rx_queue = new Fl_Hold_Browser(8, y+=102, W-16, H-y-6, _("Receive Queue"));
-		rx_queue->align(FL_ALIGN_TOP_LEFT);
+		rx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 		rx_queue->column_widths(cols);
 		rx_queue->has_scrollbar(Fl_Browser_::VERTICAL_ALWAYS);
 		rx_queue->callback((Fl_Callback*)cb_rx_queue);
-		rx_queue->tooltip(_(""));
+		rx_queue->tooltip("");
 
-		rxgrp->resizable(txt_rx_output);
-	rxgrp->end();
+		Rx_tab->resizable(txt_rx_output);
+	Rx_tab->end();
 
-	Fl_Group *txgrp = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Transmit"));
+	Fl_Group *Tx_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Transmit"));
 
 		y += 10;
 
@@ -395,7 +455,7 @@ Fl_Double_Window* flamp_dialog() {
 
 		txt_tx_filename = new Fl_Output(70, y+=26, W - 78, 20, _("File"));
 		txt_tx_filename->box(FL_DOWN_BOX);
-		txt_tx_filename->tooltip(_(""));
+		txt_tx_filename->tooltip("");
 
 		txt_tx_descrip = new Fl_Input2(70, y+=26, W - 78, 20, _("Descrip"));
 		txt_tx_descrip->box(FL_DOWN_BOX);
@@ -484,15 +544,83 @@ Fl_Double_Window* flamp_dialog() {
 		btn_open_file->tooltip(_("Select file to add to queue"));
 
 		tx_queue = new Fl_Hold_Browser(8, y+=26, W-16, H-y-6, _("Transmit Queue"));
-		tx_queue->align(FL_ALIGN_TOP_LEFT);
+		tx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 		tx_queue->has_scrollbar(Fl_Browser_::VERTICAL_ALWAYS);
 		tx_queue->callback((Fl_Callback*)cb_tx_queue);
-		tx_queue->tooltip(_(""));
+		tx_queue->tooltip("");
 
-		txgrp->resizable(tx_queue);
-	txgrp->end();
+		Tx_tab->resizable(tx_queue);
+	Tx_tab->end();
 
-	Fl_Group *config_grp = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Configure"));
+	Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Events"));
+
+		y += 20;
+		Fl_Multiline_Output* explain_events = new Fl_Multiline_Output(
+				X+4, y, W - X - 8, 100, "");
+		explain_events->tooltip("");
+		explain_events->color(fl_rgb_color(255, 250, 205));
+		explain_events->value("\
+Timed / Continuous events :\n\
+     Each transmission is identical to a 'Xmt All', that is the\n\
+entire queue is transmitted.  The unproto 'QST (calls) de URCALL'\n\
+and the program identifier '<PROG 11 8E48>FLAMP 1.0.0' are\n\
+included.\
+");
+
+		Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=126, W-2*(X+4), 120, _("Timed Events"));
+		Timed_Repeat_grp->box(FL_ENGRAVED_BOX);
+		Timed_Repeat_grp->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+		btn_repeat_at_times = new Fl_Check_Button(X+20, y+=8, 20, 20,
+										_("Scheduled times of transmission"));
+		btn_repeat_at_times->tooltip("");
+		btn_repeat_at_times->align(FL_ALIGN_RIGHT);
+		btn_repeat_at_times->down_box(FL_DOWN_BOX);
+		btn_repeat_at_times->callback((Fl_Callback*)cb_repeat_at_times);
+		btn_repeat_at_times->value(progStatus.repeat_at_times);
+
+		cbo_repeat_every = new Fl_ComboBox(X + 20, y+=30, 140, 20, "Retransmit interval");
+		cbo_repeat_every->begin();
+		cbo_repeat_every->align(FL_ALIGN_RIGHT);
+		cbo_repeat_every->when(FL_WHEN_RELEASE);
+		cbo_repeat_every->tooltip("");
+		cbo_repeat_every->callback((Fl_Callback*)cb_repeat_every);
+		cbo_repeat_every->end();
+
+		txt_repeat_times = new Fl_Input2(X+10, y+=42, W -X -20, 20, "Xmt times (HHMM)");
+		txt_repeat_times->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+		txt_repeat_times->tooltip(_("Space/comma delimited times"));
+		txt_repeat_times->callback((Fl_Callback*)cb_repeat_times);
+		txt_repeat_times->when(FL_WHEN_CHANGED);
+		txt_repeat_times->value(progStatus.repeat_times.c_str());
+
+		Timed_Repeat_grp->end();
+
+		Fl_Group* Continuous_Events_grp = new Fl_Group(X+4, y+=70, W-2*(X+4), 36, _("Continuous repeat"));
+		Continuous_Events_grp->box(FL_ENGRAVED_BOX);
+		Continuous_Events_grp->align(FL_ALIGN_TOP | FL_ALIGN_LEFT);
+
+		btn_repeat_forever = new Fl_Check_Button(X+20, y+8, 20, 20,
+										_("Continuous repeat of transmission"));
+		btn_repeat_forever->tooltip("");
+		btn_repeat_forever->align(FL_ALIGN_RIGHT);
+		btn_repeat_forever->down_box(FL_DOWN_BOX);
+		btn_repeat_forever->callback((Fl_Callback*)cb_repeat_forever);
+		btn_repeat_forever->value(progStatus.repeat_forever);
+
+		Continuous_Events_grp->end();
+
+		outTimeValue = new Fl_Output(X+20, y+=52, 70, 24, "");
+		outTimeValue->box(FL_DOWN_BOX);
+		outTimeValue->color(fl_rgb_color(255, 250, 205));
+		outTimeValue->value("");
+
+		do_events = new Fl_Light_Button(X+100, y, 120, 24, _("Start Events"));
+		do_events->callback((Fl_Callback*)cb_do_events);
+
+	Timed_Events_tab->end();
+
+	Fl_Group *Config_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Configure"));
 
 		y += 10;
 		txt_tx_mycall = new Fl_Input2(X+70, y, 150, 20, _("Callsign"));
@@ -505,41 +633,44 @@ Fl_Double_Window* flamp_dialog() {
 		txt_tx_myinfo->tooltip(_("QTH etc. of transmitting station"));
 		txt_tx_myinfo->callback((Fl_Callback*)cb_tx_myinfo);
 
-		btn_sync_mode_flamp_fldigi = new Fl_Check_Button(X+70, y+=52, 20, 20, 
+		btn_sync_mode_flamp_fldigi = new Fl_Check_Button(X+70, y+=52, 20, 20,
 										_("Auto sync fldigi to flamp mode selector"));
-		btn_sync_mode_flamp_fldigi->tooltip(_(""));
+		btn_sync_mode_flamp_fldigi->tooltip("");
 		btn_sync_mode_flamp_fldigi->align(FL_ALIGN_RIGHT);
 		btn_sync_mode_flamp_fldigi->down_box(FL_DOWN_BOX);
 		btn_sync_mode_flamp_fldigi->callback((Fl_Callback*)cb_sync_mode_flamp_fldigi);
 		btn_sync_mode_flamp_fldigi->value(progStatus.sync_mode_flamp_fldigi);
 
-		btn_sync_mode_fldigi_flamp = new Fl_Check_Button(X+70, y+=26, 20, 20, 
+		btn_sync_mode_fldigi_flamp = new Fl_Check_Button(X+70, y+=26, 20, 20,
 										_("Auto sync flamp to fldigi mode selector"));
-		btn_sync_mode_fldigi_flamp->tooltip(_(""));
+		btn_sync_mode_fldigi_flamp->tooltip("");
 		btn_sync_mode_fldigi_flamp->align(FL_ALIGN_RIGHT);
 		btn_sync_mode_fldigi_flamp->down_box(FL_DOWN_BOX);
 		btn_sync_mode_fldigi_flamp->callback((Fl_Callback*)cb_sync_mode_fldigi_flamp);
 		btn_sync_mode_fldigi_flamp->value(progStatus.sync_mode_fldigi_flamp);
 
-		btn_fldigi_xmt_mode_change = new Fl_Check_Button(X+70, y+=26, 20, 20, 
+		btn_fldigi_xmt_mode_change = new Fl_Check_Button(X+70, y+=26, 20, 20,
 										_("Change fldigi mode just prior to transmit"));
-		btn_fldigi_xmt_mode_change->tooltip(_(""));
+		btn_fldigi_xmt_mode_change->tooltip("");
 		btn_fldigi_xmt_mode_change->align(FL_ALIGN_RIGHT);
 		btn_fldigi_xmt_mode_change->down_box(FL_DOWN_BOX);
 		btn_fldigi_xmt_mode_change->callback((Fl_Callback*)cb_fldigi_xmt_mode_change);
 		btn_fldigi_xmt_mode_change->value(progStatus.fldigi_xmt_mode_change);
 
-	config_grp->end();
+	Config_tab->end();
 
-	tabs->add(rxgrp);
-	tabs->add(txgrp);
-	tabs->add(config_grp);
+	tabs->add(Rx_tab);
+	tabs->add(Tx_tab);
+	tabs->add(Timed_Events_tab);
+	tabs->add(Config_tab);
 
 	tabs->end();
 	w->end();
 
 	init_encoders();
 	init_cbo_modes();
+	init_cbo_events();
 
 	return w;
 }
+

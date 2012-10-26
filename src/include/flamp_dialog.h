@@ -62,6 +62,15 @@ extern Fl_Input2* txt_tx_descrip;
 extern Fl_Input2* txt_tx_selected_blocks;
 extern Fl_Output* txt_tx_numblocks;
 
+extern Fl_Check_Button* btn_repeat_at_times;
+extern Fl_ComboBox*     cbo_repeat_every;
+extern Fl_Input2*       txt_repeat_times;
+extern Fl_Check_Button* btn_repeat_forever;
+extern Fl_Light_Button* do_events;
+extern Fl_Output* outTimeValue;
+
+extern void cb_do_events(Fl_Light_Button *b, void*);
+
 extern Fl_Check_Button* btn_use_compression;
 extern Fl_ComboBox* encoders;
 extern Fl_ComboBox* cbo_modes;

@@ -55,6 +55,7 @@ extern void show_selected_xmt(int);
 extern void show_selected_rcv(int);
 extern void update_selected_xmt();
 extern void estimate();
+extern void transmit_queued();
 
 extern void send_missing_report();
 extern void recv_missing_report();

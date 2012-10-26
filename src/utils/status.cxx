@@ -50,8 +50,12 @@ status progStatus = {
 
 	false,			// bool sync_mode_flamp_fldigi;
 	false,			// bool sync_mode_fldigi_flamp;
-	false			// bool fldigi_xmt_mode_change;
+	false,			// bool fldigi_xmt_mode_change;
 
+	1,				// int repeat_every;
+	false,			// bool repeat_at_times;
+	"",				// string repeat_times;
+	false,			// bool repeat_at_times;
 };
 
 void status::saveLastState()
@@ -87,6 +91,11 @@ void status::saveLastState()
 	FLAMPpref.set("sync_mode_fldigi_flamp", sync_mode_fldigi_flamp);
 	FLAMPpref.set("fldigi_xmt_mode_change", fldigi_xmt_mode_change);
 
+	FLAMPpref.set("repeat_every", repeat_every);
+	FLAMPpref.set("repeat_at_times", repeat_at_times);
+	FLAMPpref.set("repeat_times", repeat_times.c_str());
+
+	FLAMPpref.set("repeat_forever", repeat_forever);
 }
 
 void status::loadLastState()
@@ -134,6 +143,15 @@ void status::loadLastState()
 		fldigi_xmt_mode_change = i;
 
 		FLAMPpref.get("encoder", encoder, encoder);
+
+		FLAMPpref.get("repeat_every", repeat_every, repeat_every);
+		FLAMPpref.get("repeat_at_times", i, repeat_at_times);
+		repeat_at_times = i;
+		FLAMPpref.get("repeat_times", defbuffer, repeat_times.c_str());
+		repeat_times = defbuffer; free(defbuffer);
+		FLAMPpref.get("repeat_forever", i, repeat_forever);
+		repeat_forever = i;
+
 	} 
 }
 

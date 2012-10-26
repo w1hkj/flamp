@@ -169,6 +169,108 @@ void make_pixmap(Pixmap *xpm, const char **data)
 
 #endif
 
+static char szoutTimeValue[] = "12:30:00";
+static char sztime[] = "123000";
+static int  ztime;
+
+void ztimer(void* first_call)
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+
+	if (first_call) {
+		double st = 1.0 - tv.tv_usec / 1e6;
+		Fl::repeat_timeout(st, ztimer);
+	} else
+		Fl::repeat_timeout(1.0, ztimer);
+
+	struct tm tm;
+	time_t t_temp;
+
+	t_temp=(time_t)tv.tv_sec;
+	gmtime_r(&t_temp, &tm);
+
+	if (!strftime(sztime, sizeof(sztime), "%H%M%S", &tm))
+		strcpy(sztime, "000000");
+	ztime = atoi(sztime);
+
+	if (!strftime(szoutTimeValue, sizeof(szoutTimeValue), "%H:%M:%S", &tm))
+		memset(szoutTimeValue, 0, sizeof(szoutTimeValue));
+
+	outTimeValue->value(szoutTimeValue);
+
+	if (do_events->value()) {
+		if (progStatus.repeat_at_times && (ztime % 100 == 0)) {
+			switch (progStatus.repeat_every) {
+				case 0 : // every 5 minutes
+					if (ztime % 500 == 0) transmit_queued();
+					break;
+				case 1 : // every 15 minutes
+					if (ztime % 1500 == 0) transmit_queued();
+					break;
+				case 2 : // every 30 minutes
+					if (ztime % 3000 == 0) transmit_queued();
+					break;
+				case 3 : // hourly
+					if (ztime % 10000 == 0) transmit_queued();
+					break;
+				case 4 : // even hours
+					if (ztime == 0 || ztime == 20000 || ztime == 40000 ||
+						ztime == 60000 || ztime == 80000 || ztime == 100000 ||
+						ztime == 120000 || ztime == 140000 || ztime == 160000 ||
+						ztime == 180000 || ztime == 200000 || ztime == 220000 )
+						transmit_queued();
+					break;
+				case 5 : // odd hours
+					if (ztime == 10000 || ztime == 30000 || ztime == 50000 ||
+						ztime == 70000 || ztime == 90000 || ztime == 110000 ||
+						ztime == 130000 || ztime == 150000 || ztime == 170000 ||
+						ztime == 190000 || ztime == 210000 || ztime == 230000 )
+						transmit_queued();
+					break;
+				case 6 : // at specified times
+					{
+						char ttime[] = "000000";
+						snprintf(ttime, sizeof(ttime), "%06d", ztime);
+						ttime[4] = 0;
+						if (progStatus.repeat_times.find(ttime) != std::string::npos)
+							transmit_queued();
+					}
+					break;
+				case 7 : // One time scheduled
+					{
+						char ttime[] = "000000";
+						snprintf(ttime, sizeof(ttime), "%06d", ztime);
+						ttime[4] = 0;
+						if (progStatus.repeat_times.find(ttime) != std::string::npos) {
+							transmit_queued();
+							size_t p = progStatus.repeat_times.find(ttime);
+							int len = 4;
+							while ((p + len < progStatus.repeat_times.length()) && 
+									!isdigit(progStatus.repeat_times[p + len])) len++;
+							progStatus.repeat_times.erase(p, len);
+							txt_repeat_times->value(progStatus.repeat_times.c_str());
+							if (progStatus.repeat_times.empty()) {
+								do_events->value(0);
+								cb_do_events((Fl_Light_Button *)0, (void*)0);
+							}
+						}
+					}
+					break;
+				default : // do nothing
+					break;
+			}
+		} else if (progStatus.repeat_forever) {
+			try {
+				if (get_trx_state() == "RX")
+					transmit_queued();
+			}
+			catch (...) {
+			}
+		}
+	}
+}
+
 #if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 int default_handler(int event)
 {
@@ -495,6 +597,8 @@ void transmit_current()
 
 void transmit_queued()
 {
+	if (tx_array.size() == 0) return;
+
 	if (progStatus.fldigi_xmt_mode_change)
 		send_new_modem();
 
@@ -812,11 +916,14 @@ int main(int argc, char *argv[])
 	tx_buffer.clear();
 	rx_buffer.clear();
 
+	ztimer((void *)true);
+
 	Fl::add_timeout(0.10, doloop);
 
 	return Fl::run();
 
 }
+
 
 /*
 void cb_config_socket()

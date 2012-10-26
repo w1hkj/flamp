@@ -34,14 +34,15 @@ using XmlRpc::XmlRpcValue;
 static const double TIMEOUT = 1.0;
 
 // these are get only
-static const char* modem_get_name       = "modem.get_name";
-static const char* modem_get_names      = "modem.get_names";
+static const char* modem_get_name		= "modem.get_name";
+static const char* modem_get_names		= "modem.get_names";
 
 // these are set only
-static const char* modem_set_by_name    = "modem.set_by_name";
-static const char* text_clear_tx = "text.clear_tx";
-static const char* text_add_tx = "text.add_tx";
-static const char* text_get_rx = "rx.get_data";
+static const char* modem_set_by_name	= "modem.set_by_name";
+static const char* text_clear_tx		= "text.clear_tx";
+static const char* text_add_tx			= "text.add_tx";
+static const char* text_get_rx			= "rx.get_data";
+static const char* main_get_trx_state	= "main.get_trx_state";
 
 static XmlRpc::XmlRpcClient* client;
 
@@ -124,6 +125,22 @@ static void set_combo(void *str)
 		progStatus.selected_mode = cbo_modes->index();
  		estimate();
  	}
+}
+
+string get_trx_state()
+{
+	XmlRpcValue status;
+	XmlRpcValue query;
+	static string response;
+	try {
+		execute(main_get_trx_state, query, status);
+		string resp = status;
+		response = resp;
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s", e.getMessage().c_str());
+		throw;
+	}
+	return response;
 }
 
 string get_rx_data()
