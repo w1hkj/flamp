@@ -459,7 +459,7 @@ void recv_missing_report()
 	string rx_data;
 	try {
 		rx_data = get_rx_data();
-		printf("%s\n", rx_data.c_str());
+		LOG_DEBUG("%s", rx_data.c_str());
 	} catch (...) {
 		return;
 	}
