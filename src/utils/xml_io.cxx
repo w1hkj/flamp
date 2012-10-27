@@ -48,6 +48,7 @@ static XmlRpc::XmlRpcClient* client;
 
 #define XMLRPC_UPDATE_INTERVAL  200
 #define XMLRPC_UPDATE_AFTER_WRITE 1000
+#define XMLRPC_RETRY_INTERVAL 2000
 
 //=====================================================================
 // socket ops
@@ -177,12 +178,12 @@ static void get_fldigi_modem()
 			Fl::awake(set_combo, (void *)response.c_str());
 		}
 	} catch (const XmlRpc::XmlRpcException& e) {
-		LOG_ERROR("%s", e.getMessage().c_str());
 		throw;
 	}
 }
 
 bool fldigi_online = false;
+bool logerr = true;
 
 static void get_fldigi_modems()
 {
@@ -195,8 +196,8 @@ static void get_fldigi_modems()
 		}
 		update_cbo_modes(fldigi_modes);
 		fldigi_online = true;
+		logerr = true;
 	} catch (const XmlRpc::XmlRpcException& e) {
-		LOG_ERROR("%s", e.getMessage().c_str());
 		throw;
 	}
 }
@@ -212,8 +213,12 @@ void * xmlrpc_loop(void *d)
 			else
 				get_fldigi_modems();
 		} catch (const XmlRpc::XmlRpcException& e) {
-//			LOG_ERROR("%s", e.getMessage().c_str());
+			if (logerr) {
+				LOG_ERROR("%s", e.getMessage().c_str());
+				logerr = false;
+			}
 			fldigi_online = false;
+			update_interval = XMLRPC_RETRY_INTERVAL;
 		}
 		pthread_mutex_unlock(&mutex_xmlrpc);
 		MilliSleep(update_interval);

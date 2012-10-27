@@ -854,6 +854,36 @@ void exit_main(Fl_Widget *w)
 
 int main(int argc, char *argv[])
 {
+	string appname = argv[0];
+	{
+		string appdir;
+		char apptemp[FL_PATH_MAX];
+		fl_filename_expand(apptemp, sizeof(apptemp), appname.c_str());
+		appdir.assign(apptemp);
+
+#ifdef __WOE32__
+		size_t p = appdir.rfind("flamp.exe");
+		appdir.erase(p);
+#else
+		size_t p = appdir.rfind("flamp");
+		if (appdir.find("./flamp") != std::string::npos) {
+			if (getcwd(apptemp, sizeof(apptemp)))
+				appdir.assign(apptemp).append("/");
+		} else
+			appdir.erase(p);
+#endif
+
+		if (p != std::string::npos) {
+			string testfile;
+			testfile.assign(appdir).append("NBEMS.DIR");
+			FILE *testdir = fopen(testfile.c_str(),"r");
+			if (testdir) {
+				fclose(testdir);
+				BaseDir = appdir;
+			}
+		}
+	}
+
 	int arg_idx;
 	if (Fl::args(argc, argv, arg_idx, parse_args) != argc) {
 		return 0;
@@ -868,6 +898,9 @@ int main(int argc, char *argv[])
 	string debug_file = flampHomeDir;
 	debug_file.append("debug_log.txt");
 	debug::start(debug_file.c_str());
+
+	LOG_INFO("Application: %s", appname.c_str());
+	LOG_INFO("Base dir: %s", BaseDir.c_str());
 
 	main_window = flamp_dialog();
 	main_window->resize( progStatus.mainX, progStatus.mainY, main_window->w(), main_window->h());
