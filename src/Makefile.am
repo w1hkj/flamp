@@ -239,6 +239,7 @@ EXTRA_DIST = \
 
 # Additional source files that support non-Linux cross compilation
 EXTRA_DIST += \
+	$(srcdir)/../ChangeLog \
 	$(srcdir)/../data/flamp.desktop \
 	$(srcdir)/../data/flamp.xpm \
 	$(srcdir)/../data/flamp.png \
