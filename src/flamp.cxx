@@ -965,11 +965,7 @@ void cb_config_socket()
 	txt_socket_port->value(progStatus.socket_port.c_str());
 	socket_window->show();
 }
-
-void show_help()
-{
-	open_url("http://www.w1hkj.com/flamp-help/index.html");
-}
+*/
 
 void open_url(const char* url)
 {
@@ -1009,4 +1005,9 @@ LOG_INFO("%s", url);
 		fl_alert2(_("Could not open url:\n%s\n"), url);
 #endif
 }
-*/
+
+void show_help()
+{
+	open_url("http://www.w1hkj.com/flamp-help/index.html");
+}
+
