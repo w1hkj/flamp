@@ -49,7 +49,9 @@ extern string buffer;
 
 extern void cb_exit();
 extern void cb_folders();
+extern void addfile(string);
 extern void readfile();
+extern void drop_file_changed();
 extern void writefile();
 extern void tx_removefile();
 extern void show_selected_xmt(int);

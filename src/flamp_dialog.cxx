@@ -64,6 +64,7 @@ Fl_Output*   txt_transfer_size_time = 0;
 Fl_Output*   txt_tx_numblocks = 0;
 Fl_Output*   txt_tx_filename = 0;
 Fl_Input2*   txt_tx_descrip = 0;
+Fl_Input*    drop_file = 0;
 Fl_Hold_Browser* tx_queue = 0;
 
 Fl_Button* btn_save_file = 0;
@@ -376,6 +377,10 @@ void cb_repeat_forever(Fl_Check_Button *b, void *)
 	}
 }
 
+static void cb_drop_file(Fl_Input*, void*) {
+  drop_file_changed();
+}
+
 void cb_do_events(Fl_Light_Button *b, void*)
 {
 	if (do_events->value() == 1) {
@@ -560,21 +565,34 @@ Fl_Double_Window* flamp_dialog() {
 		txt_transfer_size_time->tooltip(_("Transfer size / time"));
 		txt_transfer_size_time->value("");
 
-		btn_send_file = new Fl_Button(W - 350, y+=26, 80, 20, _("Xmt"));
+		btn_send_file = new Fl_Button(W - 370, y+=25, 70, 22, _("Xmt"));
 		btn_send_file->callback((Fl_Callback*)cb_btn_send_file);
 		btn_send_file->tooltip(_("Transmit this file"));
 
-		btn_send_queue = new Fl_Button(W - 268, y, 80, 20, _("Xmt All"));
+		btn_send_queue = new Fl_Button(W - 370 + 76, y, 70, 22, _("Xmt All"));
 		btn_send_queue->callback((Fl_Callback*)cb_btn_send_queue);
 		btn_send_queue->tooltip(_("Transmit entire queue"));
 
-		btn_tx_remove_file = new Fl_Button(W - 172, y, 80, 20, _("Remove"));
+		btn_tx_remove_file = new Fl_Button(W -370 + 2*76, y, 70, 22, _("Remove"));
 		btn_tx_remove_file->callback((Fl_Callback*)cb_btn_tx_remove_file);
 		btn_tx_remove_file->tooltip(_("Remove highlighted file from transmit queue"));
 
-		btn_open_file = new Fl_Button(W - 88, y, 80, 20, _("Add"));
+		btn_open_file = new Fl_Button(W - 370 + 3*76, y, 70, 22, _("Add"));
 		btn_open_file->callback((Fl_Callback*)cb_btn_open_file);
 		btn_open_file->tooltip(_("Select file to add to queue"));
+
+		drop_file = new Fl_Input(W - 370 + 4*76, y - 2, 50, 24);
+		drop_file->box(FL_OVAL_BOX);
+		drop_file->textcolor(fl_rgb_color( 200, 0, 0) );
+		drop_file->value("  DnD");
+		drop_file->color(fl_rgb_color(244, 255, 255));
+		drop_file->cursor_color(fl_rgb_color(244, 255, 255));
+		drop_file->label("");
+		drop_file->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE);
+		drop_file->labelcolor(fl_rgb_color( 200, 0, 0) );
+		drop_file->tooltip(_("drag and drop tx queue files here ..."));
+		drop_file->callback((Fl_Callback*)cb_drop_file);
+		drop_file->when(FL_WHEN_CHANGED);
 
 		tx_queue = new Fl_Hold_Browser(8, y+=26, W-16, H-y-6, _("Transmit Queue"));
 		tx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);

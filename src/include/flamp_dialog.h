@@ -62,6 +62,7 @@ extern Fl_Output* txt_tx_filename;
 extern Fl_Input2* txt_tx_descrip;
 extern Fl_Input2* txt_tx_selected_blocks;
 extern Fl_Output* txt_tx_numblocks;
+extern Fl_Input*  drop_file;
 
 extern Fl_Check_Button* btn_repeat_at_times;
 extern Fl_ComboBox*     cbo_repeat_every;

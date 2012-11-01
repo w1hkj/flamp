@@ -331,15 +331,9 @@ void checkdirectories(void)
 
 }
 
-void readfile()
+void addfile(string xmtfname)
 {
-	xmt_fname.clear();
-	const char *p = FSEL::select(_("Open file"), "any file\t*.*",
-					xmt_fname.c_str());
-	if (!p) return;
-	if (strlen(p) == 0) return;
-	xmt_fname = p;
-
+	xmt_fname = xmtfname;
 	FILE *dfile = fopen(xmt_fname.c_str(), "rb");
 	if (!dfile) {
 		LOG_ERROR("could not open read/binary %s", xmt_fname.c_str());
@@ -373,6 +367,19 @@ void readfile()
 	tx_queue->select(tx_queue->size());
 	tx_amp = nu;
 	estimate();
+}
+
+void readfile()
+{
+	string xmtfname;
+	xmtfname.clear();
+	const char *p = FSEL::select(_("Open file"), "any file\t*.*",
+					xmtfname.c_str());
+	if (!p) return;
+	if (strlen(p) == 0) return;
+	xmtfname = p;
+
+	addfile(xmtfname);
 }
 
 void show_selected_xmt(int n)
@@ -1021,3 +1028,19 @@ void cb_folders()
 	open_url(flampHomeDir.c_str());
 }
 
+void drop_file_changed()
+{
+	string buffer = Fl::event_text();
+	size_t n;
+	drop_file->value("  DnD");
+	drop_file->redraw();
+	if ((n = buffer.find("file:///")) != string::npos)
+		buffer.erase(0, n + 7);
+	if ((buffer.find(":\\")) != string::npos || (buffer.find("/") == 0)) {
+		while ((n = buffer.find('\n')) != string::npos)
+			buffer.erase(n, 1);
+		while ((n = buffer.find('\r')) != string::npos)
+			buffer.erase(n, 1);
+		addfile(buffer.c_str());
+	}
+}
