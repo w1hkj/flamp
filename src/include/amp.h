@@ -44,6 +44,7 @@ private:
 	int xmtnumblocks;
 	int xmtblocksize;
 	int xmt_repeat; // repeat n time; default 1
+	int repeat_header; // repeat header; default 1
 	int blocksize;
 	int fsize;
 
@@ -119,10 +120,11 @@ public:
 
 	void time_stamp(time_t *tm = NULL);
 
-	void repeat(int n) {
-		xmt_repeat = n;
-	}
+	void repeat(int n) { xmt_repeat = n; }
 	int repeat() { return xmt_repeat; }
+
+	void header_repeat(int n) { repeat_header = n; }
+	int header_repeat() { return repeat_header; }
 
 	void tx_parse_report(std::string s);
 

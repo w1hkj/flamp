@@ -586,6 +586,8 @@ void transmit_current()
 	compress_maybe(temp, tx->compress());//true);
 	tx->xmt_data(temp);
 	tx->repeat(progStatus.repeatNN);
+	tx->header_repeat(progStatus.repeat_header);
+
 	autosend.append(tx->xmt_string());
 
 	autosend.append(send_to).append(" K\n");
@@ -625,6 +627,7 @@ void transmit_queued()
 		compress_maybe(temp, tx->compress());//true);
 		tx->xmt_data(temp);
 		tx->repeat(progStatus.repeatNN);
+		tx->header_repeat(progStatus.repeat_header);
 		autosend.append(tx->xmt_string()).append("\n");
 	}
 
@@ -776,6 +779,7 @@ void estimate() {
 	compress_maybe(temp, tx->compress());//true);
 	tx->xmt_data(temp);
 	tx->repeat(progStatus.repeatNN);
+	tx->header_repeat(progStatus.repeat_header);
 
 	string xmtstr = tx->xmt_string();
 	transfer_size = xmtstr.length();
@@ -945,6 +949,7 @@ int main(int argc, char *argv[])
 
 	cnt_blocksize->value(progStatus.blocksize);
 	cnt_repeat_nbr->value(progStatus.repeatNN);
+	cnt_repeat_header->value(progStatus.repeat_header);
 
 	tx_buffer.clear();
 	rx_buffer.clear();

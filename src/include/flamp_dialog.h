@@ -52,6 +52,7 @@ extern FTextView* txt_rx_output;
 
 extern Fl_Simple_Counter * cnt_blocksize;
 extern Fl_Simple_Counter * cnt_repeat_nbr;
+extern Fl_Simple_Counter * cnt_repeat_header;
 
 extern Fl_Input2* txt_tx_mycall;
 extern Fl_Input2* txt_tx_myinfo;

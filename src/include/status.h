@@ -41,6 +41,7 @@ struct status {
 
 	int blocksize;
 	int repeatNN;
+	int repeat_header;
 
 	bool sync_mode_flamp_fldigi;
 	bool sync_mode_fldigi_flamp;

@@ -47,6 +47,7 @@ status progStatus = {
 	1,				// selected_mode
 	64,				// blocksize
 	1,				// repeatNN
+	1,				// repeat_header
 
 	false,			// bool sync_mode_flamp_fldigi;
 	false,			// bool sync_mode_fldigi_flamp;
@@ -84,6 +85,7 @@ void status::saveLastState()
 	FLAMPpref.set("xmlrpc_port", xmlrpc_port.c_str());
 	FLAMPpref.set("blocksize", blocksize);
 	FLAMPpref.set("repeatNN", repeatNN);
+	FLAMPpref.set("repeat_header", repeat_header);
 	FLAMPpref.set("selected_mode", selected_mode);
 	FLAMPpref.set("compression", use_compression);
 	FLAMPpref.set("encoder", encoder);
@@ -126,6 +128,7 @@ void status::loadLastState()
 
 		FLAMPpref.get("blocksize", blocksize, blocksize);
 		FLAMPpref.get("repeatNN", repeatNN, repeatNN);
+		FLAMPpref.get("repeat_header", repeat_header, repeat_header);
 
 		FLAMPpref.get("selected_mode", selected_mode, selected_mode);
 

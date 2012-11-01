@@ -55,6 +55,7 @@ Fl_Input2* txt_tx_myinfo = 0;
 Fl_Input2* txt_tx_send_to = 0;
 Fl_Simple_Counter* cnt_blocksize = 0;
 Fl_Simple_Counter* cnt_repeat_nbr = 0;
+Fl_Simple_Counter* cnt_repeat_header = 0;
 
 Fl_Check_Button* btn_use_compression = 0;
 Fl_ComboBox* encoders = 0;
@@ -291,6 +292,11 @@ static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 	estimate();
 }
 
+static void cb_repeat_header(Fl_Button*, void*) {
+	progStatus.repeat_header = (int)cnt_repeat_header->value();
+	estimate();
+}
+
 void cb_use_compression()
 {
 	progStatus.use_compression = btn_use_compression->value();
@@ -467,7 +473,7 @@ Fl_Double_Window* flamp_dialog() {
 		txt_tx_descrip->tooltip(_("Short description of file contents"));
 		txt_tx_descrip->callback((Fl_Callback*)cb_tx_descrip);
 
-		cnt_blocksize = new Fl_Simple_Counter(X+70, y+=26, 80, 20, _("Blk size"));
+		cnt_blocksize = new Fl_Simple_Counter(X+70, y+=26, 60, 20, _("Blk size"));
 		cnt_blocksize->step(16);
 		cnt_blocksize->value(64);
 		cnt_blocksize->minimum(16);
@@ -476,7 +482,7 @@ Fl_Double_Window* flamp_dialog() {
 		cnt_blocksize->callback((Fl_Callback*)cb_cnt_blocksize);
 		cnt_blocksize->tooltip(_("Maximum size of each data block"));
 
-		cnt_repeat_nbr = new Fl_Simple_Counter(X+70+80+65, y, 80, 20, _("Repeat"));
+		cnt_repeat_nbr = new Fl_Simple_Counter(X+70+60+65, y, 60, 20, _("Xmt Rpt"));
 		cnt_repeat_nbr->step(1);
 		cnt_repeat_nbr->value(1);
 		cnt_repeat_nbr->minimum(1);
@@ -485,7 +491,16 @@ Fl_Double_Window* flamp_dialog() {
 		cnt_repeat_nbr->callback((Fl_Callback*)cb_cnt_repeat_nbr);
 		cnt_repeat_nbr->tooltip(_("Repeat transmission specified # times"));
 
-		txt_tx_numblocks = new Fl_Output(400, y, 92, 20, "# blocks");
+		cnt_repeat_header = new Fl_Simple_Counter(X+70+60+65+60+65, y, 60, 20, _("Hdr Rpt"));
+		cnt_repeat_header->step(1);
+		cnt_repeat_header->value(1);
+		cnt_repeat_header->minimum(1);
+		cnt_repeat_header->maximum(10);
+		cnt_repeat_header->align(FL_ALIGN_LEFT);
+		cnt_repeat_header->callback((Fl_Callback*)cb_repeat_header);
+		cnt_repeat_header->tooltip(_("Repeat header #-times/transmission"));
+
+		txt_tx_numblocks = new Fl_Output(W-10-50, y, 50, 20, "# Bks");
 		txt_tx_numblocks->align(FL_ALIGN_LEFT);
 		txt_tx_numblocks->tooltip(_("Transfer size in blocks"));
 		txt_tx_numblocks->value("");

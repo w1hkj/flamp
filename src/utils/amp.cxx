@@ -35,6 +35,7 @@ cAmp::cAmp(std::string str, std::string fname)
 	xmtblocksize = 64;
 	xmtdesc = "";
 	xmt_repeat = 1;
+	repeat_header = 1;
 	fsize = xmtdata.length();
 	xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
 
@@ -68,6 +69,8 @@ void cAmp::clear_rx()
 
 std::string cAmp::xmt_string() {
 	std::string temp;
+	std::string fileline;
+	std::string statsline;
 	std::string fstring; // file strings
 	xmtstring.clear();
 
@@ -75,18 +78,23 @@ std::string cAmp::xmt_string() {
 	xmtstring.append(ltypes[_PROG]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	xmtstring.append(">").append(temp).append(nuline);
 
-	temp.assign(xmtdttm).append(":").append(xmtfilename);
-	xmthash = chksum.scrc16(temp);
-	fstring.append(ltypes[_FILE]).append(sz_len(temp)).append(" ").append(xmthash);
-	fstring.append(">").append(temp).append(nuline);
-
 	temp.assign(xmtcall).append(" ").append(xmtinfo);
 	fstring.append(ltypes[_ID]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	fstring.append(">").append(temp).append(nuline);
 
+	temp.assign(xmtdttm).append(":").append(xmtfilename);
+	xmthash = chksum.scrc16(temp);
+	fileline.assign(ltypes[_FILE]).append(sz_len(temp)).append(" ").append(xmthash);
+	fileline.append(">").append(temp).append(nuline);
+
 	temp.assign("{").append(xmthash).append("}").append(sz_size());
-	fstring.append(ltypes[_SIZE]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
-	fstring.append(">").append(temp).append(nuline);
+	statsline.assign(ltypes[_SIZE]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
+	statsline.append(">").append(temp).append(nuline);
+
+	for (int i = 0; i < repeat_header; i++) {
+		fstring.append(fileline);
+		fstring.append(statsline);
+	}
 
 	temp.assign("{").append(xmthash).append("}").append(xmtdesc);
 	if (!xmtdesc.empty()) {
