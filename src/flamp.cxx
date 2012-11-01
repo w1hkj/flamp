@@ -1016,3 +1016,8 @@ void show_help()
 	open_url("http://www.w1hkj.com/flamp-help/index.html");
 }
 
+void cb_folders()
+{
+	open_url(flampHomeDir.c_str());
+}
+

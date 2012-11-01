@@ -200,8 +200,13 @@ static void cb_mnuOnLineHelp(Fl_Menu_*, void*) {
   show_help();
 }
 
+static void cb_mnu_folders(Fl_Menu_*, void*) {
+  cb_folders();
+}
+
 Fl_Menu_Item menu_[] = {
  {_("&File"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {_("&Folders"), 0, (Fl_Callback*)cb_mnu_folders, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
  {_("E&xit"), 0x40078,  (Fl_Callback*)cb_mnuExit, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},

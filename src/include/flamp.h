@@ -48,6 +48,7 @@ extern string flamp_dir;
 extern string buffer;
 
 extern void cb_exit();
+extern void cb_folders();
 extern void readfile();
 extern void writefile();
 extern void tx_removefile();
