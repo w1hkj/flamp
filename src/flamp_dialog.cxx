@@ -261,6 +261,14 @@ static void cb_btn_parse_blocks(Fl_Button*, void*)
 
 static void cb_tx_queue(Fl_Hold_Browser *hb, void*)
 {
+	if (tx_queue->value() == 0) {
+		txt_tx_filename->value("");
+		txt_tx_descrip->value("");
+		txt_tx_selected_blocks->value("");
+		txt_tx_numblocks->value("");
+		txt_transfer_size_time->value("");
+		return;
+	}
 	estimate();
 }
 
