@@ -323,11 +323,16 @@ void connect_to_fldigi(void *)
 		tcpip = new Socket (*localaddr);
 		tcpip->set_timeout(0.01);
 		tcpip->connect();
+		LOG_INFO("Connected to %d", tcpip->fd());
 	}
 	catch (const SocketException& e) {
-		if (tcpip) { delete tcpip; tcpip = (Socket *)0; }
+		if (tcpip) { 
+			tcpip->close();
+			delete tcpip;
+			tcpip = (Socket *)0;
+		}
 		if (localaddr) { delete localaddr; localaddr = (Address *)0; }
-//		fprintf(stderr,"Could not connect to fldigi\n");
+//		LOG_ERROR("%s", "Could not connect to fldigi");
 	}
 }
 
@@ -338,8 +343,12 @@ void send_via_fldigi(string tosend)
 		tcpip->send(tosend.c_str());
 	}
 	catch (const SocketException& e) {
-		cerr << "Socket error " << e.error() << " " << e.what() << "\n";
-		if (tcpip) { delete tcpip; tcpip = (Socket *)0; }
+		LOG_ERROR("Socket error %d, %s", e.error(), e.what());
+		if (tcpip) {
+			tcpip->close();
+			delete tcpip;
+			tcpip = (Socket *)0;
+		}
 		if (localaddr) { delete localaddr; localaddr = (Address *)0; }
 		Fl::add_timeout(1.0, connect_to_fldigi);
 	}
@@ -352,14 +361,13 @@ int rx_fldigi(std::string &retbuff)
 {
 	try {
 		rx_buff.clear();
-		tcpip->set_nonblocking(true);
+		tcpip->set_nonblocking();
 		tcpip->recv(rx_buff);
-		tcpip->set_nonblocking(false);
 		retbuff = rx_buff;
 		return rx_buff.length();
 	}
 	catch (const SocketException& e) {
-		cerr << e.what() << '\n';
+		LOG_ERROR("%s", e.what());
 	}
 	return 0;
 }

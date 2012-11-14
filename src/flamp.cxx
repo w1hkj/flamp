@@ -852,6 +852,11 @@ void cb_exit()
 		delete amp;
 		rx_array.pop_back();
 	}
+	if (tcpip) {
+		tcpip->close();
+		delete tcpip;
+		delete localaddr;
+	}
 	debug::stop();
 	exit(0);
 }
