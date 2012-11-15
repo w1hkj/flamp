@@ -1,8 +1,19 @@
 
 
-=Version 1.0.0=
+=Version 1.0.01=
 
-2012-10-31  David Freese  <w1hkj@w1hkj.com>
+2012-11-14  David Freese  <w1hkj@w1hkj.com>
+
+	6383a21: MODES
+	7be9727: ARQ mod
+	11c50fa: Documentation update
+	0f75c6e: Drag-N-Drop
+	5c32740: Menu Folder
+	e6ca0f4: Tx Queue deselect
+	58c54dd: Repeat Critical
+
+
+=Version 1.0.0=
 
 	66084a5: On Line Help
 	1454965: MS NBEMSapps
