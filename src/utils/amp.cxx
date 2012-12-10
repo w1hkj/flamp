@@ -373,8 +373,9 @@ void cAmp::tx_parse_report(std::string s)
 
 	while (p != std::string::npos) {
 		if (p > 0) report_buffer.erase(0, p);
-		if (sscanf(report_buffer.substr(strlen(sz_missing)).c_str(), "%d %4s", &len, crc) == 2) {
-			p1 = report_buffer.find(">", strlen(sz_missing));
+		report_buffer.erase(0, strlen(sz_missing));
+		if (sscanf(report_buffer.c_str(), "%d %4s", &len, crc) == 2) {
+			p1 = report_buffer.find(">");
 			if (p1 != std::string::npos) {
 				if (report_buffer.length() >= p1 + 1 + len) {
 					string data = report_buffer.substr(p1 + 1, len);
@@ -387,7 +388,7 @@ void cAmp::tx_parse_report(std::string s)
 				}
 			}
 		}
-		p = report_buffer.find(sz_missing, p + 2);
+		p = report_buffer.find(sz_missing);
 	}
 // convert the updated tosend string to a vector of integers
 // removing any duplicate values in the process
