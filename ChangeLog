@@ -1,8 +1,42 @@
+2013-05-05  Robert Stiles  <kk5vd@yahoo.com>
+
+	9116c90: Filter Null Characters from CirQue Buffer
+	06f9138: adjustReadQueIndex() index error on buffer count of 0
+	bc5453c: Correct naming conflict between class/local
+
+2013-05-02  David Freese  <w1hkj@w1hkj.com>
+
+	90a73de: MT63 mode descriptors
+
+2013-05-02  Robert Stiles  <kk5vd@yahoo.com>
+
+	539cd45: Bug Fixes, Misc Change 	Pointer index error, Number of Tags sizeof calculation - Fixed 	Corrected timeout arq reconnect. 	Clear tosend after resending missing blocks
+	7b53114: Seperate Tag Search From CirQue - New Class TagSearch
+	065c6a0: Compress FLMSG in FLAMP
+	5fb778d: Add timeout to cirque class
+
+2013-04-26  David Freese  <w1hkj@w1hkj.com>
+
+	edc88f1: HOME-DIR
+	b63188e: kill doloop
+
+2013-04-24  Robert Stiles  <kk5vd@yahoo.com>
+
+	ca74970: Hash/Queue Mods
+
+2013-04-22  David Freese  <w1hkj@w1hkj.com>
+
+	054a19e: About/Events
+	7c6cff5: Fltk backward compatibility
+
+
+=Version 2.0.00=
+
+	4d6db34: THOR mode update
+	ddc7cf3: Fetch parser
 
 
 =Version 1.0.01=
-
-2012-11-14  David Freese  <w1hkj@w1hkj.com>
 
 	6383a21: MODES
 	7be9727: ARQ mod
