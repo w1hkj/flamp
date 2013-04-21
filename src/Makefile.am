@@ -128,7 +128,6 @@ flamp_SOURCES += \
 	$(srcdir)/widgets/fileselect.cxx \
 	$(srcdir)/widgets/flinput2.cxx \
 	$(srcdir)/widgets/flslider2.cxx \
-	$(srcdir)/widgets/flstring.c \
 	$(srcdir)/widgets/Fl_BlockMap.cxx \
 	$(srcdir)/widgets/Fl_Native_File_Chooser.cxx \
 	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
@@ -136,6 +135,7 @@ flamp_SOURCES += \
 	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
 	$(srcdir)/widgets/FTextView.cxx \
 	$(srcdir)/widgets/icons.cxx \
+	$(srcdir)/widgets/missing_strings.c \
 	$(srcdir)/widgets/pixmaps.cxx \
 	$(srcdir)/widgets/pixmaps_tango.cxx \
 	$(srcdir)/widgets/font_browser.cxx \
@@ -195,12 +195,12 @@ EXTRA_DIST = \
 	$(srcdir)/include/flamprc.h \
 	$(srcdir)/include/flinput2.h \
 	$(srcdir)/include/flslider2.h \
-	$(srcdir)/include/flstring.h \
 	$(srcdir)/include/font_browser.h \
 	$(srcdir)/include/gettext.h \
 	$(srcdir)/include/icons.h \
 	$(srcdir)/include/flamp.h \
 	$(srcdir)/include/flamp_dialog.h \
+	$(srcdir)/include/missing_strings.h \
 	$(srcdir)/include/socket.h \
 	$(srcdir)/include/mingw.h \
 	$(srcdir)/include/pixmaps.h \
