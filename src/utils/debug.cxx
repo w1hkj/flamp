@@ -75,7 +75,7 @@ void debug::start(const char* filename)
 		return;
 	inst = new debug(filename);
 
-	window = new Fl_Double_Window(600, 256, _("Event log"));
+	window = new Fl_Double_Window(600, 256, _("Debug log"));
 
 	int pad = 2;
 

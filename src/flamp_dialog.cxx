@@ -18,12 +18,15 @@
 //
 // =====================================================================
 
+#include "config.h"
+
 #include "gettext.h"
 #include "flamp_dialog.h"
 #include "status.h"
 #include "flamp.h"
 #include "fileselect.h"
 #include "debug.h"
+#include "icons.h"
 
 #include "xml_io.h"
 #include "file_io.h"
@@ -234,14 +237,25 @@ static void cb_mnu_folders(Fl_Menu_*, void*) {
   cb_folders();
 }
 
+void cb_mnuAbout(void *, void *)
+{
+	fl_message2("\
+Flamp: %s\n\
+Authors:\n\
+  Dave Freese, W1HKJ\n\
+  Robert Stiles, KK5VD",
+FLAMP_VERSION);
+}
+
 Fl_Menu_Item menu_[] = {
  {_("&File"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {_("&Folders"), 0, (Fl_Callback*)cb_mnu_folders, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
  {_("E&xit"), 0x40078,  (Fl_Callback*)cb_mnuExit, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
- {_("E&vents"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {_("On Line help"), 0,  (Fl_Callback*)cb_mnuOnLineHelp, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
+ {_("&Debug log"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {_("On Line help"), 0,  (Fl_Callback*)cb_mnuOnLineHelp, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {_("About"), 0, (Fl_Callback*)cb_mnuAbout, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
 
  {0,0,0,0,0,0,0,0,0}
