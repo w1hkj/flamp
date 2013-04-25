@@ -275,10 +275,8 @@ static void cb_btn_transfer_file_txQ(Fl_Button*, void*) {
 	writefile(1);
 }
 
-bool rx_remove = false;
-
 static void cb_btn_rx_remove(Fl_Button*, void*) {
-	rx_remove = true;
+	receive_remove_from_queue();
 }
 
 static void cb_btn_open_file(Fl_Button*, void*) {
@@ -319,12 +317,12 @@ static void cb_rx_queue(Fl_Hold_Browser *hb, void*)
 
 static void cb_btn_send_file(Fl_Button*, void*) {
 	if ((tx_queue->value() == 0) || (tx_queue->size() == 0)) return;
-	transmit_selected = true;
+	transmit_current();
 }
 
 static void cb_btn_send_queue(Fl_Button*, void*) {
 	if (tx_queue->size() == 0) return;
-	transmit_queue = true;
+	transmit_queued();
 }
 
 static void cb_cnt_blocksize(Fl_Button*, void*) {

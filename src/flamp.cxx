@@ -637,6 +637,9 @@ int parse_args(int argc, char **argv, int& idx)
 
 void transmit_current()
 {
+	if (!bConnected) connect_to_fldigi(0);
+	if (!bConnected) return;
+
 	int n = tx_queue->value();
 	if (!n) return;
 
@@ -677,6 +680,9 @@ void transmit_current()
 
 void transmit_queued()
 {
+	if (!bConnected) connect_to_fldigi(0);
+	if (!bConnected) return;
+
 	if (tx_array.size() == 0) return;
 
 	if (progStatus.fldigi_xmt_mode_change)
@@ -729,8 +735,11 @@ int alt_receive_data_stream(void *ptr)
 	int size = sizeof(buffer) - 1;
 
 	if (!bConnected) {
-		cQue->sleep(2, 0); // Wait for signal or 2 seconds max.
-		return 0;
+		connect_to_fldigi(0);
+		if (!bConnected) {
+			cQue->sleep(2, 0); // Wait for signal or 2 seconds max.
+			return 0;
+		}
 	}
 	else {
 		n = rx_fldigi(buffer, size);
@@ -867,7 +876,6 @@ void process_data_stream(void)
 
 void receive_remove_from_queue()
 {
-	rx_remove = false;
 	if (rx_queue->size()) {
 		int n = rx_queue->value();
 		rx_amp = rx_array[n-1];
@@ -946,21 +954,6 @@ void estimate() {
 	txt_transfer_size_time->value(sz_xfr_size);
 
 	show_selected_xmt(n);
-}
-
-void doloop(void *)
-{
-	if (!bConnected) {
-		connect_to_fldigi(0);
-		Fl::add_timeout(5.0, doloop);  // check for a connection every 5 seconds
-	} else {
-		if (transmit_selected)		transmit_current();
-		else if (transmit_queue)	transmit_queued();
-		else if (rx_remove) receive_remove_from_queue();
-		else	receive_data_stream();
-		Fl::add_timeout(0.5, doloop);
-	}
-
 }
 
 void cb_exit()
@@ -1096,7 +1089,6 @@ int main(int argc, char *argv[])
 	try {
 		cQue = new Circular_queue(18, searchTags, search_tag_count, process_que, alt_receive_data_stream);
 	} catch (const CircQueException& e) {
-//		printf("%d, %s\n", e.error(), e.what());
 		LOG_ERROR("%d, %s", e.error(), e.what());
 		exit (EXIT_FAILURE);
 	}
@@ -1114,8 +1106,6 @@ int main(int argc, char *argv[])
 	rx_buffer.clear();
 
 	ztimer((void *)true);
-
-	Fl::add_timeout(0.10, doloop);
 
 	return Fl::run();
 }

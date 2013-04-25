@@ -88,8 +88,6 @@ extern Fl_Hold_Browser* tx_queue;
 
 extern Fl_Double_Window* flamp_dialog();
 
-extern bool rx_remove;
-
 extern bool valid_mode_check(std::string &md);
 
 struct st_modes {std::string s_mode; float f_cps;};

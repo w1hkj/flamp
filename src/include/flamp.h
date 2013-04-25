@@ -69,9 +69,9 @@ extern void process_data_stream(void);
 
 extern void send_missing_report();
 extern void recv_missing_report();
-
-extern bool transmit_selected;
-extern bool transmit_queue;
+extern void receive_remove_from_queue();
+extern void transmit_current();
+extern void transmit_queued();
 
 extern pthread_t *xmlrpc_thread;
 extern pthread_mutex_t mutex_xmlrpc;
