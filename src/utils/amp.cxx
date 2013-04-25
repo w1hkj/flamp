@@ -38,10 +38,12 @@ cAmp::cAmp(std::string str, std::string fname)
 	repeat_header = 1;
 	fsize = xmtdata.length();
 	xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
+	
+	rx_crc_flags = ( FILE_CRC_FLAG | ID_CRC_FLAG | SIZE_CRC_FLAG );
 
 	rxbuffer.clear();
 	rxblocks.clear();
-	rxfilename.clear();
+	rxfilename.assign("Unassigned");
 	rxdata.clear();
 	rxstring.clear();
 	rxdttm.clear();
@@ -70,21 +72,45 @@ void cAmp::clear_rx()
 std::string cAmp::xmt_string() {
 	std::string temp;
 	std::string fileline;
+	std::string filename;
+	std::string chksumdata;
 	std::string statsline;
+	std::string idline;
 	std::string fstring; // file strings
+    char buf[16];
 	xmtstring.clear();
 
-	temp.assign(PACKAGE_NAME).append(" ").append(PACKAGE_VERSION);
+	filename.assign(xmtdttm).append(":").append(xmtfilename);
+
+	chksumdata.assign(filename);
+	
+	if(compress()) 
+	    chksumdata.append("1");
+	else 
+	    chksumdata.append("0");
+	
+    chksumdata.append(tx_base_conv_str());
+    
+    // to_string not available
+    memset(buf, 0, sizeof(buf));
+    snprintf(buf, sizeof(buf) - 1, "%d", xmtblocksize);
+    
+    chksumdata.append(buf);
+    
+	xmthash = chksum.scrc16(chksumdata);
+   
+    temp.assign("{").append(xmthash).append("}");
+    temp.append(PACKAGE_NAME).append(" ").append(PACKAGE_VERSION);
 	xmtstring.append(ltypes[_PROG]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	xmtstring.append(">").append(temp).append(nuline);
+    
+    temp.assign("{").append(xmthash).append("}");
+	temp.append(xmtcall).append(" ").append(xmtinfo);
+	idline.append(ltypes[_ID]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
+	idline.append(">").append(temp).append(nuline);
 
-	temp.assign(xmtcall).append(" ").append(xmtinfo);
-	fstring.append(ltypes[_ID]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
-	fstring.append(">").append(temp).append(nuline);
-
-	temp.assign(xmtdttm).append(":").append(xmtfilename);
-	xmthash = chksum.scrc16(temp);
-	fileline.assign(ltypes[_FILE]).append(sz_len(temp)).append(" ").append(xmthash);
+	temp.assign("{").append(xmthash).append("}").append(filename);
+    fileline.assign(ltypes[_FILE]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	fileline.append(">").append(temp).append(nuline);
 
 	temp.assign("{").append(xmthash).append("}").append(sz_size());
@@ -93,11 +119,12 @@ std::string cAmp::xmt_string() {
 
 	for (int i = 0; i < repeat_header; i++) {
 		fstring.append(fileline);
+		fstring.append(idline);
 		fstring.append(statsline);
 	}
 
-	temp.assign("{").append(xmthash).append("}").append(xmtdesc);
 	if (!xmtdesc.empty()) {
+    	temp.assign("{").append(xmthash).append("}").append(xmtdesc);
 		fstring.append(ltypes[_DESC]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 		fstring.append(">").append(temp).append(nuline);
 	}
@@ -131,15 +158,15 @@ std::string cAmp::xmt_string() {
 		}
 	}
 
-	temp = "{EOF}";
+    temp.assign("{").append(xmthash).append(":").append("EOF}");
 	fstring.append(ltypes[_CNTL]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	fstring.append(">").append(temp).append(nuline);
 
 	for (int i = 0; i < xmt_repeat; i++)
 		xmtstring.append(fstring);
 
-	temp = "{EOT}";
-	xmtstring.append(ltypes[_CNTL]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
+    temp.assign("{").append(xmthash).append(":").append("EOT}");
+    xmtstring.append(ltypes[_CNTL]).append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
 	xmtstring.append(">").append(temp).append(nuline);
 
 	return xmtstring;
@@ -199,25 +226,47 @@ std::string cAmp::rx_recvd_string()
 
 void cAmp::rx_parse_dttm_filename(char *crc, std::string data)
 {
-LOG_WARN("%s : %s", crc, data.c_str());
+    LOG_WARN("%s : %s", crc, data.c_str());
+    
+    sscanf(data.c_str(), "{%4s}*", crc);
+    
+    size_t p = data.find("}");
+    data.erase(0, p + 1);
+    
 	size_t pcolon = data.find(":");
 	if (pcolon == std::string::npos) return;
 	rxdttm = data.substr(0, pcolon);
 	rxfilename = data.substr(pcolon + 1);
 	rxhash = crc;
+    rx_crc_flags &= ~FILE_CRC_FLAG;
+}
+
+std::string cAmp::rx_parse_hash_line(string data)
+{
+	char hashval[5];
+    static string empty("");
+    
+	if (sscanf(data.c_str(), "{%4s}*", hashval) != 1) return empty;
+    
+	if (rxhash != hashval) { 
+		LOG_ERROR("%s", "not this file"); 
+		return empty; 
+	}
+	size_t sp = data.find("}");
+	if (sp == std::string::npos) return empty;
+	
+    return data.substr(sp+1);
 }
 
 void cAmp::rx_parse_desc(string data)
 {
-	char hashval[5];
-	if (sscanf(data.c_str(), "{%4s}*", hashval) != 1) return;
-	if (rxhash != hashval) { 
-		LOG_ERROR("%s", "not this file"); 
-		return; 
-	}
-	size_t sp = data.find("}");
-	if (sp == std::string::npos) return;
-	rxdesc = data.substr(sp+1);
+	rxdesc = rx_parse_hash_line(data);
+}
+
+void cAmp::rx_parse_id(string data)
+{
+	rxcall_info = rx_parse_hash_line(data);
+    rx_crc_flags &= ~ID_CRC_FLAG; 
 }
 
 void cAmp::rx_parse_size(string data)
@@ -233,31 +282,29 @@ void cAmp::rx_parse_size(string data)
 	rxfilesize = fs;
 	rxnumblocks = nb;
 	rxblocksize = bs;
+    rx_crc_flags &= ~SIZE_CRC_FLAG;
 }
 
 bool cAmp::rx_parse_line(int ltype, char *crc, std::string data)
-{
-	if (strcmp(crc, chksum.scrc16(data.c_str()).c_str()) == 0) {
-		switch (ltype) {
-			case _FILE : rx_parse_dttm_filename(crc, data); break;
-			case _DESC : rx_parse_desc(data); break;
-			case _DATA : rx_add_data(data); break;
-			case _SIZE : rx_parse_size(data); break;
-			case _PROG : rxprogname = data; break;
-			case _ID   : rxcall_info = data; break; 
-			case _CNTL :
-			default : ;
-		}
-		return true;
-	}
-	LOG_ERROR("Checksum failed: %s\ndata: %s", crc, data.c_str());
-	return false;
+{   
+    switch (ltype) {
+        case _FILE : rx_parse_dttm_filename(crc, data); break;
+        case _DESC : rx_parse_desc(data); break;
+        case _DATA : rx_add_data(data); break;
+        case _SIZE : rx_parse_size(data); break;
+        case _PROG : rxprogname = rx_parse_hash_line(data); break;
+        case _ID   : rx_parse_id(data); break;
+        case _CNTL :
+        default : ;
+    }
+    
+    return true;
 }
 
 void cAmp::rx_parse_buffer()
 {
-	if (rxbuffer.length() < 16) return;
-
+    if (rxbuffer.length() < 16) return;
+	
 	size_t p = 0, p1 = 0;
 	int len;
 	char crc[5];
@@ -337,6 +384,7 @@ std::string cAmp::rx_report()
 	std::string temp;
 	char number[10];
 	std::string missing;
+    temp.clear();
 	temp.assign("{").append(rxhash).append("}");
 	missing.clear();
 	for (int i = 1; i <= rxnumblocks; i++) {
@@ -345,7 +393,10 @@ std::string cAmp::rx_report()
 			missing.append(number);
 		}
 	}
-	if (missing.empty()) missing = "CONFIRMED";
+	
+	if (rx_crc_flags > 0 && missing.empty()) missing = "PREAMBLE";
+	else if (missing.empty()) missing = "CONFIRMED";
+	
 	temp.append(missing);
 	std::string report("<MISSING ");
 	report.append(sz_len(temp)).append(" ").append(chksum.scrc16(temp));
@@ -364,34 +415,41 @@ void cAmp::tx_parse_report(std::string s)
 // append each valid occurance to the tosend string
 
 	static const char *sz_missing = "<MISSING ";
-	report_buffer.assign(s);
+	static const char *sz_preamble = "PREAMBLE";
+    
+	report_buffer.append(s);
 
 	size_t p = 0, p1 = 0;
 	int len;
 	char crc[5];
+   
 	p = report_buffer.find(sz_missing);
-
+        
 	while (p != std::string::npos) {
 		if (p > 0) report_buffer.erase(0, p);
-		report_buffer.erase(0, strlen(sz_missing));
-		if (sscanf(report_buffer.c_str(), "%d %4s", &len, crc) == 2) {
-			p1 = report_buffer.find(">");
+		if (sscanf(report_buffer.c_str(), "<MISSING %d %4s>", &len, crc) == 2) {
+			p1 = report_buffer.find(">", strlen(sz_missing));
 			if (p1 != std::string::npos) {
 				if (report_buffer.length() >= p1 + 1 + len) {
 					string data = report_buffer.substr(p1 + 1, len);
 					if (xmthash == data.substr(1,4)) {
 						if (strcmp(crc, chksum.scrc16(data.c_str()).c_str()) == 0) {
-							tosend.append(" ").append(data.substr(6));
-							LOG_INFO("%s missing: %s", xmtfilename.c_str(), tosend.c_str());
-						}
-					}
-				}
-			}
-		}
-		p = report_buffer.find(sz_missing);
-	}
-// convert the updated tosend string to a vector of integers
-// removing any duplicate values in the process
+                            if(data.find(sz_preamble) != std::string::npos) {
+                                tosend.append("1 "); // Force header tx 
+                            } else {
+                                tosend.append(" ").append(data.substr(6));
+                                LOG_INFO("%s missing: %s", xmtfilename.c_str(), tosend.c_str());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        p = report_buffer.find(sz_missing, p + 2);
+    }
+    
+    // convert the updated tosend string to a vector of integers
+    // removing any duplicate values in the process
 	string blocks = tosend;
 	int iblock;
 	list<int> iblocks;
@@ -420,3 +478,4 @@ void cAmp::tx_parse_report(std::string s)
 		else tosend.append(",").append(szblock);
 	}
 }
+

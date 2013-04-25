@@ -117,7 +117,7 @@ void base256::remlf(string &in)
 string base256::encode(string &in)
 {
 	char insize[20];
-	snprintf(insize, sizeof(insize), "%d\n", in.length());
+	snprintf(insize, sizeof(insize), "%d\n", (int)in.length());
 
 	output.assign(insize);
 	iocp = 0;
@@ -129,14 +129,22 @@ string base256::encode(string &in)
 	return output;
 }
 
-string base256::decode(string &in)
+string base256::decode(string &in, bool &decode_error)
 {
+	int temp;
 	size_t nbr = 0;
 	string output = in;
+	decode_error = false;
+	
 	size_t p = output.find("\n");
-	if (p == string::npos)
+	if (p == string::npos) {
+		decode_error = true;
 		return "ERROR: base256 missing character count";
-	sscanf(output.substr(0, p).c_str(), "%d", &nbr);
+	}
+
+	sscanf(output.substr(0, p).c_str(), "%d", &temp);
+	nbr = temp;
+	
 	output.erase(0, p+1);
 	escape(output, false);
 	return output;

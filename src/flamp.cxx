@@ -44,6 +44,7 @@
 
 #include "config.h"
 
+
 #include "flamp.h"
 #include "amp.h"
 #include "flamp_dialog.h"
@@ -61,6 +62,7 @@
 #include "pixmaps.h"
 #include "threads.h"
 #include "xml_io.h"
+#include "circular_queue.h"
 
 #ifdef WIN32
 #  include "flamprc.h"
@@ -80,6 +82,22 @@ using namespace std;
 string rx_buffer;
 string rx_rotary;
 string tx_buffer;
+string tmp_buffer;
+
+static Circular_queue *cQue;
+
+const char *searchTags[] = {
+	"<FILE ",
+	"<ID ",
+	"<DESC ",
+	"<DATA ",
+	"<PROG ",
+	"<CNTL ",
+	"<SIZE ",
+	(char *)0
+};
+
+int search_tag_count = (sizeof(searchTags) / sizeof(char *)) - 1;
 
 string testfname = "Bulletin1.txt";
 
@@ -246,7 +264,7 @@ void ztimer(void* first_call)
 							transmit_queued();
 							size_t p = progStatus.repeat_times.find(ttime);
 							int len = 4;
-							while ((p + len < progStatus.repeat_times.length()) && 
+							while ((p + len < progStatus.repeat_times.length()) &&
 									!isdigit(progStatus.repeat_times[p + len])) len++;
 							progStatus.repeat_times.erase(p, len);
 							txt_repeat_times->value(progStatus.repeat_times.c_str());
@@ -309,7 +327,7 @@ void checkdirectories(void)
 		void (*new_dir_func)(void);
 	};
 	DIRS flamp_dirs[] = {
-		{ flampHomeDir,  0,    0 },
+		{ flampHomeDir,  0,	0 },
 		{ flamp_rcv_dir, "rx", 0 },
 		{ flamp_xmt_dir, "tx", 0 },
 	};
@@ -322,7 +340,7 @@ void checkdirectories(void)
 
 		if ((r = mkdir(flamp_dirs[i].dir.c_str(), 0777)) == -1 && errno != EEXIST) {
 			cerr << _("Could not make directory") << ' ' << flamp_dirs[i].dir
-			     << ": " << strerror(errno) << '\n';
+				 << ": " << strerror(errno) << '\n';
 			exit(EXIT_FAILURE);
 		}
 		else if (r == 0 && flamp_dirs[i].new_dir_func)
@@ -331,9 +349,16 @@ void checkdirectories(void)
 
 }
 
-void addfile(string xmtfname)
+void addfile(string xmtfname, void *rx)
 {
 	xmt_fname = xmtfname;
+	cAmp *rAmp = (cAmp *) rx;
+
+	if(rx > 0 && !rAmp->rx_completed()) {
+		fl_alert2("Only completed files can be transfered");
+		return;
+	}
+
 	FILE *dfile = fopen(xmt_fname.c_str(), "rb");
 	if (!dfile) {
 		LOG_ERROR("could not open read/binary %s", xmt_fname.c_str());
@@ -365,8 +390,41 @@ void addfile(string xmtfname)
 	tx_array.push_back(nu);
 	tx_queue->add(xmt_fname.c_str());
 	tx_queue->select(tx_queue->size());
+	nu->tx_base_conv_index(encoders->index() + 1);
+	nu->tx_base_conv_str(encoders->value());
+
 	tx_amp = nu;
+
+	if(rx > 0) {
+		cAmp *rAmp = (cAmp *) rx;
+		int xfrBlockSize = rAmp->rx_blocksize_int();
+
+		xfrBlockSize = valid_block_size(xfrBlockSize);
+
+		cnt_blocksize->value(xfrBlockSize);
+		txt_tx_descrip->value(txt_rx_descrip->value());
+		tx_amp->xmt_descrip(txt_rx_descrip->value());
+		tx_amp->tx_blocksize(xfrBlockSize);
+	  	progStatus.blocksize = xfrBlockSize;
+		txt_tx_selected_blocks->value("");
+		update_selected_xmt();
+	}
+
 	estimate();
+}
+
+int valid_block_size(int value)
+{
+	value = ((value / CNT_BLOCK_SIZE_STEP_RATE)
+			* CNT_BLOCK_SIZE_STEP_RATE);
+
+	if(value < CNT_BLOCK_SIZE_MINIMUM)
+		value = CNT_BLOCK_SIZE_MINIMUM;
+
+	if(value > CNT_BLOCK_SIZE_MAXIMUM)
+		value = CNT_BLOCK_SIZE_MAXIMUM;
+
+   	return value;
 }
 
 void readfile()
@@ -379,7 +437,7 @@ void readfile()
 	if (strlen(p) == 0) return;
 	xmtfname = p;
 
-	addfile(xmtfname);
+	addfile(xmtfname, 0);
 }
 
 void show_selected_xmt(int n)
@@ -395,6 +453,8 @@ void show_selected_xmt(int n)
 	txt_tx_selected_blocks->value(ts.c_str());
 	txt_tx_numblocks->value(ns.c_str());
 	btn_use_compression->value(tx_amp->compress());
+	progStatus.encoder = tx_amp->tx_base_conv_index();
+	encoders->index(progStatus.encoder - 1);
 	tx_buffer = tx_amp->xmt_data();
 }
 
@@ -459,6 +519,8 @@ void update_selected_xmt()
 	tx_amp->xmt_descrip(txt_tx_descrip->value());
 	tx_amp->xmt_tosend(txt_tx_selected_blocks->value());
 	tx_amp->compress(btn_use_compression->value());
+	tx_amp->tx_base_conv_index(progStatus.encoder);
+	tx_amp->tx_base_conv_str(encoders->value());
 }
 
 void recv_missing_report()
@@ -471,7 +533,7 @@ void recv_missing_report()
 		return;
 	}
 
-	for (size_t num = 0; num < tx_array.size(); num++) 
+	for (size_t num = 0; num < tx_array.size(); num++)
 		tx_array[num]->tx_parse_report(rx_data);
 
 	if (!tx_amp) return;
@@ -504,10 +566,15 @@ void tx_removefile()
 	}
 }
 
-void writefile()
+void writefile(int xfrFlag)
 {
 	if (!rx_amp) return;
 	size_t fsize = rx_amp->rx_size();
+
+	if(xfrFlag && !rx_amp->rx_completed()) {
+   		fl_alert2("Only completed files can be transfered");
+   		return;
+	}
 
 	if (!fsize || rx_amp->get_rx_fname().empty()) return;
 
@@ -533,7 +600,11 @@ void writefile()
 	}
 	fclose(dfile);
 
+	if(xfrFlag && dfile) {
+		addfile(rx_fname, rx_amp);
+	}
 }
+
 
 int parse_args(int argc, char **argv, int& idx)
 {
@@ -556,7 +627,7 @@ int parse_args(int argc, char **argv, int& idx)
 			i++;
 		}
 		exit (0);
-	} 
+	}
 	if (strcasecmp(argv[idx], "--version") == 0) {
 		printf("Version: "VERSION"\n");
 		exit (0);
@@ -590,7 +661,7 @@ void transmit_current()
 	tx->xmt_blocksize(progStatus.blocksize);
 
 	temp.assign(tx->xmt_buffer());
-	compress_maybe(temp, tx->compress());//true);
+	compress_maybe(temp, tx->tx_base_conv_index(), tx->compress());//true);
 	tx->xmt_data(temp);
 	tx->repeat(progStatus.repeatNN);
 	tx->header_repeat(progStatus.repeat_header);
@@ -631,7 +702,7 @@ void transmit_queued()
 		tx->xmt_blocksize(progStatus.blocksize);
 
 		temp.assign(tx->xmt_buffer());
-		compress_maybe(temp, tx->compress());//true);
+		compress_maybe(temp, tx->tx_base_conv_index(), tx->compress());//true);
 		tx->xmt_data(temp);
 		tx->repeat(progStatus.repeatNN);
 		tx->header_repeat(progStatus.repeat_header);
@@ -647,96 +718,151 @@ void transmit_queued()
 
 void receive_data_stream()
 {
-	string retbuff = "";
-	int n = rx_fldigi(retbuff);
-	if (!n) return;
-	rx_rotary.append(retbuff);
-// look for <FILE nnn XXXX>data...nnn\n
-	size_t p = rx_rotary.find("<FILE ");
-	if (p != string::npos) {
-		if (p > 0) rx_rotary.erase(0, p);
-		if (rx_rotary.find(">") != string::npos) {
-			char crc[5];
-			int len;
-			int conv = sscanf(rx_rotary.substr(6).c_str(), "%d %4s>*", &len, crc);
-			if (conv == 2) {
-				Ccrc16 chksum;
-				string szchksum;
-				size_t p1 = rx_rotary.find(">", 6);
-				if (p1 != std::string::npos) {
-					if ((rx_rotary.length() >= p1 + 1 + len)) {
-						szchksum = chksum.scrc16(rx_rotary.substr(p1 + 1, len));
-						if (strcmp(crc, szchksum.c_str()) == 0) {
-							if (rx_array.size() == 0) { // add a new rx process
-								cAmp *nu = new cAmp();
-								nu->rx_append(rx_rotary);
-								nu->rx_parse_buffer();
-								rx_array.push_back(nu);
-								string s;
-								s.assign("@f").append(nu->rx_sz_percent()).append("\t");
-								s.append(nu->get_rx_fname());
-								rx_queue->add(s.c_str());
-								rx_queue->select(1);
-								show_selected_rcv(1);
-								rx_rotary.clear();
-								rx_amp = nu;
-								clear_rx_amp();
-								show_rx_amp();
-								LOG_INFO("Initial Amp instance: %s:%s", crc, nu->get_rx_fname().c_str());
-								return;
-							} else { // check existing rx process
-								cAmp *existing = 0;
-								for (size_t i = 0; i < rx_array.size(); i++)
-									if (rx_array[i]->hash(crc)) {
-										existing = rx_array[i];
-										break;
-									}
-								if (!existing) { // a new rx process
-									cAmp *nu = new cAmp();
-									nu->rx_append(rx_rotary);
-									nu->rx_parse_buffer();
-									rx_array.push_back(nu);
-									string s;
-									s.assign("@f").append(nu->rx_sz_percent()).append("\t");
-									s.append(nu->get_rx_fname());
-									rx_queue->add(s.c_str());
-									rx_queue->select(rx_queue->size());
-									rx_rotary.clear();
-									rx_amp = nu;
-									clear_rx_amp();
-									show_rx_amp();
-									LOG_INFO("New Amp instance: %s", nu->get_rx_fname().c_str());
-									return;
-								} else
-									LOG_INFO("Existing Amp instance: %s:%s", 
-										existing->rx_hash().c_str(),
-										existing->get_rx_fname().c_str());
-							}
-						} else
-							LOG_ERROR("Failed crc %s:%s", crc, rx_rotary.c_str());
-						rx_rotary.erase(0, 7); // clear the <FILE ... value
-					}
-				}
-			}
+	if(bConnected)
+		cQue->signal();
+}
+
+int alt_receive_data_stream(void *ptr)
+{
+	static char buffer[CNT_BLOCK_SIZE_MAXIMUM];
+	int n = 0;
+	int size = sizeof(buffer) - 1;
+
+	if (!bConnected) {
+		cQue->sleep(2, 0); // Wait for signal or 2 seconds max.
+		return 0;
+	}
+	else {
+		n = rx_fldigi(buffer, size);
+		if(n < 1) {
+			cQue->milliSleep(50);
+			return 0;
 		}
-		return;
+
+		cQue->addToQueue(buffer, n);
 	}
 
-// if not added then process the incoming data in each receive amp instance
-	if (rx_array.size() == 0) return;
-	cAmp *rx;
-	string bline;
-	for (size_t i = 0; i < rx_array.size(); i++) {
-		rx = rx_array[i];
-		if (!rx->rx_completed()) {
-			rx->rx_append(retbuff);
-			rx->rx_parse_buffer();
-			bline.assign("@f").append(rx->rx_sz_percent()).append("\t").append(rx->get_rx_fname());
-			rx_queue->text(i+1, bline.c_str());
+	return n;
+}
+
+int process_que(void *ptr, char *tag)
+{
+	size_t readCount = 0, count = 0;
+	static char buffer[CNT_BLOCK_SIZE_MAXIMUM + 128];
+	static char tagBuffer[32];
+	static char aTag[32];
+	unsigned int chksum = 0;
+	int argCount = 0;
+	int reset = 0;
+	unsigned int crcVal = 0;
+	Circular_queue *que = (Circular_queue *)ptr;
+
+	memset(buffer, 0, sizeof(buffer));
+
+	count = 20;
+	while(!que->thread_exit()) {
+		readCount = que->lookAheadToTerminator(tagBuffer, '>', count);
+
+		if(readCount < count) que->milliSleep(50);
+		else break;
+
+		if(readCount > 0 && tagBuffer[readCount - 1] == '>') break;
+	}
+
+	if(tagBuffer[readCount - 1] != '>')
+		return que->adjustReadQueIndex(1);
+
+	int temp;
+	argCount = sscanf(tagBuffer, "<%s %d %x>", aTag, &temp, &chksum);
+	count = temp;
+
+	if(argCount < 3 || count < 1)
+		return que->adjustReadQueIndex(1);
+
+	que->adjustReadQueIndex(readCount);
+
+	if(count > (sizeof(buffer) - 1))
+		count = sizeof(buffer) - 1;
+
+	crcVal = 0;
+
+	while(!que->thread_exit()) {
+		reset = 1;
+		readCount = que->lookAheadCRC(buffer, count, &crcVal, &reset);
+		if(readCount < count) que->milliSleep(50);
+		else break;
+	}
+
+	if(chksum != crcVal)
+		return que->adjustReadQueIndex(1);
+
+	tmp_buffer.assign(tagBuffer);
+	tmp_buffer.append(buffer, count);
+
+	process_data_stream();
+
+	return que->adjustReadQueIndex(readCount);
+
+}
+
+void process_data_stream(void)
+{
+	string retbuff;
+
+	char tag[20];
+	char crc[5];
+	char hash[5];
+	int len;
+	int conv;
+
+	size_t i = 0;
+
+	retbuff.assign(tmp_buffer);
+
+	conv = sscanf(retbuff.c_str(), "<%s %d %4s>{%4s", tag, &len, crc, hash);
+
+	if (conv == 4) {
+
+		cAmp *existing = 0;
+
+		for (i = 0; i < rx_array.size(); i++) {
+			if (rx_array[i]->hash(hash)) {
+				existing = rx_array[i];
+				break;
+			}
+		}
+
+		if (!existing) { // a new rx process
+
+			cAmp *nu = new cAmp();
+			nu->rx_hash(hash);
+			nu->rx_append(retbuff);
+			nu->rx_parse_buffer();
+			rx_array.push_back(nu);
+			string s;
+			s.assign("@f").append(nu->rx_sz_percent()).append("\t");
+			s.append(nu->get_rx_fname());
+			rx_queue->add(s.c_str());
+			rx_queue->select(rx_queue->size());
+			rx_amp = nu;
+			clear_rx_amp();
+			show_rx_amp();
+			LOG_INFO("New Amp instance: %s", nu->get_rx_fname().c_str());
+
+		} else {
+
+			string bline;
+			if (!existing->rx_completed()) {
+				existing->rx_append(retbuff);
+				existing->rx_parse_buffer();
+				bline.assign("@f").append(existing->rx_sz_percent()).append("\t").append(existing->get_rx_fname());
+				rx_queue->text(i+1, bline.c_str());
+			}
 		}
 	}
-// show selected rx activity
-	show_rx_amp();
+
+	if (rx_array.size() != 0)
+		show_rx_amp();
 }
 
 void receive_remove_from_queue()
@@ -783,7 +909,7 @@ void estimate() {
 
 	string temp;
 	temp.assign(tx->xmt_buffer());
-	compress_maybe(temp, tx->compress());//true);
+	compress_maybe(temp, tx->tx_base_conv_index(), tx->compress());//true);
 	tx->xmt_data(temp);
 	tx->repeat(progStatus.repeatNN);
 	tx->header_repeat(progStatus.repeat_header);
@@ -812,11 +938,11 @@ void estimate() {
 	xfr_time = transfer_size / cps;
 	if (xfr_time < 60)
 		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d secs",
-			transfer_size, (int)(xfr_time + 0.5));
+				 transfer_size, (int)(xfr_time + 0.5));
 	else
 		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d m %d s",
-			transfer_size,
-			(int)(xfr_time / 60), ((int)xfr_time) % 60);
+				 transfer_size,
+				 (int)(xfr_time / 60), ((int)xfr_time) % 60);
 	txt_transfer_size_time->value(sz_xfr_size);
 
 	show_selected_xmt(n);
@@ -824,15 +950,17 @@ void estimate() {
 
 void doloop(void *)
 {
-	if (!tcpip) {
+	if (!bConnected) {
 		connect_to_fldigi(0);
+		Fl::add_timeout(5.0, doloop);  // check for a connection every 5 seconds
 	} else {
 		if (transmit_selected)		transmit_current();
 		else if (transmit_queue)	transmit_queued();
 		else if (rx_remove) receive_remove_from_queue();
-		else			receive_data_stream();
+		else	receive_data_stream();
+		Fl::add_timeout(0.5, doloop);
 	}
-	Fl::add_timeout(0.5, doloop);
+
 }
 
 void cb_exit()
@@ -858,6 +986,9 @@ void cb_exit()
 		delete localaddr;
 	}
 	debug::stop();
+
+	if(cQue) delete cQue;
+
 	exit(0);
 }
 
@@ -931,7 +1062,7 @@ int main(int argc, char *argv[])
 
 #if defined(__WOE32__)
 #  ifndef IDI_ICON
-#    define IDI_ICON 101
+#	define IDI_ICON 101
 #  endif
 	main_window->icon((char*)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON)));
 	main_window->show (argc, argv);
@@ -949,12 +1080,28 @@ int main(int argc, char *argv[])
 		main_window->label(main_label.c_str());
 	}
 
+	localaddr = new Address(progStatus.socket_addr.c_str(), progStatus.socket_port.c_str());
+	if (!localaddr) exit(EXIT_FAILURE);
+	tcpip = new Socket (*localaddr);
+	tcpip->set_timeout(0.01);
+	connect_to_fldigi(0);
+
 	open_xmlrpc();
-	xmlrpc_thread = new pthread_t;      
+	xmlrpc_thread = new pthread_t;
 	if (pthread_create(xmlrpc_thread, NULL, xmlrpc_loop, NULL)) {
 		perror("pthread_create");
 		exit(EXIT_FAILURE);
 	}
+
+	try {
+		cQue = new Circular_queue(18, searchTags, search_tag_count, process_que, alt_receive_data_stream);
+	} catch (const CircQueException& e) {
+//		printf("%d, %s\n", e.error(), e.what());
+		LOG_ERROR("%d, %s", e.error(), e.what());
+		exit (EXIT_FAILURE);
+	}
+
+	cQue->resumeQueue();
 
 	txt_tx_mycall->value(progStatus.my_call.c_str());
 	txt_tx_myinfo->value(progStatus.my_info.c_str());
@@ -971,18 +1118,7 @@ int main(int argc, char *argv[])
 	Fl::add_timeout(0.10, doloop);
 
 	return Fl::run();
-
 }
-
-
-/*
-void cb_config_socket()
-{
-	txt_socket_addr->value(progStatus.socket_addr.c_str());
-	txt_socket_port->value(progStatus.socket_port.c_str());
-	socket_window->show();
-}
-*/
 
 void open_url(const char* url)
 {
@@ -991,15 +1127,15 @@ LOG_INFO("%s", url);
 	const char* browsers[] = {
 #  ifdef __APPLE__
 		getenv("FLDIGI_BROWSER"), // valid for any OS - set by user
-		"open"                    // OS X
+		"open"					// OS X
 #  else
-		"fl-xdg-open",            // Puppy Linux
-		"xdg-open",               // other Unix-Linux distros
+		"fl-xdg-open",			// Puppy Linux
+		"xdg-open",			   // other Unix-Linux distros
 		getenv("FLDIGI_BROWSER"), // force use of spec'd browser
-		getenv("BROWSER"),        // most Linux distributions
+		getenv("BROWSER"),		// most Linux distributions
 		"sensible-browser",
 		"firefox",
-		"mozilla"                 // must be something out there!
+		"mozilla"				 // must be something out there!
 #  endif
 	};
 	switch (fork()) {
@@ -1036,16 +1172,67 @@ void cb_folders()
 void drop_file_changed()
 {
 	string buffer = Fl::event_text();
-	size_t n;
+	size_t n = 0;
+	size_t limit = 0;
+	int valid = 0;
+
+	char *cPtr = (char *)0;
+	char *cFileName = (char *)0;
+	const char *cBufferEnd = (char *)0;
+
 	drop_file->value("  DnD");
 	drop_file->redraw();
+
 	if ((n = buffer.find("file:///")) != string::npos)
 		buffer.erase(0, n + 7);
-	if ((buffer.find(":\\")) != string::npos || (buffer.find("/") == 0)) {
-		while ((n = buffer.find('\n')) != string::npos)
-			buffer.erase(n, 1);
-		while ((n = buffer.find('\r')) != string::npos)
-			buffer.erase(n, 1);
-		addfile(buffer.c_str());
+
+	n = buffer.find(":\\");
+	if(n == string::npos)
+		n = buffer.find("/");
+
+	if(n != string::npos) {
+		valid = 1;
+		limit = buffer.size();
+		cBufferEnd = &((buffer.c_str())[limit]);
+		cFileName = cPtr = (char *) buffer.c_str();
+
+		while(cPtr < cBufferEnd) {
+
+			// Skip though the current filename path to find delimters
+			while(*cPtr >= ' ' && cPtr < cBufferEnd)
+				cPtr++;
+
+			// Null terminate CR/LF delimiters
+			while(*cPtr == '\n' || *cPtr == '\r') {
+				*cPtr = 0;
+				cPtr++;
+				if(cPtr >= cBufferEnd) break;
+			}
+
+			if(valid)
+				addfile(cFileName, 0);
+
+			// Remove any leading spaces and control characters
+			while(*cPtr <= ' ' && cPtr < cBufferEnd)
+				cPtr++;
+
+			// Reassign a possible new filename path.
+			cFileName = cPtr;
+			valid = 0;
+
+			// Minimal validation check on system specific file name path sturcture
+			while(cPtr < cBufferEnd) {
+				if(*cPtr == '/') { // Unix/BSD type file systems
+					valid = 1;
+					break;
+				}
+
+				if(cPtr[0] == ':' && cPtr[1] == '\\') { // Windows file system
+					valid = 1;
+					break;
+				}
+				cPtr++;
+			}
+		}
 	}
 }

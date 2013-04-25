@@ -37,14 +37,16 @@ enum {NONE, BASE64, BASE128, BASE256};
 
 extern Socket *tcpip;
 extern Address *localaddr;
+extern bool bConnected;
 
-extern void compress_maybe(std::string& input, bool try_compress = true);
+extern void compress_maybe(std::string& input, int encode_with, bool try_compress = true);
 extern void decompress_maybe(std::string& input);
 extern void send_via_fldigi(std::string tosend);
 extern void connect_to_fldigi(void *);
 
 extern void rx_extract_reset();
 extern int  rx_fldigi(std::string &);
+extern int  rx_fldigi(char *buffer, int limit);
 
 extern bool binary(std::string &);
 

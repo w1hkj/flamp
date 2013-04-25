@@ -114,13 +114,14 @@ string base64::encode(string in)
 	return output;
 }
 
-string base64::decode(string in)
+string base64::decode(string in, bool &decode_error)
 {
 	int i;
 	output = "";
 	iocp = 0;
 	iolen = in.length();
 	byte c;
+	decode_error = false;
 	
 	while (iocp < iolen) {
 		byte a[4], b[4], o[3];
@@ -128,6 +129,7 @@ string base64::decode(string in)
 		for (i = 0; i < 4; i++) {
 			if (iocp == iolen) {
 				output = "b64 file length error.\n";
+				decode_error = true;
 				return output;
 			}
 			c = in[iocp++];
@@ -139,6 +141,7 @@ string base64::decode(string in)
 			}
 			if (dtable[c] & 0x80) {
 				output = "Illegal character in b64 file.\n";
+				decode_error = true;
 				return output;
 			}
 			a[i] = c;

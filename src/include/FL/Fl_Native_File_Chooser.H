@@ -28,8 +28,12 @@
 #endif
 
 // Use Apple's chooser
-#ifdef __APPLE__
-#include <FL/Fl_Native_File_Chooser_MAC.H>
+#if defined(__APPLE__) 
+#	if !defined(USE_FLTK_CHOOSER)
+#		include <FL/Fl_Native_File_Chooser_MAC.H>
+#	else
+#		include <FL/Fl_Native_File_Chooser_FLTK.H>
+#	endif
 #endif
 
 // All else falls back to FLTK's own chooser

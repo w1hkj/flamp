@@ -34,11 +34,12 @@ public:
 	Ccrc16() { crcval = 0xFFFF; }
 	~Ccrc16() {};
 	void reset() { crcval = 0xFFFF;}
-	unsigned int val() {return crcval;}
+	unsigned int val() {return (crcval & 0xFFFF);}
 	string sval() {
-		snprintf(ss, sizeof(ss), "%04X", (crcval & 0xFFFF));
+		snprintf(ss, sizeof(ss), "%04X", val());
 		return ss;
 	}
+    
 	void update(char c) {
 		crcval ^= c;
         for (int i = 0; i < 8; ++i) {
@@ -48,15 +49,24 @@ public:
                 crcval = (crcval >> 1);
         }
 	}
-	unsigned int crc16(char c) { 
+
+	unsigned int crc16(char c) {
 		update(c); 
-		return crcval;
+		return val();
 	}
+
+    unsigned int crc16(char *s, size_t count) {
+		reset();
+		for (size_t i = 0; i < count; i++)
+			update((char)(s[i] & 0xFF));  // only use lower half of unicode
+		return val();
+	}
+
 	unsigned int crc16(string s) {
 		reset();
 		for (size_t i = 0; i < s.length(); i++)
 			update((char)(s[i] & 0xFF));  // only use lower half of unicode
-		return crcval;
+		return val();
 	}
 	string scrc16(string s) {
 		crc16(s);

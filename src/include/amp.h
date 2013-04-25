@@ -17,6 +17,11 @@
 #include <vector>
 #include <map>
 
+#define FILE_CRC_FLAG 1
+#define ID_CRC_FLAG   2
+#define SIZE_CRC_FLAG 4
+#define PROG_CRC_FLAG 8
+
 #include "crc16.h"
 
 class cAmp {
@@ -40,14 +45,15 @@ private:
 	std::string xmthash;
 	std::string tosend; // designated blocks if not an ALL transfer
 	std::string report_buffer;
-
+    std::string xmtbase;
+    
 	int xmtnumblocks;
 	int xmtblocksize;
 	int xmt_repeat; // repeat n time; default 1
 	int repeat_header; // repeat header; default 1
 	int blocksize;
 	int fsize;
-
+    int base_conversion_index;
 	bool use_compression;
 
 // tx / rx
@@ -76,8 +82,19 @@ public:
 	void clear_rx();
 
 //transmit
-	void xmt_buffer(std::string &str) { xmtbuffer = str; }
+
+	void tx_blocksize(int n) { blocksize = n; }
+	int  tx_blocksize() { return blocksize; }
+    
+    int  tx_base_conv_index() { return base_conversion_index; }
+    void tx_base_conv_index(int val) { base_conversion_index = val; }
+
+    std::string tx_base_conv_str() { return xmtbase; }
+    void tx_base_conv_str(std::string &str) { xmtbase.assign(str); }
+    void tx_base_conv_str(const char *str) { xmtbase.assign(str); }
+    
 	std::string xmt_buffer() { return xmtbuffer; }
+	void xmt_buffer(std::string &str) { xmtbuffer = str; }
 
 	void xmt_data(std::string &str) {
 		xmtdata.assign(str);
@@ -101,9 +118,10 @@ public:
 
 	void xmt_tosend(std::string str) { tosend = str; }
 	std::string xmt_tosend() { return tosend; }
-
+	
 	void xmt_blocksize(int n) { xmtblocksize = n; }
 	int  xmt_blocksize() { return xmtblocksize; }
+	
 	std::string xmt_numblocks() {
 		xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
 		return sz_num(xmtnumblocks);
@@ -145,6 +163,8 @@ private:
 	int rxblocksize;
 	int rxfilesize;
 	int rx_ok_blocks;
+	int rx_crc_flags;
+	
 	AMPmap rxblocks;
 
 	void rx_parse_dttm_filename(char *, std::string data);
@@ -165,11 +185,16 @@ public:
 	void rx_time_stamp(std::string ts) { rxdttm.assign(ts); }
 	void rx_add_data(std::string data);
 	void rx_parse_buffer();
+    void rx_parse_id(std::string data);
 	bool rx_parse_line(int ltype, char *crc, std::string data);
-	bool rx_completed() { return (rx_ok_blocks > 0 ? (rx_ok_blocks == rxnumblocks) : false); }
+	bool rx_completed() {
+            return (rx_ok_blocks > 0 ? ((rx_ok_blocks == rxnumblocks) && (rx_crc_flags == 0)) : false);
+         }
 
 	int rx_size() { return rxfilesize; }
 	int rx_nblocks() { return rxnumblocks; }
+	int rx_blocksize_int() { return rxblocksize; }
+	
 	std::string rx_fsize() { return sz_num(rxfilesize); }
 	std::string rx_blocksize() { return sz_num(rxblocksize); }
 	std::string rx_numblocks() { return sz_num(rxnumblocks); }
@@ -182,16 +207,29 @@ public:
 	std::string rx_missing();
 	std::string rx_report();
 	std::string rx_hash() { return rxhash; }
+	std::string rx_hash(string s) { rxhash = s; return s; }
+    std::string rx_parse_hash_line(string data);
+    
 	const char* rx_sz_percent() {
 		static const char empty[] = "";
 		if (rxnumblocks == 0 || rx_ok_blocks == 0) return empty;
 		static char percent[6];
-		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*rx_ok_blocks/rxnumblocks);
+        int nokb = rx_ok_blocks;
+        int nrxb = rxnumblocks + 1;
+        if(!rx_crc_flags)
+            nokb++;
+		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*nokb/nrxb);
+//		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*rx_ok_blocks/rxnumblocks);
 		return percent;
 	}
 	float rx_percent() {
+        int nokb = rx_ok_blocks;
+        int nrxb = rxnumblocks + 1;
+        if(!rx_crc_flags)
+            nokb++;
 		if (rxnumblocks == 0) return 0;
-		return 100.0*rx_ok_blocks/rxnumblocks;
+		return 100.0*nokb/nrxb;
+//		return 100.0*rx_ok_blocks/rxnumblocks;
 	}
 };
 

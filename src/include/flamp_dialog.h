@@ -33,6 +33,10 @@
 #include "calendar.h"
 #include "Fl_BlockMap.h"
 
+#define CNT_BLOCK_SIZE_STEP_RATE	16
+#define CNT_BLOCK_SIZE_MINIMUM		16
+#define CNT_BLOCK_SIZE_MAXIMUM		2048
+
 extern Fl_Double_Window *main_window;
 
 extern Fl_Output* txt_rx_filename;
@@ -58,6 +62,7 @@ extern Fl_Input2* txt_tx_mycall;
 extern Fl_Input2* txt_tx_myinfo;
 extern Fl_Input2* txt_tx_send_to;
 
+extern Fl_ComboBox* encoders;
 extern Fl_Output* txt_tx_filename;
 extern Fl_Input2* txt_tx_descrip;
 extern Fl_Input2* txt_tx_selected_blocks;

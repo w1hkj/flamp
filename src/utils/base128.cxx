@@ -122,7 +122,7 @@ string base128::encode(string &in)
 	size_t n;
 	byte igroup[7], ogroup[8];
 	char insize[20];
-	snprintf(insize, sizeof(insize), "%d\n", in.length());
+	snprintf(insize, sizeof(insize), "%d\n", (int)in.length());
 
 	output.assign(insize);
 	iocp = 0;
@@ -159,23 +159,33 @@ string base128::encode(string &in)
 	return output;
 }
 
-string base128::decode(string &in)
+string base128::decode(string &in, bool &decode_error)
 {
-	int i;
+	int i, itemp;
 	size_t nbr = 0;
 	string temp = in;
 	size_t p = temp.find("\n");
-	if (p == string::npos)
+	
+	decode_error = false;
+	
+	if (p == string::npos) {
+		decode_error = true;
 		return "ERROR: b128 missing character count";
-	sscanf(temp.substr(0, p).c_str(), "%d", &nbr);
+	}
+
+	sscanf(temp.substr(0, p).c_str(), "%d", &itemp);
+	nbr = itemp;
+
 	temp.erase(0, p+1);
 
 	escape(temp, false);
 
 	output.clear();
 
-	if (temp.length() % 8)
+	if (temp.length() % 8) {
+		decode_error = true;
 		return "ERROR: b128 file length error.\n";
+	}
 
 	iocp = 0;
 	iolen = temp.length();

@@ -81,6 +81,7 @@ using namespace std;
 
 Socket *tcpip = (Socket *)0;
 Address *localaddr = (Address *)0;
+bool bConnected = false;
 
 const char *b64_start = "[b64:start]";
 const char *b64_end = "\n[b64:end]";
@@ -155,7 +156,7 @@ bool convert2lf(string &s)
 
 #define LZMA_STR "\1LZMA"
 
-void compress_maybe(string& input, bool try_compress)//bool file_transfer)
+void compress_maybe(string& input, int encode_with, bool try_compress)//bool file_transfer)
 {
 //	if (!progStatus.use_compression && !file_transfer) return;
 
@@ -175,7 +176,7 @@ void compress_maybe(string& input, bool try_compress)//bool file_transfer)
 		int r;
 		bufstr.assign(LZMA_STR);
 		if ((r = LzmaCompress(
-					buf, &outlen, 
+					buf, &outlen,
 					(const unsigned char*)input.data(), input.length(),
 					outprops, &plen, 9, 0, -1, -1, -1, -1, -1)) == SZ_OK) {
 			bufstr.append((const char*)&origlen, sizeof(origlen));
@@ -190,18 +191,18 @@ void compress_maybe(string& input, bool try_compress)//bool file_transfer)
 			LOG_ERROR("Lzma Compress failed: %s", LZMA_ERRORS[r]);
 			bufstr.assign(input);
 		}
-		if (progStatus.encoder == BASE256)
+		if (encode_with == BASE256)
 			base256encode(bufstr);
-		else if (progStatus.encoder == BASE128)
+		else if (encode_with == BASE128)
 			base128encode(bufstr);
 		else
 			base64encode(bufstr);
 	} else {
 		bufstr = input;
 		if (binary(bufstr)) {
-			if (progStatus.encoder == BASE256)
+			if (encode_with == BASE256)
 				base256encode(bufstr);
-			else if (progStatus.encoder == BASE128)
+			else if (encode_with == BASE128)
 				base128encode(bufstr);
 			else
 				base64encode(bufstr);
@@ -222,7 +223,9 @@ void decompress_maybe(string& input)
 //		return;
 
 	int decode = NONE;//BASE64;
-	size_t	p0 = string::npos, 
+	bool decode_error = false;
+
+	size_t	p0 = string::npos,
 			p1 = string::npos,
 			p2 = string::npos,
 			p3 = string::npos;
@@ -272,15 +275,15 @@ void decompress_maybe(string& input)
 
 	switch (decode) {
 		case BASE128 :
-			cmpstr = b128.decode(cmpstr); break;
+			cmpstr = b128.decode(cmpstr, decode_error); break;
 		case BASE256 :
-			cmpstr = b256.decode(cmpstr); break;
+			cmpstr = b256.decode(cmpstr, decode_error); break;
 		case BASE64 :
 		default:
-			cmpstr = b64.decode(cmpstr);
+			cmpstr = b64.decode(cmpstr, decode_error);
 	}
 
-	if (cmpstr.find("ERROR") != string::npos) {
+	if (decode_error == true) {
 //		LOG_ERROR("%s", cmpstr.c_str());
 		fprintf(stderr,"%s\n", cmpstr.c_str());
 		return;
@@ -319,38 +322,28 @@ void decompress_maybe(string& input)
 void connect_to_fldigi(void *)
 {
 	try {
-		localaddr = new Address(progStatus.socket_addr.c_str(), progStatus.socket_port.c_str());
-		tcpip = new Socket (*localaddr);
-		tcpip->set_timeout(0.01);
 		tcpip->connect();
+		bConnected = true;
 		LOG_INFO("Connected to %d", tcpip->fd());
 	}
 	catch (const SocketException& e) {
-		if (tcpip) { 
-			tcpip->close();
-			delete tcpip;
-			tcpip = (Socket *)0;
-		}
-		if (localaddr) { delete localaddr; localaddr = (Address *)0; }
-//		LOG_ERROR("%s", "Could not connect to fldigi");
+		bConnected = false;
+		LOG_ERROR("%s", "Could not connect to fldigi");
 	}
 }
 
 void send_via_fldigi(string tosend)
 {
-	if (!tcpip) return;
+	if (!bConnected) {
+		LOG_ERROR("%s", "Not connected to fldigi");
+		return;
+	}
 	try {
 		tcpip->send(tosend.c_str());
 	}
 	catch (const SocketException& e) {
+		bConnected = false;
 		LOG_ERROR("Socket error %d, %s", e.error(), e.what());
-		if (tcpip) {
-			tcpip->close();
-			delete tcpip;
-			tcpip = (Socket *)0;
-		}
-		if (localaddr) { delete localaddr; localaddr = (Address *)0; }
-		Fl::add_timeout(1.0, connect_to_fldigi);
 	}
 	return;
 }
@@ -359,6 +352,7 @@ string rx_buff;
 
 int rx_fldigi(std::string &retbuff)
 {
+	if (!bConnected) return 0;
 	try {
 		rx_buff.clear();
 		tcpip->set_nonblocking();
@@ -367,6 +361,21 @@ int rx_fldigi(std::string &retbuff)
 		return rx_buff.length();
 	}
 	catch (const SocketException& e) {
+		bConnected = false;
+		LOG_ERROR("%s", e.what());
+	}
+	return 0;
+}
+
+int rx_fldigi(char *buffer, int limit)
+{
+	if (!bConnected) return 0;
+	try {
+		tcpip->set_nonblocking();
+		return tcpip->recv(buffer, (size_t) limit);
+	}
+	catch (const SocketException& e) {
+		bConnected = false;
 		LOG_ERROR("%s", e.what());
 	}
 	return 0;
@@ -397,7 +406,7 @@ int not_allowed[256] = {
 
 bool binary(std::string &s)
 {
-	for (size_t n = 0; n < s.length(); n++) {
+ 	for (size_t n = 0; n < s.length(); n++) {
 		if (not_allowed[(s[n] & 0xFF)])
 			return true;
 	}

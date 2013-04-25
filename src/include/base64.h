@@ -44,5 +44,5 @@ public:
 	base64(bool t = false) {crlf = t; init(); };
 	~base64(){};
 	string encode(string in);
-	string decode(string in);
+	string decode(string in, bool &decode_error);
 };

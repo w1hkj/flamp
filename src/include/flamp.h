@@ -29,10 +29,12 @@
 
 #include "crc16.h"
 #include "threads.h"
+#include "circular_queue.h"
 
 #define DEBUG 1
 
 using namespace std;
+void alt_receive_data_stream(void);
 
 extern const char *flamp_beg;
 extern const char *flamp_end;
@@ -49,18 +51,21 @@ extern string buffer;
 
 extern void cb_exit();
 extern void cb_folders();
-extern void addfile(string);
+extern void addfile(string, void *);
 extern void readfile();
 extern void drop_file_changed();
-extern void writefile();
+extern void writefile(int);
+extern int valid_block_size(int value);
 extern void tx_removefile();
 extern void show_selected_xmt(int);
 extern void show_selected_rcv(int);
 extern void update_selected_xmt();
 extern void estimate();
 extern void transmit_queued();
-
+extern int  alt_receive_data_stream(void *);
+extern int  process_que(void *que, char *tag);
 extern void show_help();
+extern void process_data_stream(void);
 
 extern void send_missing_report();
 extern void recv_missing_report();
@@ -70,5 +75,6 @@ extern bool transmit_queue;
 
 extern pthread_t *xmlrpc_thread;
 extern pthread_mutex_t mutex_xmlrpc;
+
 
 #endif

@@ -42,5 +42,5 @@ public:
 	base256() { init(); };
 	~base256() {};
 	string encode(string &in);
-	string decode(string &in);
+	string decode(string &in, bool &decode_error);
 };

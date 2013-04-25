@@ -71,6 +71,7 @@ Fl_Button* btn_save_file = 0;
 Fl_Button* btn_rx_remove = 0;
 Fl_Button* btn_open_file = 0;
 Fl_Button* btn_copy_missing = 0;
+Fl_Button* btn_rxq_to_txq = 0;
 
 Fl_Button* btn_tx_remove_file = 0;
 Fl_Button* btn_send_file = 0;
@@ -99,8 +100,8 @@ struct st_modes s_basic_modes[] = {
 {"MFSK32", 12.0},      {"MFSK64", 24.0},      {"MFSK128", 48.0},
 {"MT63-500", 5.0},     {"MT63-1K", 10.0},     {"MT63-2K", 20.0},
 
-{"BPSK125", 12.0},     {"BPSK250", 24.0},       
-{"BPSK500", 48.0},     {"BPSK1000", 96.0},     
+{"BPSK125", 12.0},     {"BPSK250", 24.0},
+{"BPSK500", 48.0},     {"BPSK1000", 96.0},
 
 {"PSK63RC4", 15.0},    {"PSK63RC5", 19.0},    {"PSK63RC10", 38.0},
 {"PSK63RC20", 74.0},   {"PSK63RC32", 120.0},
@@ -267,7 +268,11 @@ static void cb_selected_blocks(Fl_Input2*, void*)
 }
 
 static void cb_btn_save_file(Fl_Button*, void*) {
-	writefile();
+	writefile(0);
+}
+
+static void cb_btn_transfer_file_txQ(Fl_Button*, void*) {
+	writefile(1);
 }
 
 bool rx_remove = false;
@@ -350,6 +355,7 @@ void cb_use_compression()
 void cb_use_encoder()
 {
 	progStatus.encoder = encoders->index()+1;
+	update_selected_xmt();
 	estimate();
 }
 
@@ -474,6 +480,10 @@ Fl_Double_Window* flamp_dialog() {
 		txt_rx_blocksize->box(FL_DOWN_BOX);
 		txt_rx_blocksize->tooltip("");
 
+		btn_rxq_to_txq = new Fl_Button(W - 88, y, 80, 20, _("To TxQ"));
+		btn_rxq_to_txq->callback((Fl_Callback*)cb_btn_transfer_file_txQ);
+		btn_rxq_to_txq->tooltip("");
+
 		txt_rx_missing_blocks = new Fl_Output(100, y+=26, W-194, 20, _("Missing"));
 		txt_rx_missing_blocks->box(FL_DOWN_BOX);
 		txt_rx_missing_blocks->tooltip(_("Blocks not yet received"));
@@ -520,10 +530,10 @@ Fl_Double_Window* flamp_dialog() {
 		txt_tx_descrip->callback((Fl_Callback*)cb_tx_descrip);
 
 		cnt_blocksize = new Fl_Simple_Counter(X+70, y+=26, 60, 20, _("Blk size"));
-		cnt_blocksize->step(16);
+		cnt_blocksize->step(CNT_BLOCK_SIZE_STEP_RATE);
 		cnt_blocksize->value(64);
-		cnt_blocksize->minimum(16);
-		cnt_blocksize->maximum(2048);
+		cnt_blocksize->minimum(CNT_BLOCK_SIZE_MINIMUM);
+		cnt_blocksize->maximum(CNT_BLOCK_SIZE_MAXIMUM);
 		cnt_blocksize->align(FL_ALIGN_LEFT);
 		cnt_blocksize->callback((Fl_Callback*)cb_cnt_blocksize);
 		cnt_blocksize->tooltip(_("Maximum size of each data block"));
