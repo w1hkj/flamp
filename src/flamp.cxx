@@ -374,7 +374,9 @@ void addfile(string xmtfname, void *rx)
 {
 	xmt_fname = xmtfname;
 	cAmp *rAmp = (cAmp *) rx;
-
+    const char *sz_flmsg = "<flmsg>";
+    int use_comp_on_flmsg = 0;
+    
 	if(rx > 0 && !rAmp->rx_completed()) {
 		fl_alert2("Only completed files can be transfered");
 		return;
@@ -398,11 +400,17 @@ void addfile(string xmtfname, void *rx)
 		LOG_ERROR("%s", "read error");
 		return;
 	}
+    
 	fclose(dfile);
 	txt_tx_filename->value(xmt_fname.c_str());
 	if (isbinary(tx_buffer) && !progStatus.use_compression) {
 		fl_alert2("Suggest using compression on this file");
 	}
+    
+    if(tx_buffer.find(sz_flmsg) != std::string::npos) {
+        use_comp_on_flmsg = 1;
+    }
+    
 	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
 	struct stat statbuf;
 	stat(xmt_fname.c_str(), &statbuf);
@@ -411,9 +419,15 @@ void addfile(string xmtfname, void *rx)
 	tx_array.push_back(nu);
 	tx_queue->add(xmt_fname.c_str());
 	tx_queue->select(tx_queue->size());
-	nu->tx_base_conv_index(encoders->index() + 1);
-	nu->tx_base_conv_str(encoders->value());
 
+    if(use_comp_on_flmsg) {
+        nu->compress(true);
+        encoders->index(BASE64 - 1);
+    }
+    
+    nu->tx_base_conv_index(encoders->index() + 1);
+    nu->tx_base_conv_str(encoders->value());
+    
 	tx_amp = nu;
 
 	if(rx > 0) {
@@ -747,7 +761,7 @@ void transmit_queued()
 
 void receive_data_stream()
 {
-	//if(bConnected) // Prevent cQue->sleep() from reaching the desired deplay
+	//if(bConnected) // Prevents cQue->sleep() from reaching the desired delay
     //    cQue->signal();
 }
 
