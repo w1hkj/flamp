@@ -26,6 +26,7 @@
 #include <string>
 #include <exception>
 #include <cstring>
+#include <time.h>
 
 // NOTE: this implementation of Circular_queue will ONLY process a SINGLE
 //       instantiation!!
@@ -37,6 +38,9 @@
 
 #define MATCH_FOUND     1
 #define MATCH_NOT_FOUND 0
+
+#define TIME_SET 1
+#define TIME_COUNT 2
 
 extern 	void *circularQueueParser(void *que);
 
@@ -82,7 +86,6 @@ private:
 	pthread_t thread;
 	pthread_mutex_t mutex;
 	pthread_cond_t  condition;
-	//pthread_attr_t attr;
 
 	int read_index;
 	int write_index;
@@ -130,6 +133,8 @@ public:
         sleep(0, milliseconds);
     }
     void signal(void);
+    
+    bool timeOut(time_t &timeValue, time_t seconds, int attribute);
 
 friend
 	void *circularQueueParser(void *que);

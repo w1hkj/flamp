@@ -747,8 +747,8 @@ void transmit_queued()
 
 void receive_data_stream()
 {
-	if(bConnected)
-		cQue->signal();
+	//if(bConnected) // Prevent cQue->sleep() from reaching the desired deplay
+    //    cQue->signal();
 }
 
 int alt_receive_data_stream(void *ptr)
@@ -756,11 +756,12 @@ int alt_receive_data_stream(void *ptr)
 	static char buffer[CNT_BLOCK_SIZE_MAXIMUM];
 	int n = 0;
 	int size = sizeof(buffer) - 1;
-
+    static time_t tm_time = 0;
+    
 	if (!bConnected) {
 		connect_to_fldigi(0);
 		if (!bConnected) {
-			cQue->sleep(2, 0); // Wait for signal or 2 seconds max.
+			cQue->sleep(2, 0);
 			return 0;
 		}
 	}
@@ -768,6 +769,13 @@ int alt_receive_data_stream(void *ptr)
 		n = rx_fldigi(buffer, size);
 		if(n < 1) {
 			cQue->milliSleep(50);
+            
+            if(n > 0) {
+                cQue->timeOut(tm_time, 0, TIME_SET);
+            } else {
+                if(cQue->timeOut(tm_time, 10, TIME_COUNT))
+                    connect_to_fldigi(0);
+            }
 			return 0;
 		}
 
@@ -780,25 +788,40 @@ int alt_receive_data_stream(void *ptr)
 int process_que(void *ptr, char *tag)
 {
 	size_t readCount = 0, count = 0;
+	size_t oldCount = -1;
 	static char buffer[CNT_BLOCK_SIZE_MAXIMUM + 128];
 	static char tagBuffer[32];
 	static char aTag[32];
 	unsigned int chksum = 0;
 	int argCount = 0;
 	int reset = 0;
+    time_t tm_time = 0;
+    
 	unsigned int crcVal = 0;
+    
 	Circular_queue *que = (Circular_queue *)ptr;
 
 	memset(buffer, 0, sizeof(buffer));
 
 	count = 20;
+    oldCount = -1;
+    
 	while(!que->thread_exit()) {
 		readCount = que->lookAheadToTerminator(tagBuffer, '>', count);
 
-		if(readCount < count) que->milliSleep(50);
-		else break;
-
+        if(readCount >=  count) break;
 		if(readCount > 0 && tagBuffer[readCount - 1] == '>') break;
+        
+        if(oldCount != readCount) // Reset timer
+            que->timeOut(tm_time, 0, TIME_SET);
+        else
+            que->milliSleep(100);
+
+        if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
+            return 0;
+        }
+        
+        oldCount = readCount;
 	}
 
 	if(tagBuffer[readCount - 1] != '>')
@@ -817,12 +840,25 @@ int process_que(void *ptr, char *tag)
 		count = sizeof(buffer) - 1;
 
 	crcVal = 0;
-
+    oldCount = -1;
+    tm_time = 0;
+    
 	while(!que->thread_exit()) {
 		reset = 1;
 		readCount = que->lookAheadCRC(buffer, count, &crcVal, &reset);
-		if(readCount < count) que->milliSleep(50);
-		else break;
+        
+		if(readCount >= count) break;
+
+        if(oldCount != readCount) // Reset timer
+            que->timeOut(tm_time, 0, TIME_SET);
+        else
+            que->milliSleep(100);
+
+        if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
+            return 0;
+        }
+        
+        oldCount = readCount;
 	}
 
 	if(chksum != crcVal)

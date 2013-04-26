@@ -198,7 +198,7 @@ static void get_fldigi_modems()
 		fldigi_online = true;
 		logerr = true;
 	} catch (const XmlRpc::XmlRpcException& e) {
-		throw;
+		// throw;
 	}
 }
 

@@ -347,6 +347,32 @@ void Circular_queue::resumeQueue()
 	inhibitDataOut = CQUE_RESUME;
 }
 
+bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
+{
+    time_t currentTime = time(NULL);
+    time_t ExpTime = timeValue + seconds;
+    bool ret = false;
+    
+    switch(attribute) {
+    case TIME_SET:
+        timeValue = currentTime;
+        ret = true;
+        break;
+        
+    case TIME_COUNT:
+        if(currentTime > ExpTime) {
+            timeValue = 0;
+            ret = true;
+        }
+        break;
+    }
+    
+    if(timeValue == 0 && seconds > 0)
+        timeValue = currentTime + seconds;
+    
+    return false;
+}
+
 void Circular_queue::sleep(int seconds, int milliseconds)
 {
 	struct timespec		ts;
@@ -409,7 +435,8 @@ void * circularQueueParser(void *ptr)
 	int count = 0;
 	int found = 1;
     int readCount = 0;
-
+    int oldCount = 0;
+    time_t tm_time = 0;
 	uint32_t match = 0;
 	uint32_t matchTo = 0;
 
@@ -444,10 +471,21 @@ void * circularQueueParser(void *ptr)
             }
 
             buffer_count = 0;
-
+            oldCount = -1;
+            
    			while(buffer_count < buffer_size && !que->exit_thread) {
-				buffer_count = que->lookAhead(buffer, buffer_size);
-				if(buffer_count < 1) que->milliSleep(50);
+				
+                buffer_count = que->lookAhead(buffer, buffer_size);
+                
+                if(buffer_count != oldCount)
+                    que->timeOut(tm_time, 10, TIME_SET);
+                else
+                    que->milliSleep(100);
+
+                if(que->timeOut(tm_time, 10, TIME_COUNT))
+                    break;
+                   
+                oldCount = buffer_count;
 			}
 
             match = 0;
