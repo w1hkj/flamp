@@ -44,6 +44,7 @@ extern Fl_Double_Window *optionswindow;
 extern Fl_Double_Window *config_files_window;
 extern Fl_Double_Window *socket_window;
 
+extern const char *options[];
 extern string title;
 extern string flampHomeDir;
 extern string flamp_dir;

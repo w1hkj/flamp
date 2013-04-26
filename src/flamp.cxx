@@ -110,25 +110,46 @@ int repeatNN = 1;
 
 const char *options[] = {\
 "flamp unique options",
-"--help",
-"--version",
-"Fltk UI options",
-"-bg\t-background [COLOR]",
-"-bg2\t-background2 [COLOR]",
-"-di\t-display [host:n.n]",
-"-dn\t-dnd : enable drag and drop",
-"-nodn\t-nodnd : disable drag and drop",
-"-fg\t-foreground [COLOR]",
-"-g\t-geometry [WxH+X+Y]",
-"-i\t-iconic",
-"-k\t-kbd : enable keyboard focus:",
-"-nok\t-nokbd : en/disable keyboard focus",
-"-na\t-name [CLASSNAME]",
-"-s\t-scheme [none | gtk+ | plastic]",
-" default = gtk+",
-"-ti\t-title [WINDOWTITLE]",
-"-to\t-tooltips : enable tooltips",
-"-not\t-notooltips : disable tooltips\n",
+"  --help",
+"  --version",
+"  --flamp-dir folder-path-name (including drive letter on Windows)",
+"      Windows: C:/Documents and Settings/<username>/folder-name",
+"               C:/Users/<username/folder-name",
+"               H:/hamstuff/folder-name",
+"      Linux:   /home/<username>/folder-name",
+"      OS X:    /home/<username>/folder-name",
+"",
+"      note that enclosing \"'s must be used when the path or file name",
+"      contains spaces.",
+"",
+"    Unless the empty file NBEMS.DIR is found in the same folder as the",
+"    flamp executable.  The existence of an empty file NBEMS.DIR forces",
+"    the flamp-dir to be a placed in the same folder as the executable",
+"    folder and named flamp.files (.flamp on Linux / OS X)",
+"",
+"    NBEMS.DIR may contain a single line specifying the absolute",
+"    path-name of the flamp-dir.  If NBEMS.DIR is not empty then",
+"    the specified path-name takes precedence over the --flamp-dir",
+"    command line parameter.  The specified path-name must be a valid",
+"    one for the operating system!  Enclosing \"'s are not required.",
+"=======================================================================",
+"Fltk User Interface options",
+"  -bg\t-background [COLOR]",
+"  -bg2\t-background2 [COLOR]",
+"  -di\t-display [host:n.n]",
+"  -dn\t-dnd : enable drag and drop",
+"  -nodn\t-nodnd : disable drag and drop",
+"  -fg\t-foreground [COLOR]",
+"  -g\t-geometry [WxH+X+Y]",
+"  -i\t-iconic",
+"  -k\t-kbd : enable keyboard focus:",
+"  -nok\t-nokbd : en/disable keyboard focus",
+"  -na\t-name [CLASSNAME]",
+"  -s\t-scheme [none | gtk+ | plastic]",
+"     default = gtk+",
+"  -ti\t-title [WINDOWTITLE]",
+"  -to\t-tooltips : enable tooltips",
+"  -not\t-notooltips : disable tooltips\n",
 0
 };
 
@@ -610,6 +631,8 @@ int parse_args(int argc, char **argv, int& idx)
 {
 	if (strstr(argv[idx], "--flamp-dir")) {
 		idx++;
+		// ignore if already set via NBEMS.DIR file contents
+		if (!flampHomeDir.empty()) return 1;
 		string tmp = argv[idx];
 		if (!tmp.empty()) flampHomeDir = tmp;
 		size_t p = string::npos;
@@ -1018,8 +1041,28 @@ int main(int argc, char *argv[])
 			testfile.assign(appdir).append("NBEMS.DIR");
 			FILE *testdir = fopen(testfile.c_str(),"r");
 			if (testdir) {
+				string dirline = "";
+				char ch = fgetc(testdir);
+				while (!feof(testdir)) {
+					dirline += ch;
+					ch = fgetc(testdir);
+				}
 				fclose(testdir);
-				BaseDir = appdir;
+				// strip leading & trailing white space
+				while (dirline.length() && dirline[0] <= ' ')
+					dirline.erase(0,1);
+				while (dirline.length() && dirline[dirline.length()-1] <= ' ')
+					dirline.erase(dirline.length()-1, 1);
+				if (dirline.empty())
+					BaseDir = appdir;
+				else {
+					size_t p = 0;
+					while ( (p = dirline.find("\\")) != string::npos)
+						dirline[p] = '/';
+					if (dirline[dirline.length()-1] != '/')
+						dirline += '/';
+					flampHomeDir = dirline;
+				}
 			}
 		}
 	}

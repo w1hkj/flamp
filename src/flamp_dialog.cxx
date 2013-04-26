@@ -35,6 +35,7 @@
 //======================================================================
 
 Fl_Double_Window *main_window = 0;
+Fl_Double_Window *wCmdLine = 0;
 
 Fl_Tabs*   tabs = 0;
 Fl_Output* txt_rx_filename = 0;
@@ -247,6 +248,24 @@ Authors:\n\
 FLAMP_VERSION);
 }
 
+void cb_mnuCmdLineParams(void *, void *)
+{
+	if (!wCmdLine) {
+		wCmdLine = new Fl_Double_Window(0,0,604,404,"Command Line Options");
+		wCmdLine->begin();
+		Fl_Browser *bwsCmds = new Fl_Browser(2,2,600,400,"");
+		int i = 0;
+		string cmdline;
+		while (options[i] != NULL) {
+			cmdline.assign("@f").append(options[i]);
+			bwsCmds->add(cmdline.c_str());
+			i++;
+		}
+		wCmdLine->end();
+	}
+	wCmdLine->show();
+}
+
 Fl_Menu_Item menu_[] = {
  {_("&File"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {_("&Folders"), 0, (Fl_Callback*)cb_mnu_folders, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
@@ -255,6 +274,7 @@ Fl_Menu_Item menu_[] = {
  {_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {_("&Debug log"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {_("On Line help"), 0,  (Fl_Callback*)cb_mnuOnLineHelp, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {_("Command line parameters"), 0, (Fl_Callback*)cb_mnuCmdLineParams, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {_("About"), 0, (Fl_Callback*)cb_mnuAbout, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
 
