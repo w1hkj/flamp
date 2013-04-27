@@ -123,6 +123,7 @@ flamp_SOURCES += \
 	$(srcdir)/utils/file_io.cxx \
 	$(srcdir)/utils/xml_io.cxx \
 	$(srcdir)/utils/circular_queue.cxx \
+	$(srcdir)/utils/tagSearch.cxx \
 	$(srcdir)/widgets/calendar.cxx \
 	$(srcdir)/widgets/combo.cxx \
 	$(srcdir)/widgets/date.cxx \
@@ -166,7 +167,7 @@ flamp_SOURCES += \
 	$(srcdir)/xmlrpcpp/XmlRpcUtil.h \
 	$(srcdir)/xmlrpcpp/XmlRpcValue.cpp \
 	$(srcdir)/xmlrpcpp/XmlRpcValue.h \
-	$(srcdir)/xmlrpcpp/base64.h 
+	$(srcdir)/xmlrpcpp/base64.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
@@ -212,6 +213,7 @@ EXTRA_DIST = \
 	$(srcdir)/include/file_io.h \
 	$(srcdir)/include/xml_io.h \
 	$(srcdir)/include/circular_queue.h \
+	$(srcdir)/include/tagSearch.h \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \

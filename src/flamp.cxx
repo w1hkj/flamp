@@ -2,8 +2,9 @@
 //
 // flamp.cxx
 //
-// Author: Dave Freese, W1HKJ
-// Copyright: 2010, 2011
+//  Author(s):
+//    Robert Stiles, KK5VD, Copyright (C) 2013
+//    Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -62,7 +63,7 @@
 #include "pixmaps.h"
 #include "threads.h"
 #include "xml_io.h"
-#include "circular_queue.h"
+#include "tagSearch.h"
 
 #ifdef WIN32
 #  include "flamprc.h"
@@ -84,20 +85,8 @@ string rx_rotary;
 string tx_buffer;
 string tmp_buffer;
 
-static Circular_queue *cQue;
+static TagSearch *cQue;
 
-const char *searchTags[] = {
-	"<FILE ",
-	"<ID ",
-	"<DESC ",
-	"<DATA ",
-	"<PROG ",
-	"<CNTL ",
-	"<SIZE ",
-	(char *)0
-};
-
-int search_tag_count = (sizeof(searchTags) / sizeof(char *)) - 1;
 
 string testfname = "Bulletin1.txt";
 
@@ -113,25 +102,25 @@ const char *options[] = {\
 "  --help",
 "  --version",
 "  --flamp-dir folder-path-name (including drive letter on Windows)",
-"      Windows: C:/Documents and Settings/<username>/folder-name",
-"               C:/Users/<username/folder-name",
-"               H:/hamstuff/folder-name",
-"      Linux:   /home/<username>/folder-name",
-"      OS X:    /home/<username>/folder-name",
+"	  Windows: C:/Documents and Settings/<username>/folder-name",
+"			   C:/Users/<username/folder-name",
+"			   H:/hamstuff/folder-name",
+"	  Linux:   /home/<username>/folder-name",
+"	  OS X:	/home/<username>/folder-name",
 "",
-"      note that enclosing \"'s must be used when the path or file name",
-"      contains spaces.",
+"	  note that enclosing \"'s must be used when the path or file name",
+"	  contains spaces.",
 "",
-"    Unless the empty file NBEMS.DIR is found in the same folder as the",
-"    flamp executable.  The existence of an empty file NBEMS.DIR forces",
-"    the flamp-dir to be a placed in the same folder as the executable",
-"    folder and named flamp.files (.flamp on Linux / OS X)",
+"	Unless the empty file NBEMS.DIR is found in the same folder as the",
+"	flamp executable.  The existence of an empty file NBEMS.DIR forces",
+"	the flamp-dir to be a placed in the same folder as the executable",
+"	folder and named flamp.files (.flamp on Linux / OS X)",
 "",
-"    NBEMS.DIR may contain a single line specifying the absolute",
-"    path-name of the flamp-dir.  If NBEMS.DIR is not empty then",
-"    the specified path-name takes precedence over the --flamp-dir",
-"    command line parameter.  The specified path-name must be a valid",
-"    one for the operating system!  Enclosing \"'s are not required.",
+"	NBEMS.DIR may contain a single line specifying the absolute",
+"	path-name of the flamp-dir.  If NBEMS.DIR is not empty then",
+"	the specified path-name takes precedence over the --flamp-dir",
+"	command line parameter.  The specified path-name must be a valid",
+"	one for the operating system!  Enclosing \"'s are not required.",
 "=======================================================================",
 "Fltk User Interface options",
 "  -bg\t-background [COLOR]",
@@ -146,7 +135,7 @@ const char *options[] = {\
 "  -nok\t-nokbd : en/disable keyboard focus",
 "  -na\t-name [CLASSNAME]",
 "  -s\t-scheme [none | gtk+ | plastic]",
-"     default = gtk+",
+"	 default = gtk+",
 "  -ti\t-title [WINDOWTITLE]",
 "  -to\t-tooltips : enable tooltips",
 "  -not\t-notooltips : disable tooltips\n",
@@ -374,9 +363,9 @@ void addfile(string xmtfname, void *rx)
 {
 	xmt_fname = xmtfname;
 	cAmp *rAmp = (cAmp *) rx;
-    const char *sz_flmsg = "<flmsg>";
-    int use_comp_on_flmsg = 0;
-    
+	const char *sz_flmsg = "<flmsg>";
+	int use_comp_on_flmsg = 0;
+
 	if(rx > 0 && !rAmp->rx_completed()) {
 		fl_alert2("Only completed files can be transfered");
 		return;
@@ -400,17 +389,17 @@ void addfile(string xmtfname, void *rx)
 		LOG_ERROR("%s", "read error");
 		return;
 	}
-    
+
 	fclose(dfile);
 	txt_tx_filename->value(xmt_fname.c_str());
 	if (isbinary(tx_buffer) && !progStatus.use_compression) {
 		fl_alert2("Suggest using compression on this file");
 	}
-    
-    if(tx_buffer.find(sz_flmsg) != std::string::npos) {
-        use_comp_on_flmsg = 1;
-    }
-    
+
+	if(tx_buffer.find(sz_flmsg) != std::string::npos) {
+		use_comp_on_flmsg = 1;
+	}
+
 	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
 	struct stat statbuf;
 	stat(xmt_fname.c_str(), &statbuf);
@@ -420,14 +409,14 @@ void addfile(string xmtfname, void *rx)
 	tx_queue->add(xmt_fname.c_str());
 	tx_queue->select(tx_queue->size());
 
-    if(use_comp_on_flmsg) {
-        nu->compress(true);
-        encoders->index(BASE64 - 1);
-    }
-    
-    nu->tx_base_conv_index(encoders->index() + 1);
-    nu->tx_base_conv_str(encoders->value());
-    
+	if(use_comp_on_flmsg) {
+		nu->compress(true);
+		encoders->index(BASE64 - 1);
+	}
+
+	nu->tx_base_conv_index(encoders->index() + 1);
+	nu->tx_base_conv_str(encoders->value());
+
 	tx_amp = nu;
 
 	if(rx > 0) {
@@ -762,7 +751,7 @@ void transmit_queued()
 void receive_data_stream()
 {
 	//if(bConnected) // Prevents cQue->sleep() from reaching the desired delay
-    //    cQue->signal();
+	//	cQue->signal();
 }
 
 int alt_receive_data_stream(void *ptr)
@@ -770,8 +759,8 @@ int alt_receive_data_stream(void *ptr)
 	static char buffer[CNT_BLOCK_SIZE_MAXIMUM];
 	int n = 0;
 	int size = sizeof(buffer) - 1;
-    static time_t tm_time = 0;
-    
+	static time_t tm_time = 0;
+
 	if (!bConnected) {
 		connect_to_fldigi(0);
 		if (!bConnected) {
@@ -783,13 +772,13 @@ int alt_receive_data_stream(void *ptr)
 		n = rx_fldigi(buffer, size);
 		if(n < 1) {
 			cQue->milliSleep(50);
-            
-            if(n > 0) {
-                cQue->timeOut(tm_time, 0, TIME_SET);
-            } else {
-                if(cQue->timeOut(tm_time, 10, TIME_COUNT))
-                    connect_to_fldigi(0);
-            }
+
+			if(n > 0) {
+				cQue->timeOut(tm_time, 0, TIME_SET);
+			} else {
+				if(cQue->timeOut(tm_time, 10, TIME_COUNT))
+					connect_to_fldigi(0);
+			}
 			return 0;
 		}
 
@@ -799,7 +788,7 @@ int alt_receive_data_stream(void *ptr)
 	return n;
 }
 
-int process_que(void *ptr, char *tag)
+int process_que(void *ptr)
 {
 	size_t readCount = 0, count = 0;
 	size_t oldCount = -1;
@@ -809,33 +798,33 @@ int process_que(void *ptr, char *tag)
 	unsigned int chksum = 0;
 	int argCount = 0;
 	int reset = 0;
-    time_t tm_time = 0;
-    
+	time_t tm_time = 0;
+
 	unsigned int crcVal = 0;
-    
+
 	Circular_queue *que = (Circular_queue *)ptr;
 
 	memset(buffer, 0, sizeof(buffer));
 
 	count = 20;
-    oldCount = -1;
-    
+	oldCount = -1;
+
 	while(!que->thread_exit()) {
 		readCount = que->lookAheadToTerminator(tagBuffer, '>', count);
 
-        if(readCount >=  count) break;
+		if(readCount >=  count) break;
 		if(readCount > 0 && tagBuffer[readCount - 1] == '>') break;
-        
-        if(oldCount != readCount) // Reset timer
-            que->timeOut(tm_time, 0, TIME_SET);
-        else
-            que->milliSleep(100);
 
-        if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
-            return 0;
-        }
-        
-        oldCount = readCount;
+		if(oldCount != readCount) // Reset timer
+			que->timeOut(tm_time, 0, TIME_SET);
+		else
+			que->milliSleep(100);
+
+		if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
+			return 0;
+		}
+
+		oldCount = readCount;
 	}
 
 	if(tagBuffer[readCount - 1] != '>')
@@ -854,25 +843,25 @@ int process_que(void *ptr, char *tag)
 		count = sizeof(buffer) - 1;
 
 	crcVal = 0;
-    oldCount = -1;
-    tm_time = 0;
-    
+	oldCount = -1;
+	tm_time = 0;
+
 	while(!que->thread_exit()) {
 		reset = 1;
 		readCount = que->lookAheadCRC(buffer, count, &crcVal, &reset);
-        
+
 		if(readCount >= count) break;
 
-        if(oldCount != readCount) // Reset timer
-            que->timeOut(tm_time, 0, TIME_SET);
-        else
-            que->milliSleep(100);
+		if(oldCount != readCount) // Reset timer
+			que->timeOut(tm_time, 0, TIME_SET);
+		else
+			que->milliSleep(100);
 
-        if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
-            return 0;
-        }
-        
-        oldCount = readCount;
+		if(que->timeOut(tm_time, 10, TIME_COUNT)) { // In seconds
+			return 0;
+		}
+
+		oldCount = readCount;
 	}
 
 	if(chksum != crcVal)
@@ -1180,8 +1169,8 @@ int main(int argc, char *argv[])
 	}
 
 	try {
-		cQue = new Circular_queue(18, searchTags, search_tag_count, process_que, alt_receive_data_stream);
-	} catch (const CircQueException& e) {
+		cQue = new TagSearch(alt_receive_data_stream, process_que);
+	} catch (const TagSearchException& e) {
 		LOG_ERROR("%d, %s", e.error(), e.what());
 		exit (EXIT_FAILURE);
 	}

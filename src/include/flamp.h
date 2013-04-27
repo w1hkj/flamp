@@ -2,8 +2,9 @@
 //
 // flamp.h
 //
-// Author: Dave Freese, W1HKJ
-// Copyright: 2010
+//  Author(s):
+//    Robert Stiles, KK5VD, Copyright (C) 2013
+//    Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +30,7 @@
 
 #include "crc16.h"
 #include "threads.h"
-#include "circular_queue.h"
+
 
 #define DEBUG 1
 
@@ -64,7 +65,7 @@ extern void update_selected_xmt();
 extern void estimate();
 extern void transmit_queued();
 extern int  alt_receive_data_stream(void *);
-extern int  process_que(void *que, char *tag);
+extern int  process_que(void *que);
 extern void show_help();
 extern void process_data_stream(void);
 

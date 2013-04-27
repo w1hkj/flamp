@@ -1,7 +1,8 @@
 // circular_queue.cxx
 //
-//  Author(s): Robert Stiles, KK5VD, Copyright (C) 2013
-//             Dave Freese, W1HKJ, Copyright (C) 2013
+//  Author(s):
+//    Robert Stiles, KK5VD, Copyright (C) 2013
+//    Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,52 +32,23 @@
 
 using namespace std;
 
-// NOTE: this implementation of Circular_queue will ONLY process a SINGLE
-//       instantiation!!
+Circular_queue::Circular_queue()
+{
+
+}
 
 Circular_queue::Circular_queue(
 	int po2,
-	const char *mList[], int mlCount,
-	int (*_matchFunc)(void *, char *),
-	int (*_readDataFrom)(void *))
+	int (*_matchFound)(void *),
+	int (*_readDataFrom)(void *),
+	void * (*_queueParser)(void *))
 {
-	buffer_size = (1 << po2);
-	buffer = new char[buffer_size];
-	if (!buffer) {
-		throw CircQueException("Cannot allocate buffer");
-	}
-
-	bufferCount = 0;
-
-	index_mask = 1;
-	for(int i = 1; i < po2; i++)
-		index_mask |= (index_mask << 1);
-
-	memset(buffer, 0, buffer_size);
-	inhibitDataOut = CQUE_HOLD;
-
-	stringMatchingList(mList, mlCount);
-
-	matchFound = _matchFunc;
-	readData   = _readDataFrom;
-
-	inhibitDataOut = CQUE_RESUME;
-
-	exit_thread = 0;
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&condition, NULL);
-
-	int perr = pthread_create(&thread, 0, circularQueueParser, this);
-	if (perr) {
-		throw CircQueException(perr, "Cannot create thread");
-	}
-
+	setUp(po2, _matchFound, _readDataFrom, _queueParser);
 }
 
 Circular_queue::~Circular_queue()
 {
-    signal();
+	signal();
 
 	pthread_mutex_lock(&mutex);
 	exit_thread = 1;
@@ -86,7 +58,50 @@ Circular_queue::~Circular_queue()
 	pthread_cond_destroy(&condition);
 
 	delete [] buffer;
-	delete [] patternMatchList;
+}
+
+void Circular_queue::setUp(
+	int po2,
+	int (*_matchFound)(void *),
+	int (*_readDataFrom)(void *),
+	void * (*_queueParser)(void *))
+{
+
+	if(!_matchFound || !_readDataFrom || !_queueParser) {
+		throw CircQueException("Null Calling Function(s)");
+	}
+
+	matchFound = _matchFound;
+	readData   = _readDataFrom;
+	queueParser = _queueParser;
+
+	buffer_size = (1 << po2);
+	buffer = new char[buffer_size];
+	if (!buffer) {
+		throw CircQueException("Cannot allocate buffer");
+	}
+
+	memset(buffer, 0, buffer_size);
+	bufferCount = 0;
+
+	index_mask = 1;
+	for(int i = 1; i < po2; i++)
+		index_mask |= (index_mask << 1);
+
+	exit_thread = 0;
+
+	inhibitDataOut = CQUE_HOLD;
+
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&condition, NULL);
+
+	int perr = pthread_create(&thread, 0, queueParser, this);
+	if (perr) {
+		throw CircQueException(perr, "Cannot create thread");
+	}
+
+	inhibitDataOut = CQUE_RESUME;
+
 }
 
 void Circular_queue::stopDataOut()
@@ -224,6 +239,12 @@ int Circular_queue::readQueData(int buffer_count)
 		(*readData)((void *)this);
 	}
 
+	pthread_mutex_lock(&mutex);
+	if(stalled)
+		if(buffer_count < buffer_size)
+			stalled = 0;
+	pthread_mutex_unlock(&mutex);
+
 	return 0;
 }
 
@@ -302,7 +323,7 @@ int Circular_queue::lookAheadForCharacter(char character, int *found)
 	if (!found) return 0;
 
 	int count = 0;
-    char valueRead = 0;
+	char valueRead = 0;
 
 	pthread_mutex_lock(&mutex);
 
@@ -310,7 +331,7 @@ int Circular_queue::lookAheadForCharacter(char character, int *found)
 	int buffer_count = bufferCount;
 
 	if (buffer_count > 0) {
-        *found = 0;
+		*found = 0;
 
 		while (!exit_thread) {
 
@@ -319,13 +340,13 @@ int Circular_queue::lookAheadForCharacter(char character, int *found)
 			if (buffer_count > 0)  {
 				valueRead = buffer[temp_index++];
 				buffer_count--;
-                count++;
+				count++;
 			} else
 			   break;
 
 			if(valueRead == character) {
 				*found = 1;
-                break;
+				break;
 			}
 		}
 	}
@@ -349,28 +370,28 @@ void Circular_queue::resumeQueue()
 
 bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 {
-    time_t currentTime = time(NULL);
-    time_t ExpTime = timeValue + seconds;
-    bool ret = false;
-    
-    switch(attribute) {
-    case TIME_SET:
-        timeValue = currentTime;
-        ret = true;
-        break;
-        
-    case TIME_COUNT:
-        if(currentTime > ExpTime) {
-            timeValue = 0;
-            ret = true;
-        }
-        break;
-    }
-    
-    if(timeValue == 0 && seconds > 0)
-        timeValue = currentTime + seconds;
-    
-    return false;
+	time_t currentTime = time(NULL);
+	time_t ExpTime = timeValue + seconds;
+	bool ret = false;
+
+	switch(attribute) {
+	case TIME_SET:
+		timeValue = currentTime;
+		ret = true;
+		break;
+
+	case TIME_COUNT:
+		if(currentTime > ExpTime) {
+			timeValue = 0;
+			ret = true;
+		}
+		break;
+	}
+
+	if(timeValue == 0 && seconds > 0)
+		timeValue = currentTime + seconds;
+
+	return ret;
 }
 
 void Circular_queue::sleep(int seconds, int milliseconds)
@@ -393,136 +414,5 @@ void Circular_queue::signal(void)
 	pthread_cond_signal(&condition);
 }
 
-// Specific use parts of the code.
 
-void Circular_queue::stringMatchingList(const char **mList, int mlCount)
-{
-	int size = 0;
-	matchMaxLen = 0;
-	patternMatchList = new MATCH_STRING[mlCount];
 
-    if(patternMatchList) {
-        for (int index = 0; index < mlCount; index++) {
-            if (mList[index]) {
-                size = (int)strnlen(mList[index], STRING_MATCH_SIZE_LIMIT);
-                matchMaxLen = size > matchMaxLen ? size : matchMaxLen;
-                if (size) {
-                    patternMatchList[index].string_size = size;
-                    memcpy(patternMatchList[index].string, mList[index], size);
-                }
-                const char *cPtr = mList[index];
-                int val = 0;
-                patternMatchList[index].match = 0;
-                for (size_t index2 = 0; index2 < sizeof(uint32_t); index2++) {
-                    val = cPtr[index2];
-                    patternMatchList[index].match |= (val & 0xff);
-                    if(index2 < (sizeof(uint32_t) - 1))
-                        patternMatchList[index].match <<= 8;
-                }
-            }
-        }
-
-        listCount = mlCount;
-    }
-}
-
-void * circularQueueParser(void *ptr)
-{
-	Circular_queue *que = (Circular_queue *)ptr;
-	int offset = 0;
-	int buffer_count = 0;
-	int buffer_size  = 0;
-	int count = 0;
-	int found = 1;
-    int readCount = 0;
-    int oldCount = 0;
-    time_t tm_time = 0;
-	uint32_t match = 0;
-	uint32_t matchTo = 0;
-
-	char buffer[sizeof(uint32_t) + 1];
-
-	if(!que) {
-		return (void *)0;
-	}
-
-	if(!que->matchFound || !que->patternMatchList) {
-		return (void *)0;
-	}
-
-	que->thread_running = 1;
-
-	buffer_size = sizeof(uint32_t);
-	memset(buffer, 0, sizeof(buffer));
-
-	while(!que->exit_thread) {
-
-        found = 0;
-        readCount = que->lookAheadForCharacter('<', &found);
-
-		if(readCount < 1)
-			que->milliSleep(50);
-
-        if(found) {
-
-            if(readCount > 0) {
-                readCount--;
-                que->adjustReadQueIndex(readCount);
-            }
-
-            buffer_count = 0;
-            oldCount = -1;
-            
-   			while(buffer_count < buffer_size && !que->exit_thread) {
-				
-                buffer_count = que->lookAhead(buffer, buffer_size);
-                
-                if(buffer_count != oldCount)
-                    que->timeOut(tm_time, 10, TIME_SET);
-                else
-                    que->milliSleep(100);
-
-                if(que->timeOut(tm_time, 10, TIME_COUNT))
-                    break;
-                   
-                oldCount = buffer_count;
-			}
-
-            match = 0;
-
-            for(count = 0; count < buffer_count; count++) {
-                match |= (buffer[count] & 0xff);
-
-                if(count < (buffer_count - 1))
-                    match <<= 8;
-            }
-
-            readCount = 1;
-
-            for (int index = 0; index < que->listCount; index++) {
-                matchTo = que->patternMatchList[index].match;
-
-                if(matchTo != match)
-                    continue;
-
-                readCount = 0;
-
-                if(que->inhibitDataOut == CQUE_RESUME) {
-                    char *tag = que->patternMatchList[index].string;
-                    offset = (que->matchFound)((void *)que, tag);
-                    break;
-                }
-            }
-		}
-
-        if(readCount > 0)
-           que->adjustReadQueIndex(readCount);
-
-		que->milliSleep(50);
-
-	}
-
-	que->thread_running = 0;
-
-	return ptr;
-}
