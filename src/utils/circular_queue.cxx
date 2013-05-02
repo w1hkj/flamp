@@ -1,8 +1,8 @@
 // circular_queue.cxx
 //
 //  Author(s):
-//    Robert Stiles, KK5VD, Copyright (C) 2013
-//    Dave Freese, W1HKJ, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -38,10 +38,10 @@ Circular_queue::Circular_queue()
 }
 
 Circular_queue::Circular_queue(
-	int po2,
-	int (*_matchFound)(void *),
-	int (*_readDataFrom)(void *),
-	void * (*_queueParser)(void *))
+							   int po2,
+							   int (*_matchFound)(void *),
+							   int (*_readDataFrom)(void *),
+							   void * (*_queueParser)(void *))
 {
 	setUp(po2, _matchFound, _readDataFrom, _queueParser);
 }
@@ -61,10 +61,10 @@ Circular_queue::~Circular_queue()
 }
 
 void Circular_queue::setUp(
-	int po2,
-	int (*_matchFound)(void *),
-	int (*_readDataFrom)(void *),
-	void * (*_queueParser)(void *))
+						   int po2,
+						   int (*_matchFound)(void *),
+						   int (*_readDataFrom)(void *),
+						   void * (*_queueParser)(void *))
 {
 
 	if(!_matchFound || !_readDataFrom || !_queueParser) {
@@ -179,7 +179,7 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal
 
 				cPtr++;
 			} else
-			   break;
+				break;
 
 		}
 	}
@@ -222,7 +222,7 @@ int Circular_queue::lookAhead(char *_buffer, int _size)
 				buffer_count--;
 				count++;
 			} else
-			   break;
+				break;
 		}
 	}
 
@@ -301,7 +301,7 @@ int Circular_queue::lookAheadToTerminator(char *_buffer, char terminator, int ma
 				buffer_count--;
 				count++;
 			} else
-			   break;
+				break;
 
 			if(*cPtr == terminator) {
 				break;
@@ -342,7 +342,7 @@ int Circular_queue::lookAheadForCharacter(char character, int *found)
 				buffer_count--;
 				count++;
 			} else
-			   break;
+				break;
 
 			if(valueRead == character) {
 				*found = 1;
@@ -375,21 +375,21 @@ bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 	bool ret = false;
 
 	switch(attribute) {
-	case TIME_SET:
-		timeValue = currentTime;
-		ret = true;
-		break;
-
-	case TIME_COUNT:
-		if(currentTime > ExpTime) {
-			timeValue = 0;
+		case TIME_SET:
+			timeValue = currentTime;
 			ret = true;
-		}
-		break;
+			break;
+
+		case TIME_COUNT:
+			if(currentTime > ExpTime) {
+				timeValue = 0;
+				ret = true;
+			}
+			break;
 	}
 
 	if(timeValue == 0 && seconds > 0)
-		timeValue = currentTime + seconds;
+		timeValue = currentTime;
 
 	return ret;
 }
@@ -413,6 +413,3 @@ void Circular_queue::signal(void)
 {
 	pthread_cond_signal(&condition);
 }
-
-
-

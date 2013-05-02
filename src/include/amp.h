@@ -116,6 +116,7 @@ public:
 	void xmt_descrip(std::string desc) { xmtdesc = desc; }
 	std::string xmt_descrip() { return xmtdesc; }
 
+	void xmt_tosend_clear(void) { tosend.clear(); }
 	void xmt_tosend(std::string str) { tosend = str; }
 	std::string xmt_tosend() { return tosend; }
 	

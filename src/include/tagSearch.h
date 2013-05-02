@@ -2,8 +2,8 @@
 //  tagSearch.h
 //
 //  Author(s):
-//    Robert Stiles, KK5VD, Copyright (C) 2013
-//    Dave Freese, W1HKJ, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -52,8 +52,8 @@ public:
 	TagSearchException(int err_, const std::string& prefix)
 		: err(err_), msg(std::string(prefix).append(": ").append(err_to_str(err_))) { }
 	virtual ~TagSearchException() throw() { }
-		const char*	 what(void) const throw() { return msg.c_str(); }
-		int			 error(void) const { return err; }
+	const char*	 what(void) const throw() { return msg.c_str(); }
+	int			 error(void) const { return err; }
 
 protected:
 	const char* err_to_str(int e) {

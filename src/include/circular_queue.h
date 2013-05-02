@@ -2,8 +2,8 @@
 //  circularQueue.h
 //
 //  Author(s):
-//    Robert Stiles, KK5VD, Copyright (C) 2013
-//    Dave Freese, W1HKJ, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,9 +29,6 @@
 #include <cstring>
 #include <time.h>
 
-// NOTE: this implementation of Circular_queue will ONLY process a SINGLE
-//	   instantiation!!
-
 #define CQUE_HOLD   1
 #define CQUE_RESUME 0
 #define CQUE_SLEEP_TIME 10
@@ -51,8 +48,8 @@ public:
 	CircQueException(int err_, const std::string& prefix)
 		: err(err_), msg(std::string(prefix).append(": ").append(err_to_str(err_))) { }
 	virtual ~CircQueException() throw() { }
-		const char*	 what(void) const throw() { return msg.c_str(); }
-		int			 error(void) const { return err; }
+	const char*	 what(void) const throw() { return msg.c_str(); }
+	int			 error(void) const { return err; }
 
 protected:
 	const char* err_to_str(int e) {
@@ -91,7 +88,7 @@ public:
 public:
 	Circular_queue(void);
 	Circular_queue(int po2, int (*_matchFound)(void *),	\
-		int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
+				   int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
 	~Circular_queue();
 
 public:
@@ -117,7 +114,7 @@ public:
 
 	bool timeOut(time_t &timeValue, time_t seconds, int attribute);
 	void setUp(int po2, int (*_matchFound)(void *),	\
-		int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
+			   int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
 };
 
 

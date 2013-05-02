@@ -61,18 +61,18 @@ void open_xmlrpc()
 {
 	int server_port = atoi(progStatus.xmlrpc_port.c_str());
 	client = new XmlRpc::XmlRpcClient(
-				progStatus.xmlrpc_addr.c_str(),
-				server_port );
-//	XmlRpc::setVerbosity(5); // 0...5
+									  progStatus.xmlrpc_addr.c_str(),
+									  server_port );
+	//	XmlRpc::setVerbosity(5); // 0...5
 }
 
 void close_xmlrpc()
 {
 	pthread_mutex_lock(&mutex_xmlrpc);
-
+	
 	delete client;
 	client = NULL;
-
+	
 	pthread_mutex_unlock(&mutex_xmlrpc);
 }
 
@@ -166,7 +166,7 @@ string get_rx_data()
 static void get_fldigi_modem()
 {
 	if (!progStatus.sync_mode_fldigi_flamp) return;
-
+	
 	XmlRpcValue status;
 	XmlRpcValue query;
 	static string response;
@@ -178,7 +178,7 @@ static void get_fldigi_modem()
 			Fl::awake(set_combo, (void *)response.c_str());
 		}
 	} catch (const XmlRpc::XmlRpcException& e) {
-		throw;
+		 throw;
 	}
 }
 
@@ -198,7 +198,7 @@ static void get_fldigi_modems()
 		fldigi_online = true;
 		logerr = true;
 	} catch (const XmlRpc::XmlRpcException& e) {
-		// throw;
+		 // throw;
 	}
 }
 

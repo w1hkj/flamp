@@ -1,8 +1,8 @@
 // tagSearch.cxx
 //
 //  Author(s):
-//    Robert Stiles, KK5VD, Copyright (C) 2013
-//    Dave Freese, W1HKJ, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ TagSearch::TagSearch()
 
 TagSearch::TagSearch(int (*_data_stream)(void *), int (*_process_que)(void *))
 {
-	search_tag_count = (sizeof(searchTags) / (sizeof(char *) - 1));
+	search_tag_count = (sizeof(searchTags)/sizeof(char *)) - 1;
 	stringMatchingList(searchTags, search_tag_count);
 	setUp(18, _process_que, _data_stream, tag_search_parser);
 }
@@ -77,7 +77,7 @@ void TagSearch::stringMatchingList(const char *mList[], int mlCount)
 					if(index2 < (sizeof(uint32_t) - 1))
 						patternMatchList[index].match <<= 8;
 				}
-			}
+			} else break;
 		}
 
 		listCount = mlCount;
@@ -133,7 +133,7 @@ void * tag_search_parser(void *ptr)
 			buffer_count = 0;
 			oldCount = -1;
 
-   			while(buffer_count < buffer_size && !ts_ptr->thread_exit()) {
+			while(buffer_count < buffer_size && !ts_ptr->thread_exit()) {
 
 				buffer_count = ts_ptr->lookAhead(buffer, buffer_size);
 
@@ -175,7 +175,7 @@ void * tag_search_parser(void *ptr)
 		}
 
 		if(readCount > 0)
-		   ts_ptr->adjustReadQueIndex(readCount);
+			ts_ptr->adjustReadQueIndex(readCount);
 
 		ts_ptr->milliSleep(50);
 

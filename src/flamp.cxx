@@ -98,48 +98,48 @@ int blocksize = 64;
 int repeatNN = 1;
 
 const char *options[] = {\
-"flamp unique options",
-"  --help",
-"  --version",
-"  --flamp-dir folder-path-name (including drive letter on Windows)",
-"	  Windows: C:/Documents and Settings/<username>/folder-name",
-"			   C:/Users/<username/folder-name",
-"			   H:/hamstuff/folder-name",
-"	  Linux:   /home/<username>/folder-name",
-"	  OS X:	/home/<username>/folder-name",
-"",
-"	  note that enclosing \"'s must be used when the path or file name",
-"	  contains spaces.",
-"",
-"	Unless the empty file NBEMS.DIR is found in the same folder as the",
-"	flamp executable.  The existence of an empty file NBEMS.DIR forces",
-"	the flamp-dir to be a placed in the same folder as the executable",
-"	folder and named flamp.files (.flamp on Linux / OS X)",
-"",
-"	NBEMS.DIR may contain a single line specifying the absolute",
-"	path-name of the flamp-dir.  If NBEMS.DIR is not empty then",
-"	the specified path-name takes precedence over the --flamp-dir",
-"	command line parameter.  The specified path-name must be a valid",
-"	one for the operating system!  Enclosing \"'s are not required.",
-"=======================================================================",
-"Fltk User Interface options",
-"  -bg\t-background [COLOR]",
-"  -bg2\t-background2 [COLOR]",
-"  -di\t-display [host:n.n]",
-"  -dn\t-dnd : enable drag and drop",
-"  -nodn\t-nodnd : disable drag and drop",
-"  -fg\t-foreground [COLOR]",
-"  -g\t-geometry [WxH+X+Y]",
-"  -i\t-iconic",
-"  -k\t-kbd : enable keyboard focus:",
-"  -nok\t-nokbd : en/disable keyboard focus",
-"  -na\t-name [CLASSNAME]",
-"  -s\t-scheme [none | gtk+ | plastic]",
-"	 default = gtk+",
-"  -ti\t-title [WINDOWTITLE]",
-"  -to\t-tooltips : enable tooltips",
-"  -not\t-notooltips : disable tooltips\n",
-0
+	"flamp unique options",
+	"  --help",
+	"  --version",
+	"  --flamp-dir folder-path-name (including drive letter on Windows)",
+	"      Windows: C:/Documents and Settings/<username>/folder-name",
+	"               C:/Users/<username/folder-name",
+	"               H:/hamstuff/folder-name",
+	"      Linux:   /home/<username>/folder-name",
+	"      OS X:    /home/<username>/folder-name",
+	"",
+	"      note that enclosing \"'s must be used when the path or file name",
+	"      contains spaces.",
+	"",
+	"    Unless the empty file NBEMS.DIR is found in the same folder as the",
+	"    flamp executable.  The existence of an empty file NBEMS.DIR forces",
+	"    the flamp-dir to be a placed in the same folder as the executable",
+	"    folder and named flamp.files (.flamp on Linux / OS X)",
+	"",
+	"    NBEMS.DIR may contain a single line specifying the absolute",
+	"    path-name of the flamp-dir.  If NBEMS.DIR is not empty then",
+	"    the specified path-name takes precedence over the --flamp-dir",
+	"    command line parameter.  The specified path-name must be a valid",
+	"    one for the operating system!  Enclosing \"'s are not required.",
+	"=======================================================================",
+	"Fltk User Interface options",
+	"  -bg\t-background [COLOR]",
+	"  -bg2\t-background2 [COLOR]",
+	"  -di\t-display [host:n.n]",
+	"  -dn\t-dnd : enable drag and drop",
+	"  -nodn\t-nodnd : disable drag and drop",
+	"  -fg\t-foreground [COLOR]",
+	"  -g\t-geometry [WxH+X+Y]",
+	"  -i\t-iconic",
+	"  -k\t-kbd : enable keyboard focus:",
+	"  -nok\t-nokbd : en/disable keyboard focus",
+	"  -na\t-name [CLASSNAME]",
+	"  -s\t-scheme [none | gtk+ | plastic]",
+	"     default = gtk+",
+	"  -ti\t-title [WINDOWTITLE]",
+	"  -to\t-tooltips : enable tooltips",
+	"  -not\t-notooltips : disable tooltips\n",
+	0
 };
 
 pthread_t *xmlrpc_thread = 0;
@@ -230,63 +230,63 @@ void ztimer(void* first_call)
 	if (do_events->value()) {
 		if (progStatus.repeat_at_times && (ztime % 100 == 0)) {
 			switch (progStatus.repeat_every) {
-				case 0 : // every 5 minutes
-					if (ztime % 500 == 0) transmit_queued();
-					break;
-				case 1 : // every 15 minutes
-					if (ztime % 1500 == 0) transmit_queued();
-					break;
-				case 2 : // every 30 minutes
-					if (ztime % 3000 == 0) transmit_queued();
-					break;
-				case 3 : // hourly
-					if (ztime % 10000 == 0) transmit_queued();
-					break;
-				case 4 : // even hours
-					if (ztime == 0 || ztime == 20000 || ztime == 40000 ||
-						ztime == 60000 || ztime == 80000 || ztime == 100000 ||
-						ztime == 120000 || ztime == 140000 || ztime == 160000 ||
-						ztime == 180000 || ztime == 200000 || ztime == 220000 )
-						transmit_queued();
-					break;
-				case 5 : // odd hours
-					if (ztime == 10000 || ztime == 30000 || ztime == 50000 ||
-						ztime == 70000 || ztime == 90000 || ztime == 110000 ||
-						ztime == 130000 || ztime == 150000 || ztime == 170000 ||
-						ztime == 190000 || ztime == 210000 || ztime == 230000 )
-						transmit_queued();
-					break;
-				case 6 : // at specified times
-					{
-						char ttime[] = "000000";
-						snprintf(ttime, sizeof(ttime), "%06d", ztime);
-						ttime[4] = 0;
-						if (progStatus.repeat_times.find(ttime) != std::string::npos)
-							transmit_queued();
+			case 0 : // every 5 minutes
+				if (ztime % 500 == 0) transmit_queued();
+				break;
+			case 1 : // every 15 minutes
+				if (ztime % 1500 == 0) transmit_queued();
+				break;
+			case 2 : // every 30 minutes
+				if (ztime % 3000 == 0) transmit_queued();
+				break;
+			case 3 : // hourly
+				if (ztime % 10000 == 0) transmit_queued();
+				break;
+			case 4 : // even hours
+				if (ztime == 0 || ztime == 20000 || ztime == 40000 ||
+					ztime == 60000 || ztime == 80000 || ztime == 100000 ||
+					ztime == 120000 || ztime == 140000 || ztime == 160000 ||
+					ztime == 180000 || ztime == 200000 || ztime == 220000 )
+					transmit_queued();
+				break;
+			case 5 : // odd hours
+				if (ztime == 10000 || ztime == 30000 || ztime == 50000 ||
+					ztime == 70000 || ztime == 90000 || ztime == 110000 ||
+					ztime == 130000 || ztime == 150000 || ztime == 170000 ||
+					ztime == 190000 || ztime == 210000 || ztime == 230000 )
+					transmit_queued();
+				break;
+			case 6 : // at specified times
+			{
+				char ttime[] = "000000";
+				snprintf(ttime, sizeof(ttime), "%06d", ztime);
+				ttime[4] = 0;
+				if (progStatus.repeat_times.find(ttime) != std::string::npos)
+					transmit_queued();
+			}
+				break;
+			case 7 : // One time scheduled
+			{
+				char ttime[] = "000000";
+				snprintf(ttime, sizeof(ttime), "%06d", ztime);
+				ttime[4] = 0;
+				if (progStatus.repeat_times.find(ttime) != std::string::npos) {
+					transmit_queued();
+					size_t p = progStatus.repeat_times.find(ttime);
+					int len = 4;
+					while ((p + len < progStatus.repeat_times.length()) &&
+						   !isdigit(progStatus.repeat_times[p + len])) len++;
+					progStatus.repeat_times.erase(p, len);
+					txt_repeat_times->value(progStatus.repeat_times.c_str());
+					if (progStatus.repeat_times.empty()) {
+						do_events->value(0);
+						cb_do_events((Fl_Light_Button *)0, (void*)0);
 					}
-					break;
-				case 7 : // One time scheduled
-					{
-						char ttime[] = "000000";
-						snprintf(ttime, sizeof(ttime), "%06d", ztime);
-						ttime[4] = 0;
-						if (progStatus.repeat_times.find(ttime) != std::string::npos) {
-							transmit_queued();
-							size_t p = progStatus.repeat_times.find(ttime);
-							int len = 4;
-							while ((p + len < progStatus.repeat_times.length()) &&
-									!isdigit(progStatus.repeat_times[p + len])) len++;
-							progStatus.repeat_times.erase(p, len);
-							txt_repeat_times->value(progStatus.repeat_times.c_str());
-							if (progStatus.repeat_times.empty()) {
-								do_events->value(0);
-								cb_do_events((Fl_Light_Button *)0, (void*)0);
-							}
-						}
-					}
-					break;
-				default : // do nothing
-					break;
+				}
+			}
+				break;
+			default : // do nothing
+				break;
 			}
 		} else if (progStatus.repeat_forever) {
 			try {
@@ -350,7 +350,7 @@ void checkdirectories(void)
 
 		if ((r = mkdir(flamp_dirs[i].dir.c_str(), 0777)) == -1 && errno != EEXIST) {
 			cerr << _("Could not make directory") << ' ' << flamp_dirs[i].dir
-				 << ": " << strerror(errno) << '\n';
+			<< ": " << strerror(errno) << '\n';
 			exit(EXIT_FAILURE);
 		}
 		else if (r == 0 && flamp_dirs[i].new_dir_func)
@@ -440,7 +440,7 @@ void addfile(string xmtfname, void *rx)
 int valid_block_size(int value)
 {
 	value = ((value / CNT_BLOCK_SIZE_STEP_RATE)
-			* CNT_BLOCK_SIZE_STEP_RATE);
+			 * CNT_BLOCK_SIZE_STEP_RATE);
 
 	if(value < CNT_BLOCK_SIZE_MINIMUM)
 		value = CNT_BLOCK_SIZE_MINIMUM;
@@ -456,7 +456,7 @@ void readfile()
 	string xmtfname;
 	xmtfname.clear();
 	const char *p = FSEL::select(_("Open file"), "any file\t*.*",
-					xmtfname.c_str());
+								 xmtfname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
 	xmtfname = p;
@@ -604,7 +604,7 @@ void writefile(int xfrFlag)
 
 	rx_fname.assign(flampHomeDir).append(rx_amp->get_rx_fname());
 	const char *p = FSEL::saveas(_("Save file"), "file\t*.*",
-					rx_fname.c_str());
+								 rx_fname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
 	rx_fname = p;
@@ -628,7 +628,6 @@ void writefile(int xfrFlag)
 		addfile(rx_fname, rx_amp);
 	}
 }
-
 
 int parse_args(int argc, char **argv, int& idx)
 {
@@ -701,6 +700,10 @@ void transmit_current()
 
 	send_via_fldigi(autosend);
 
+	tx->xmt_tosend_clear();
+
+	show_selected_xmt(n);
+
 	transmit_selected = false;
 }
 
@@ -759,7 +762,6 @@ int alt_receive_data_stream(void *ptr)
 	static char buffer[CNT_BLOCK_SIZE_MAXIMUM];
 	int n = 0;
 	int size = sizeof(buffer) - 1;
-	static time_t tm_time = 0;
 
 	if (!bConnected) {
 		connect_to_fldigi(0);
@@ -772,13 +774,6 @@ int alt_receive_data_stream(void *ptr)
 		n = rx_fldigi(buffer, size);
 		if(n < 1) {
 			cQue->milliSleep(50);
-
-			if(n > 0) {
-				cQue->timeOut(tm_time, 0, TIME_SET);
-			} else {
-				if(cQue->timeOut(tm_time, 10, TIME_COUNT))
-					connect_to_fldigi(0);
-			}
 			return 0;
 		}
 
@@ -1194,7 +1189,7 @@ int main(int argc, char *argv[])
 
 void open_url(const char* url)
 {
-LOG_INFO("%s", url);
+	LOG_INFO("%s", url);
 #ifndef __WOE32__
 	const char* browsers[] = {
 #  ifdef __APPLE__
@@ -1211,19 +1206,19 @@ LOG_INFO("%s", url);
 #  endif
 	};
 	switch (fork()) {
-	case 0:
+		case 0:
 #  ifndef NDEBUG
-		unsetenv("MALLOC_CHECK_");
-		unsetenv("MALLOC_PERTURB_");
+			unsetenv("MALLOC_CHECK_");
+			unsetenv("MALLOC_PERTURB_");
 #  endif
-		for (size_t i = 0; i < sizeof(browsers)/sizeof(browsers[0]); i++)
-			if (browsers[i])
-				execlp(browsers[i], browsers[i], url, (char*)0);
-		exit(EXIT_FAILURE);
-	case -1:
-		fl_alert2(_("Could not run a web browser:\n%s\n\n"
-			 "Open this URL manually:\n%s"),
-			 strerror(errno), url);
+			for (size_t i = 0; i < sizeof(browsers)/sizeof(browsers[0]); i++)
+				if (browsers[i])
+					execlp(browsers[i], browsers[i], url, (char*)0);
+			exit(EXIT_FAILURE);
+		case -1:
+			fl_alert2(_("Could not run a web browser:\n%s\n\n"
+						"Open this URL manually:\n%s"),
+					  strerror(errno), url);
 	}
 #else
 	if ((int)ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL) <= 32)
