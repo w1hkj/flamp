@@ -254,16 +254,18 @@ int Circular_queue::adjustReadQueIndex(int count)
 
 	pthread_mutex_lock(&mutex);
 
-	if(count >= bufferCount)
-		count = bufferCount;
+	if(bufferCount > 0) {
+		if(count >= bufferCount)
+			count = bufferCount;
 
-	bufferCount -= count;
-	read_index += count;
-	read_index &= index_mask;
+		bufferCount -= count;
+		read_index += count;
+		read_index &= index_mask;
 
-	if(bufferCount <= 0) {
-		bufferCount = 0;
-		write_index = read_index;
+		if(bufferCount <= 0) {
+			bufferCount = 0;
+			write_index = read_index;
+		}
 	}
 
 	pthread_mutex_unlock(&mutex);
