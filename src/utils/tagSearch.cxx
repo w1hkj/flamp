@@ -90,17 +90,17 @@ void * tag_search_parser(void *ptr)
 {
 	TagSearch *ts_ptr = (TagSearch *)ptr;
 	int offset = 0;
-	int buffer_count = 0;
-	int buffer_size  = 0;
+	int shift_buffer_count = 0;
+	int shift_buffer_size  = 0;
 	int count = 0;
 	int found = 1;
-	int readCount = 0;
-	int oldCount = 0;
+	int read_count = 0;
+	int old_count = 0;
 	time_t tm_time = 0;
 	uint32_t match = 0;
 	uint32_t matchTo = 0;
 
-	char buffer[sizeof(uint32_t) + 1];
+	char shift_buffer[sizeof(uint32_t) + 1];
 
 	if(!ts_ptr) {
 		return (void *)0;
@@ -112,32 +112,32 @@ void * tag_search_parser(void *ptr)
 
 	ts_ptr->thread_running = 1;
 
-	buffer_size = sizeof(uint32_t);
-	memset(buffer, 0, sizeof(buffer));
+	shift_buffer_size = sizeof(uint32_t);
+	memset(shift_buffer, 0, sizeof(shift_buffer));
 
 	while(!ts_ptr->thread_exit()) {
 
 		found = 0;
-		readCount = ts_ptr->lookAheadForCharacter('<', &found);
+		read_count = ts_ptr->lookAheadForCharacter('<', &found);
 
-		if(readCount < 1)
+		if(read_count < 1)
 			ts_ptr->milliSleep(50);
 
 		if(found) {
 
-			if(readCount > 0) {
-				readCount--;
-				ts_ptr->adjustReadQueIndex(readCount);
+			if(read_count > 0) {
+				read_count--;
+				ts_ptr->adjustReadQueIndex(read_count);
 			}
 
-			buffer_count = 0;
-			oldCount = -1;
+			shift_buffer_count = 0;
+			old_count = -1;
 
-			while(buffer_count < buffer_size && !ts_ptr->thread_exit()) {
+			while(shift_buffer_count < shift_buffer_size && !ts_ptr->thread_exit()) {
 
-				buffer_count = ts_ptr->lookAhead(buffer, buffer_size);
+				shift_buffer_count = ts_ptr->lookAhead(shift_buffer, shift_buffer_size);
 
-				if(buffer_count != oldCount)
+				if(shift_buffer_count != old_count)
 					ts_ptr->timeOut(tm_time, 10, TIME_SET);
 				else
 					ts_ptr->milliSleep(100);
@@ -145,19 +145,19 @@ void * tag_search_parser(void *ptr)
 				if(ts_ptr->timeOut(tm_time, 10, TIME_COUNT))
 					break;
 
-				oldCount = buffer_count;
+				old_count = shift_buffer_count;
 			}
 
 			match = 0;
 
-			for(count = 0; count < buffer_count; count++) {
-				match |= (buffer[count] & 0xff);
+			for(count = 0; count < shift_buffer_count; count++) {
+				match |= (shift_buffer[count] & 0xff);
 
-				if(count < (buffer_count - 1))
+				if(count < (shift_buffer_count - 1))
 					match <<= 8;
 			}
 
-			readCount = 1;
+			read_count = 1;
 
 			for (int index = 0; index < ts_ptr->listCount; index++) {
 				matchTo = ts_ptr->patternMatchList[index].match;
@@ -165,7 +165,7 @@ void * tag_search_parser(void *ptr)
 				if(matchTo != match)
 					continue;
 
-				readCount = 0;
+				read_count = 0;
 
 				if(ts_ptr->inhibitDataOut == CQUE_RESUME) {
 					offset = (ts_ptr->matchFound)((void *)ts_ptr);
@@ -174,8 +174,8 @@ void * tag_search_parser(void *ptr)
 			}
 		}
 
-		if(readCount > 0)
-			ts_ptr->adjustReadQueIndex(readCount);
+		if(read_count > 0)
+			ts_ptr->adjustReadQueIndex(read_count);
 
 		ts_ptr->milliSleep(50);
 
