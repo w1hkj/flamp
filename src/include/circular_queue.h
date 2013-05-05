@@ -95,6 +95,7 @@ public:
 	void startDataOut();
 	void stopDataOut();
 	void addToQueue(char *_buffer, int _size);
+	void addToQueueNullFiltered(char *_buffer, int _size);
 	int  lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal, int *reset);
 	int  lookAhead(char *_buffer, int _size);
 	int  readQueData(int buffer_count);

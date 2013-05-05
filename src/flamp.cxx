@@ -777,7 +777,7 @@ int alt_receive_data_stream(void *ptr)
 			return 0;
 		}
 
-		cQue->addToQueue(buffer, n);
+		cQue->addToQueueNullFiltered(buffer, n);
 	}
 
 	return n;

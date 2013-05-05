@@ -114,6 +114,31 @@ void Circular_queue::startDataOut()
 	inhibitDataOut = CQUE_RESUME;
 }
 
+void Circular_queue::addToQueueNullFiltered(char *_buffer, int _size)
+{
+	if(!_buffer || _size < 1) return;
+
+	pthread_mutex_lock(&mutex);
+
+	while(_size > 0) {
+		if (bufferCount >= buffer_size) {
+			stalled = 1;
+			break;
+		}
+
+		write_index &= index_mask;
+
+		if(*_buffer) { // Filter out null characters
+			buffer[write_index++] = *_buffer;
+			bufferCount++;
+		}
+		_buffer++;
+		_size--;
+	}
+
+	pthread_mutex_unlock(&mutex);
+}
+
 void Circular_queue::addToQueue(char *_buffer, int _size)
 {
 	if(!_buffer || _size < 1) return;
@@ -125,10 +150,11 @@ void Circular_queue::addToQueue(char *_buffer, int _size)
 			stalled = 1;
 			break;
 		}
+
 		write_index &= index_mask;
 		buffer[write_index++] = *_buffer++;
-		_size--;
 		bufferCount++;
+		_size--;
 	}
 
 	pthread_mutex_unlock(&mutex);
@@ -261,11 +287,10 @@ int Circular_queue::adjustReadQueIndex(int count)
 		bufferCount -= count;
 		read_index += count;
 		read_index &= index_mask;
-
-		if(bufferCount <= 0) {
-			bufferCount = 0;
-			write_index = read_index;
-		}
+	}
+	if(bufferCount < 1) {
+		bufferCount = 0;
+		write_index = read_index;
 	}
 
 	pthread_mutex_unlock(&mutex);
