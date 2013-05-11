@@ -4,7 +4,7 @@
 make clean
 ./configure --enable-static --prefix=/tmp/flamp-build
 make install-strip
-tar czf flamp-$1.bin.tgz -C /tmp/flamp-build/bin flamp
+tar czf flamp-$1.bin.tgz -C /tmp/flamp-build .
 
 # MS exectable
 make clean
