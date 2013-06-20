@@ -104,7 +104,6 @@ Section "FLAMP"
 	SectionIn RO
 	SetOutPath $INSTDIR
 	File "${FLAMP_BINARY}"
-	File /nonfatal "${MINGWM_DLL}" "${PTW32_DLL}"
 SectionEnd
 
 # Start Menu path

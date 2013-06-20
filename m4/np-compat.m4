@@ -22,6 +22,7 @@ AC_DEFUN([AC_FLAMP_NP_COMPAT], [
 
   AC_FLAMP_SEARCH_LIBS([dlopen], [dl], [$other_libs])
   AC_FLAMP_SEARCH_LIBS([clock_gettime], [rt], [$other_libs])
+  AC_FLAMP_SEARCH_LIBS([gmtime_r], [rt], [$other_libs])
   AC_FLAMP_SEARCH_LIBS([sem_unlink], [$sem_libs], [$other_libs])
   AC_FLAMP_SEARCH_LIBS([sem_timedwait], [$sem_libs], [$other_libs])
 

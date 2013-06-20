@@ -23,6 +23,7 @@
 #define PROG_CRC_FLAG 8
 
 #include "crc16.h"
+#include "timeops.h"
 
 class cAmp {
 public:
