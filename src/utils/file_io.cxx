@@ -1,6 +1,7 @@
 // file_io.cxx
 //
-// Author: Dave Freese, W1HKJ (2012)
+// Author(s): Dave Freese, W1HKJ (2012)
+//            Robert Stiles, KK5VD (2013)
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -158,7 +159,7 @@ bool convert2lf(string &s)
 
 void compress_maybe(string& input, int encode_with, bool try_compress)//bool file_transfer)
 {
-//	if (!progStatus.use_compression && !file_transfer) return;
+	//	if (!progStatus.use_compression && !file_transfer) return;
 
 	// allocate 110% of the original size for the output buffer
 	size_t outlen = (size_t)ceil(input.length() * 1.1);
@@ -170,19 +171,19 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 
 	string bufstr;
 
-//	if (progStatus.use_compression) { // || file_transfer) {
+	//	if (progStatus.use_compression) { // || file_transfer) {
 	if (try_compress) {
-// replace input with: LZMA_STR + original size (in network byte order) + props + data
+		// replace input with: LZMA_STR + original size (in network byte order) + props + data
 		int r;
 		bufstr.assign(LZMA_STR);
 		if ((r = LzmaCompress(
-					buf, &outlen,
-					(const unsigned char*)input.data(), input.length(),
-					outprops, &plen, 9, 0, -1, -1, -1, -1, -1)) == SZ_OK) {
+							  buf, &outlen,
+							  (const unsigned char*)input.data(), input.length(),
+							  outprops, &plen, 9, 0, -1, -1, -1, -1, -1)) == SZ_OK) {
 			bufstr.append((const char*)&origlen, sizeof(origlen));
 			bufstr.append((const char*)&outprops, sizeof(outprops));
 			bufstr.append((const char*)buf, outlen);
-//			if (file_transfer && input.length() < bufstr.length()) {
+			//			if (file_transfer && input.length() < bufstr.length()) {
 			if (input.length() < bufstr.length()) {
 				LOG_DEBUG("%s", "Lzma could not compress data");
 				bufstr.assign(input);
@@ -218,17 +219,17 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 
 void decompress_maybe(string& input)
 {
-// input is LZMA_STR + original size (in network byte order) + props + data
-//	if (input.find(LZMA_STR) == string::npos)
-//		return;
+	// input is LZMA_STR + original size (in network byte order) + props + data
+	//	if (input.find(LZMA_STR) == string::npos)
+	//		return;
 
 	int decode = NONE;//BASE64;
 	bool decode_error = false;
 
 	size_t	p0 = string::npos,
-			p1 = string::npos,
-			p2 = string::npos,
-			p3 = string::npos;
+	p1 = string::npos,
+	p2 = string::npos,
+	p3 = string::npos;
 	if ((p0 = p1 = input.find(b64_start)) != string::npos) {
 		p1 += strlen(b64_start);
 		p2 = input.find(b64_end, p1);
@@ -245,15 +246,15 @@ void decompress_maybe(string& input)
 	if (p2 == string::npos) {
 		switch (decode) {
 			case BASE64 :
-//				LOG_ERROR("%s", "Base 64 decode failed");
+				//				LOG_ERROR("%s", "Base 64 decode failed");
 				fprintf(stderr, "Base 64 decode failed\n");
 				break;
 			case BASE128 :
-//				LOG_ERROR("%s", "Base 128 decode failed");
+				//				LOG_ERROR("%s", "Base 128 decode failed");
 				fprintf(stderr, "Base 128 decode failed\n");
 				break;
 			case BASE256 :
-//				LOG_ERROR("%s", "Base 256 decode failed");
+				//				LOG_ERROR("%s", "Base 256 decode failed");
 				fprintf(stderr, "Base 256 decode failed\n");
 				break;
 			case NONE :
@@ -284,7 +285,7 @@ void decompress_maybe(string& input)
 	}
 
 	if (decode_error == true) {
-//		LOG_ERROR("%s", cmpstr.c_str());
+		//		LOG_ERROR("%s", cmpstr.c_str());
 		fprintf(stderr,"%s\n", cmpstr.c_str());
 		return;
 	}
@@ -297,7 +298,7 @@ void decompress_maybe(string& input)
 	const char* in = cmpstr.data();
 	size_t outlen = ntohl(*reinterpret_cast<const uint32_t*>(in + strlen(LZMA_STR)));
 	if (outlen > 1 << 25) {
-//		LOG_ERROR("%s", "Refusing to decompress data (> 32 MiB)");
+		//		LOG_ERROR("%s", "Refusing to decompress data (> 32 MiB)");
 		fprintf(stderr, "Refusing to decompress data (> 32 MiB)\n");
 		return;
 	}
@@ -308,11 +309,11 @@ void decompress_maybe(string& input)
 
 	int r;
 	if ((r = LzmaUncompress(buf, &outlen, (const unsigned char*)in + cmpstr.length() - inlen, &inlen,
-			inprops, LZMA_PROPS_SIZE)) != SZ_OK)
-//		LOG_ERROR("Lzma Uncompress failed: %s", LZMA_ERRORS[r]);
+							inprops, LZMA_PROPS_SIZE)) != SZ_OK)
+		//		LOG_ERROR("Lzma Uncompress failed: %s", LZMA_ERRORS[r]);
 		fprintf(stderr, "Lzma Uncompress failed: %s\n", LZMA_ERRORS[r]);
 	else {
-//		LOG_INFO("Decompress: in = %ld, out = %ld", (long int)inlen, (long int)outlen);
+		//		LOG_INFO("Decompress: in = %ld, out = %ld", (long int)inlen, (long int)outlen);
 		cmpstr.assign((const char*)buf, outlen);
 		input.replace(p0, p3 - p0, cmpstr);
 	}
@@ -321,30 +322,43 @@ void decompress_maybe(string& input)
 
 void connect_to_fldigi(void *)
 {
+	pthread_mutex_lock(&mutex_file_io);
 	try {
 		tcpip->connect();
+		file_io_errno = errno;
 		bConnected = true;
 		LOG_INFO("Connected to %d", tcpip->fd());
 	}
 	catch (const SocketException& e) {
-		bConnected = false;
-		LOG_ERROR("%s", "Could not connect to fldigi");
+		if(e.error() != 0) {
+			bConnected = false;
+			LOG_ERROR("%s %d", e.what(), file_io_errno);
+		}
 	}
+	pthread_mutex_unlock(&mutex_file_io);
 }
 
 void send_via_fldigi(string tosend)
 {
+	pthread_mutex_lock(&mutex_file_io);
+
 	if (!bConnected) {
 		LOG_ERROR("%s", "Not connected to fldigi");
+		pthread_mutex_unlock(&mutex_file_io);
 		return;
 	}
 	try {
 		tcpip->send(tosend.c_str());
+		file_io_errno = errno;
 	}
 	catch (const SocketException& e) {
-		bConnected = false;
-		LOG_ERROR("Socket error %d, %s", e.error(), e.what());
+		if(e.error() != 0) {
+			bConnected = false;
+			LOG_ERROR("%s %d", e.what(), file_io_errno);
+		}
 	}
+
+	pthread_mutex_unlock(&mutex_file_io);
 	return;
 }
 
@@ -352,56 +366,79 @@ string rx_buff;
 
 int rx_fldigi(std::string &retbuff)
 {
-	if (!bConnected) return 0;
+	int buff_length = 0;
+
+	pthread_mutex_lock(&mutex_file_io);
+	if (!bConnected) {
+		pthread_mutex_unlock(&mutex_file_io);
+		return 0;
+	}
 	try {
 		rx_buff.clear();
 		tcpip->set_nonblocking();
 		tcpip->recv(rx_buff);
+		file_io_errno = errno;
 		retbuff = rx_buff;
-		return rx_buff.length();
+		buff_length = rx_buff.length();
 	}
 	catch (const SocketException& e) {
-		bConnected = false;
-		LOG_ERROR("%s", e.what());
+		if(e.error() != 0) {
+			bConnected = false;
+			LOG_ERROR("%s %d", e.what(), file_io_errno);
+		}
 	}
-	return 0;
+
+	pthread_mutex_unlock(&mutex_file_io);
+
+	return buff_length;
 }
 
 int rx_fldigi(char *buffer, int limit)
 {
-	if (!bConnected) return 0;
+	int buff_length = 0;
+
+	pthread_mutex_lock(&mutex_file_io);
+	if (!bConnected) {
+		pthread_mutex_unlock(&mutex_file_io);
+		return 0;
+	}
 	try {
 		tcpip->set_nonblocking();
-		return tcpip->recv(buffer, (size_t) limit);
+		buff_length = tcpip->recv(buffer, (size_t) limit);
+		file_io_errno = errno;
 	}
 	catch (const SocketException& e) {
-		bConnected = false;
-		LOG_ERROR("%s", e.what());
+		if(e.error() != 0) {
+			bConnected = false;
+			LOG_ERROR("%s %d", e.what(), file_io_errno);
+		}
 	}
-	return 0;
+
+	pthread_mutex_unlock(&mutex_file_io);
+	return buff_length;
 }
 
 // allowable characters for uncompress / unencoded transmissions
 // are in 0 locations.
 
 int not_allowed[256] = {
-//	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+	//	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, //  16
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  32
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  48
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  64
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  80
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //  96
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 112
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, // 128
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 144
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 160
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 176
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 192
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 208
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 224
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 240
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1  // 256
 };
 
 bool binary(std::string &s)
@@ -411,5 +448,73 @@ bool binary(std::string &s)
 			return true;
 	}
 	return false;
+}
+
+bool c_binary(int c)
+{
+	if (not_allowed[c & 0xFF])
+		return true;
+	else
+		return false;
+}
+
+bool isPlainText(std::string &_buffer)
+{
+	int count = 0;
+	int index = 0;
+	int data = 0;
+
+	count = _buffer.size();
+	for(index = 0; index < count; index++) {
+		data = _buffer[index];
+		if(c_binary(data) || (data & 0x80)) {
+			return false;
+        }
+	}
+	return true;
+}
+
+int convert_to_plain_text(std::string &_buffer)
+{
+	int count = 0;
+	int index = 0;
+	int data = 0;
+	int change_count = 0;
+	int dest_count = 0;
+
+	char *buffer = (char *)_buffer.c_str();
+	char *dest = (char *)0;
+	char *cPtr = (char *)0;
+
+	if(buffer == (char *)0) return 0;
+
+	count = _buffer.size();
+
+	if(count < 1) return 0;
+
+	dest = (char *) malloc(count);
+
+	if(dest == (char *)0) return 0;
+
+	cPtr = dest;
+	for(index = 0; index < count; index++) {
+		data = _buffer[index];
+		if(c_binary(data) || (data & 0x80)) {
+			change_count++;
+			continue;
+		}
+		*cPtr++ = data;
+		dest_count++;
+	}
+
+	if(dest_count > 0) {
+		_buffer.assign(dest, dest_count);
+	} else {
+		_buffer.clear();
+	}
+
+	free(dest);
+
+	return change_count;
 }
 

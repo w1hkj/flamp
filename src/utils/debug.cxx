@@ -60,6 +60,7 @@ static string dbg_buffer;
 
 debug* debug::inst = 0;
 debug::level_e debug::level = debug::INFO_LEVEL;
+//debug::level_e debug::level = debug::DEBUG_LEVEL;
 uint32_t debug::mask = ~0u;
 
 const char* prefix[] = { _("Quiet"), _("Error"), _("Warning"), _("Info"), _("Debug") };
@@ -123,7 +124,7 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 	snprintf(fmt, sizeof(fmt), "%c: %s: %s\n", *prefix[level], func, format);
 
     while(debug_in_use) MilliSleep(10);
-    
+
 	va_list args;
 	va_start(args, format);
 
@@ -148,7 +149,7 @@ void debug::slog(level_e level, const char* func, const char* srcf, int line, co
 	snprintf(fmt, sizeof(fmt), "%c:%s\n", *prefix[level], format);
 
     while(debug_in_use) MilliSleep(10);
-    
+
 	va_list args;
 	va_start(args, format);
 

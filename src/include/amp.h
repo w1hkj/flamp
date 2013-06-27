@@ -1,7 +1,25 @@
 //======================================================================
-// amp.h
+//	amp.h
 //
-//======================================================================
+//  Author(s):
+//	Dave Freese, W1HKJ, Copyright (C) 2010, 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with the program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// =====================================================================
+
 
 #ifndef AMP_H
 #define AMP_H
@@ -27,14 +45,14 @@
 
 class cAmp {
 public:
-enum { _FILE, _ID, _DTTM, _SIZE, _DESC, _DATA, _PROG, _CNTL };
-typedef std::map<int, string> AMPmap;
+	enum { _FILE, _ID, _DTTM, _SIZE, _DESC, _DATA, _PROG, _CNTL };
+	typedef std::map<int, string> AMPmap;
 
 private:
-// both
+	// both
 	static const char *ltypes[];
 
-// transmit
+	// transmit
 	std::string xmtfilename;
 	std::string xmtbuffer;
 	std::string xmtdata;
@@ -47,7 +65,20 @@ private:
 	std::string tosend; // designated blocks if not an ALL transfer
 	std::string report_buffer;
     std::string xmtbase;
-    
+
+	std::vector<std::string> header_string_array;
+	std::vector<std::string> data_string_array;
+
+	std::string file_hash(void);
+	std::string program_header(void);
+	std::string file_header(void);
+	std::string id_header(void);
+	std::string desc_header(void);
+	std::string size_header(void);
+	std::string data_block(int index);
+	std::string data_eof(void);
+	std::string data_eot(void);
+
 	int xmtnumblocks;
 	int xmtblocksize;
 	int xmt_repeat; // repeat n time; default 1
@@ -56,8 +87,10 @@ private:
 	int fsize;
     int base_conversion_index;
 	bool use_compression;
+	bool use_forced_compression;
+    bool preamble_detected_flag;
 
-// tx / rx
+	// tx / rx
 	Ccrc16 chksum;
 
 	char *sz_num(int data) {
@@ -82,18 +115,21 @@ public:
 
 	void clear_rx();
 
-//transmit
+	bool preamble_detected(void) { return preamble_detected_flag; }
+	void reset_preamble_detection(void) { preamble_detected_flag = false; }
+
+	//transmit
 
 	void tx_blocksize(int n) { blocksize = n; }
 	int  tx_blocksize() { return blocksize; }
-    
+
     int  tx_base_conv_index() { return base_conversion_index; }
     void tx_base_conv_index(int val) { base_conversion_index = val; }
 
     std::string tx_base_conv_str() { return xmtbase; }
     void tx_base_conv_str(std::string &str) { xmtbase.assign(str); }
     void tx_base_conv_str(const char *str) { xmtbase.assign(str); }
-    
+
 	std::string xmt_buffer() { return xmtbuffer; }
 	void xmt_buffer(std::string &str) { xmtbuffer = str; }
 
@@ -102,6 +138,7 @@ public:
 		fsize = xmtdata.length();
 		xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
 	}
+
 	std::string xmt_data() { return xmtdata; };
 
 	void xmt_fname(std::string fn) {
@@ -110,20 +147,24 @@ public:
 		stat(fn.c_str(), &statbuf);
 		time_stamp(&statbuf.st_mtime);
 	}
-	std::string xmt_fname() { return xmtfilename; } 
+	std::string xmt_fname() { return xmtfilename; }
 
 	std::string xmt_string();
+
+	int xmt_vector_string(void);
+	std::vector<std::string> xmt_vector_header(void) { return header_string_array; }
+	std::vector<std::string> xmt_vector_data(void) { return data_string_array; }
 
 	void xmt_descrip(std::string desc) { xmtdesc = desc; }
 	std::string xmt_descrip() { return xmtdesc; }
 
-	void xmt_tosend_clear(void) { tosend.clear(); }
+	void xmt_tosend_clear(void) { tosend.clear(); report_buffer.clear(); }
 	void xmt_tosend(std::string str) { tosend = str; }
 	std::string xmt_tosend() { return tosend; }
-	
+
 	void xmt_blocksize(int n) { xmtblocksize = n; }
 	int  xmt_blocksize() { return xmtblocksize; }
-	
+
 	std::string xmt_numblocks() {
 		xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
 		return sz_num(xmtnumblocks);
@@ -138,6 +179,9 @@ public:
 	void compress(bool comp) { use_compression = comp; }
 	bool compress() { return use_compression; }
 
+	void forced_compress(bool comp) { use_forced_compression = comp; }
+	bool forced_compress() { return use_forced_compression; }
+
 	void time_stamp(time_t *tm = NULL);
 
 	void repeat(int n) { xmt_repeat = n; }
@@ -148,7 +192,7 @@ public:
 
 	void tx_parse_report(std::string s);
 
-// receive
+	// receive
 private:
 	std::string rxfilename;
 	std::string rxbuffer;
@@ -166,7 +210,7 @@ private:
 	int rxfilesize;
 	int rx_ok_blocks;
 	int rx_crc_flags;
-	
+
 	AMPmap rxblocks;
 
 	void rx_parse_dttm_filename(char *, std::string data);
@@ -190,13 +234,13 @@ public:
     void rx_parse_id(std::string data);
 	bool rx_parse_line(int ltype, char *crc, std::string data);
 	bool rx_completed() {
-            return (rx_ok_blocks > 0 ? ((rx_ok_blocks == rxnumblocks) && (rx_crc_flags == 0)) : false);
-         }
+		return (rx_ok_blocks > 0 ? ((rx_ok_blocks == rxnumblocks) && (rx_crc_flags == 0)) : false);
+	}
 
 	int rx_size() { return rxfilesize; }
 	int rx_nblocks() { return rxnumblocks; }
 	int rx_blocksize_int() { return rxblocksize; }
-	
+
 	std::string rx_fsize() { return sz_num(rxfilesize); }
 	std::string rx_blocksize() { return sz_num(rxblocksize); }
 	std::string rx_numblocks() { return sz_num(rxnumblocks); }
@@ -211,7 +255,7 @@ public:
 	std::string rx_hash() { return rxhash; }
 	std::string rx_hash(string s) { rxhash = s; return s; }
     std::string rx_parse_hash_line(string data);
-    
+
 	const char* rx_sz_percent() {
 		static const char empty[] = "";
 		if (rxnumblocks == 0 || rx_ok_blocks == 0) return empty;
@@ -221,7 +265,7 @@ public:
         if(!rx_crc_flags)
             nokb++;
 		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*nokb/nrxb);
-//		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*rx_ok_blocks/rxnumblocks);
+		//		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*rx_ok_blocks/rxnumblocks);
 		return percent;
 	}
 	float rx_percent() {
@@ -231,7 +275,7 @@ public:
             nokb++;
 		if (rxnumblocks == 0) return 0;
 		return 100.0*nokb/nrxb;
-//		return 100.0*rx_ok_blocks/rxnumblocks;
+		//		return 100.0*rx_ok_blocks/rxnumblocks;
 	}
 };
 

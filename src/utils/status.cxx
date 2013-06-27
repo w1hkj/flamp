@@ -2,8 +2,9 @@
 //
 // status.cxx
 //
-// Author: Dave Freese, W1HKJ
-// Copyright: 2010
+// Author(s):
+//	Dave Freese, W1HKJ Copyright (C) 2010
+//  Robert Stiles, KK5VD Copyright (C) 2013
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,6 +43,12 @@ status progStatus = {
 	"127.0.0.1",	// fldigi xmlrpc socket address
 	"7362",			// fldigi xmlrpc socket port
 
+					// User Assigned addr/ports not saved.
+	"",				// User assigned fldigi socket address
+	"",				// User assigned fldigi socket port
+	"",				// User assigned fldigi xmlrpc socket address
+	"",				// User assigned fldigi xmlrpc socket port
+
 	true,			// use_compression
 	BASE256,		// encoder
 	1,				// selected_mode
@@ -57,6 +64,20 @@ status progStatus = {
 	false,			// bool repeat_at_times;
 	"",				// string repeat_times;
 	false,			// bool repeat_at_times;
+
+	false, 			// bool use_txrx_interval;
+	3, 				// int  tx_interval_minutes;
+	10, 			// int  rx_interval_seconds;
+
+	false, 			// bool use_header_modem;
+	1,				// int  header_selected_mode;
+	false,          // bool disable_header_modem_on_block_fills;
+
+	0,				// int  use_tx_on_report;
+
+	false,			// bool clear_tosend_on_tx_blocks;
+
+	false           // bool enable_tx_unproto
 };
 
 void status::saveLastState()
@@ -98,6 +119,20 @@ void status::saveLastState()
 	FLAMPpref.set("repeat_times", repeat_times.c_str());
 
 	FLAMPpref.set("repeat_forever", repeat_forever);
+
+	FLAMPpref.set("use_repeater_interval", use_txrx_interval);
+	FLAMPpref.set("repeater_tx_minutes", tx_interval_minutes);
+	FLAMPpref.set("repeater_rx_seconds", rx_interval_seconds);
+
+	FLAMPpref.set("disable_header_modem_on_block_fills", disable_header_modem_on_block_fills);
+	FLAMPpref.set("use_header_modem", use_header_modem);
+	FLAMPpref.set("header_selected_mode", header_selected_mode);
+
+	FLAMPpref.set("use_tx_on_report", use_tx_on_report);
+
+	FLAMPpref.set("clear_tosend_on_tx_blocks", clear_tosend_on_tx_blocks);
+
+	FLAMPpref.set("enable_tx_unproto", enable_tx_unproto);
 }
 
 void status::loadLastState()
@@ -142,6 +177,7 @@ void status::loadLastState()
 		FLAMPpref.get("sync_mode_fldigi_flamp", i, sync_mode_fldigi_flamp);
 		sync_mode_fldigi_flamp = i;
 
+
 		FLAMPpref.get("fldigi_xmt_mode_change", i, fldigi_xmt_mode_change);
 		fldigi_xmt_mode_change = i;
 
@@ -155,6 +191,36 @@ void status::loadLastState()
 		FLAMPpref.get("repeat_forever", i, repeat_forever);
 		repeat_forever = i;
 
+		FLAMPpref.get("use_repeater_interval", i, use_txrx_interval);
+		use_txrx_interval = (bool) i;
+
+		FLAMPpref.get("repeater_tx_minutes", i, tx_interval_minutes);
+		tx_interval_minutes = i;
+
+		FLAMPpref.get("repeater_rx_seconds", i, rx_interval_seconds);
+		rx_interval_seconds = i;
+
+		FLAMPpref.get("disable_header_modem_on_block_fills", i, disable_header_modem_on_block_fills);
+		disable_header_modem_on_block_fills = (bool) i;
+
+		FLAMPpref.get("use_header_modem", i, use_header_modem);
+		use_header_modem = (bool) i;
+
+		FLAMPpref.get("header_selected_mode", i, header_selected_mode);
+		header_selected_mode = i;
+		
+		FLAMPpref.get("use_tx_on_report", i, use_tx_on_report);
+		use_tx_on_report = i;
+
+		FLAMPpref.get("clear_tosend_on_tx_blocks", i, clear_tosend_on_tx_blocks);
+		clear_tosend_on_tx_blocks = (bool) i;
+
+		FLAMPpref.get("clear_tosend_on_tx_blocks", i, enable_tx_unproto);
+		enable_tx_unproto = (bool) i;
+
+		if(enable_tx_unproto) {
+			use_txrx_interval = false;
+			use_header_modem = false;
+		}
 	} 
 }
-

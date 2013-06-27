@@ -2,8 +2,9 @@
 //
 // status.h
 //
-// Author: Dave Freese, W1HKJ
-// Copyright: 2010
+// Author(s):
+// 	Dave Freese, W1HKJ Copyright (C) 2010
+//	Robert Stiles, KK5VD Copyright (C) 2013
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,10 +31,16 @@ struct status {
 	int		mainY;
 	string my_call;
 	string my_info;
+
 	string socket_addr;
 	string socket_port;
 	string xmlrpc_addr;
 	string xmlrpc_port;
+
+	string user_socket_addr;
+	string user_socket_port;
+	string user_xmlrpc_addr;
+	string user_xmlrpc_port;
 
 	bool use_compression;
 	int  encoder;
@@ -52,6 +59,20 @@ struct status {
 	string repeat_times;
 	bool repeat_forever;
 
+	bool use_txrx_interval;
+	int  tx_interval_minutes;
+	int  rx_interval_seconds;
+
+	bool use_header_modem;
+	int  header_selected_mode;
+	bool disable_header_modem_on_block_fills;
+
+	int  use_tx_on_report;
+
+	bool clear_tosend_on_tx_blocks;
+
+	bool enable_tx_unproto;
+	
 	void saveLastState();
 	void loadLastState();
 };

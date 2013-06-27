@@ -49,5 +49,7 @@ extern int  rx_fldigi(std::string &);
 extern int  rx_fldigi(char *buffer, int limit);
 
 extern bool binary(std::string &);
-
+extern bool c_binary(int c);
+extern int convert_to_plain_text(std::string &_buffer);
+extern bool isPlainText(std::string &_buffer);
 #endif

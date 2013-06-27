@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <time.h>
 #include "compat.h"
 
 /* default mode for stdin, stdout and stderr */
@@ -306,3 +307,4 @@ int getrusage(int who, struct rusage *usage)
 
 	return 0;
 }
+

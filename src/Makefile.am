@@ -124,6 +124,7 @@ flamp_SOURCES += \
 	$(srcdir)/utils/xml_io.cxx \
 	$(srcdir)/utils/circular_queue.cxx \
 	$(srcdir)/utils/tagSearch.cxx \
+	$(srcdir)/utils/time_table.cxx \
 	$(srcdir)/widgets/calendar.cxx \
 	$(srcdir)/widgets/combo.cxx \
 	$(srcdir)/widgets/date.cxx \
@@ -214,6 +215,7 @@ EXTRA_DIST = \
 	$(srcdir)/include/xml_io.h \
 	$(srcdir)/include/circular_queue.h \
 	$(srcdir)/include/tagSearch.h \
+	$(srcdir)/include/time_table.h \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \

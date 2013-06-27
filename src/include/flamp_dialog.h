@@ -37,6 +37,9 @@
 #define CNT_BLOCK_SIZE_MINIMUM		16
 #define CNT_BLOCK_SIZE_MAXIMUM		2048
 
+#define XMT_LABEL "Xmit"
+#define CANX_LABEL "Cancel"
+
 extern Fl_Double_Window *main_window;
 
 extern Fl_Output* txt_rx_filename;
@@ -53,6 +56,15 @@ extern Fl_BlockMap* rx_progress;
 extern Fl_Hold_Browser* rx_queue;
 
 extern FTextView* txt_rx_output;
+
+extern Fl_Check_Button* btn_enable_tx_unproto;
+extern Fl_Check_Button* btn_enable_txrx_interval;
+extern Fl_Check_Button* btn_enable_header_modem;
+extern Fl_Check_Button* btn_disable_header_modem_on_block_fills;
+
+extern Fl_ComboBox* cbo_header_modes;
+extern Fl_Simple_Counter* cnt_tx_internval_mins;
+extern Fl_Simple_Counter* cnt_rx_internval_secs;
 
 extern Fl_Simple_Counter * cnt_blocksize;
 extern Fl_Simple_Counter * cnt_repeat_nbr;
@@ -75,6 +87,8 @@ extern Fl_Input2*       txt_repeat_times;
 extern Fl_Check_Button* btn_repeat_forever;
 extern Fl_Light_Button* do_events;
 extern Fl_Output* outTimeValue;
+extern Fl_Button* btn_send_file;
+extern Fl_Button* btn_send_queue;
 
 extern void cb_do_events(Fl_Light_Button *b, void*);
 
@@ -95,5 +109,8 @@ extern struct st_modes s_basic_modes[];
 extern struct st_modes s_modes[];
 
 extern void update_cbo_modes(std::string &fldigi_modes);
+
+extern Fl_Check_Button* btn_enable_header_modem;
+extern void cb_enable_header_modem(Fl_Check_Button *a, void *b);
 
 #endif
