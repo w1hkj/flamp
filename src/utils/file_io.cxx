@@ -474,33 +474,78 @@ bool isPlainText(std::string &_buffer)
 	return true;
 }
 
-int convert_to_plain_text(std::string &_buffer)
+bool isPlainText(char *_buffer, size_t count)
 {
-	int count = 0;
-	int index = 0;
+	size_t index = 0;
 	int data = 0;
-	int change_count = 0;
-	int dest_count = 0;
 
-	char *buffer = (char *)_buffer.c_str();
-	char *dest = (char *)0;
-	char *cPtr = (char *)0;
-
-	if(buffer == (char *)0) return 0;
-
-	count = _buffer.size();
-
-	if(count < 1) return 0;
-
-	dest = (char *) malloc(count);
-
-	if(dest == (char *)0) return 0;
-
-	cPtr = dest;
+	if(!_buffer || count) return false;
+	
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
 		if(c_binary(data) || (data & 0x80)) {
-			change_count++;
+			return false;
+        }
+	}
+	return true;
+}
+
+int convert_to_plain_text(std::string &_buffer)
+{
+	char *buffer = (char *)0;
+	char *dest_buffer = (char *)0;
+	size_t result_count = 0;
+	size_t count = 0;
+	
+	buffer = (char *) _buffer.c_str();
+	count = (size_t) _buffer.size();
+	
+	if(!buffer || count < 1) return 0;
+
+	dest_buffer = (char *) malloc(count + 2);
+
+	if(!dest_buffer) return 0;
+
+	memset(dest_buffer, 0, count + 2);
+
+	result_count = convert_to_plain_text(buffer, dest_buffer, count);
+
+	if(result_count > 0) {
+		_buffer.assign(dest_buffer, result_count);
+	} else {
+		_buffer.clear();
+	}
+
+	free(dest_buffer);
+	
+	return (int) result_count;
+}
+
+int convert_to_plain_text(char *_src, char *_dst, size_t count)
+{
+	size_t index = 0;
+	size_t data = 0;
+	size_t change_count = 0;
+	size_t dest_count = 0;
+
+	char *buffer = _src;
+	char *dest = (char *)0;
+	char *cPtr = (char *)0;
+
+	if(_src == (char *)0 || _dst == (char *)0) return 0;
+
+	if(count < 1) return 0;
+
+	dest = (char *) malloc(count + 2);
+
+	if(dest == (char *)0) return 0;
+
+	memset(dest, 0, count + 2);
+
+	cPtr = dest;
+	for(index = 0; index < count; index++) {
+		data = buffer[index];
+		if(c_binary(data) || (data & 0x80)) {
 			continue;
 		}
 		*cPtr++ = data;
@@ -508,13 +553,11 @@ int convert_to_plain_text(std::string &_buffer)
 	}
 
 	if(dest_count > 0) {
-		_buffer.assign(dest, dest_count);
-	} else {
-		_buffer.clear();
+		memcpy(_dst, dest, dest_count);
 	}
 
 	free(dest);
 
-	return change_count;
+	return (int) dest_count;
 }
 

@@ -91,6 +91,10 @@ string rx_rotary;
 string tx_buffer;
 string tmp_buffer;
 
+const char *sz_flmsg = "<flmsg>";
+const char *sz_cmd = "<cmd>";
+const char *sz_flamp = "}FLAMP";
+
 static TagSearch *cQue;
 
 
@@ -214,6 +218,8 @@ void send_via_fldigi_in_main_thread(void *ptr);
 void get_trx_state_in_main_thread(void *ptr);
 void turn_rsid_on(void);
 void turn_rsid_off(void);
+void abort_and_id(void);
+
 
 // utility functions
 
@@ -414,9 +420,6 @@ void addfile(string xmtfname, void *rx)
 {
 	xmt_fname = xmtfname;
 	cAmp *rAmp = (cAmp *) rx;
-	const char *sz_flmsg = "<flmsg>";
-	const char *sz_cmd = "</cmd>";
-	const char *sz_flamp = "}FLAMP";
 
 	int use_comp_on_file = 0;
 	int use_forced_comp_on_file = 0;
@@ -1056,9 +1059,17 @@ void * transmit_serial_current(void *ptr)
 
 	float tx_time = 0;
 	cAmp *tx = tx_array[n-1];
-	string temp;
-	string autosend;
-	string send_to = txt_tx_send_to->value();
+	string temp = "";
+	string temp2 = "";
+	string autosend = "";
+	string send_to = "";
+
+	temp.clear();
+	autosend.clear();
+	send_to.clear();
+
+	send_to = txt_tx_send_to->value();
+
 	if (send_to.empty()) send_to.assign("QST");
 	send_to.append(" DE ").append(progStatus.my_call);
 	for (size_t n = 0; n < send_to.length(); n++)
@@ -1074,8 +1085,8 @@ void * transmit_serial_current(void *ptr)
 	tx->my_info(progStatus.my_info);
 	tx->xmt_blocksize(progStatus.blocksize);
 
-	// temp.assign(tx->xmt_buffer());
-	temp = tx->xmt_buffer();
+	temp.clear();
+	temp.assign(tx->xmt_buffer());
 
 	if(progStatus.enable_tx_unproto == false) {
 		compress_maybe(temp, tx->tx_base_conv_index(), (tx->compress() | tx->forced_compress()));//true);
@@ -1084,13 +1095,11 @@ void * transmit_serial_current(void *ptr)
 		tx->header_repeat(progStatus.repeat_header);
 		autosend.append(tx->xmt_string());
 	} else {
-		if(isPlainText(temp) == false)
-			convert_to_plain_text(temp);
-		autosend.append(temp);
+		tx->xmt_unproto();
+		autosend.append(tx->xmt_unproto_string());
 	}
 
 	autosend.append(send_to).append(" K\n");
-
 
 	tx_time = seconds_from_string(cbo_modes->value(), autosend);
 	tx_time *= 2.0;
@@ -1099,7 +1108,7 @@ void * transmit_serial_current(void *ptr)
 
 	wait_for_rx((int) tx_time);
 
-	if (transmit_stop == true) send_abort();
+	//if (transmit_stop == true) send_abort();
 
 	show_selected_xmt(n);
 
@@ -1119,9 +1128,16 @@ void * transmit_serial_queued(void *ptr)
 		send_new_modem(cbo_modes->value());
 
 	cAmp *tx;
-	string temp;
-	string autosend;
-	string send_to = txt_tx_send_to->value();
+	string temp = "";
+	string autosend = "";
+	string send_to = "";
+
+	temp.clear();
+	autosend.clear();
+	send_to.clear();
+
+	send_to = txt_tx_send_to->value();
+
 	if (send_to.empty()) send_to.assign("QST");
 	send_to.append(" de ").append(progStatus.my_call);
 	for (size_t n = 0; n < send_to.length(); n++)
@@ -1138,6 +1154,7 @@ void * transmit_serial_queued(void *ptr)
 		tx->my_info(progStatus.my_info);
 		tx->xmt_blocksize(progStatus.blocksize);
 
+		temp.clear();
 		temp.assign(tx->xmt_buffer());
 
 		if(progStatus.enable_tx_unproto == false) {
@@ -1147,9 +1164,8 @@ void * transmit_serial_queued(void *ptr)
 			tx->header_repeat(progStatus.repeat_header);
 			autosend.append(tx->xmt_string()).append("\n");
 		} else {
-			if(isPlainText(temp) == false)
-				convert_to_plain_text(temp);
-			autosend.append(temp);
+			tx->xmt_unproto();
+			autosend.append(tx->xmt_unproto_string());
 		}
 	}
 
@@ -1162,7 +1178,7 @@ void * transmit_serial_queued(void *ptr)
 
 	wait_for_rx((int) tx_time);
 
-	if (transmit_stop == true) send_abort();
+	//if (transmit_stop == true) send_abort();
 
 	transmit_queue = false;
 
@@ -1542,8 +1558,7 @@ bool wait_for_rx(int max_wait_seconds)
 	do {
 		MilliSleep(500);
 
-		Fl::awake(get_trx_state_in_main_thread, (void *) &response);
-		//response = get_trx_state();
+		response = get_trx_state();
 
 		if(response == "TX") break;
 
@@ -1559,8 +1574,7 @@ bool wait_for_rx(int max_wait_seconds)
 	do {
 		MilliSleep(500);
 
-		Fl::awake(get_trx_state_in_main_thread, (void *) &response);
-		//response = get_trx_state();
+		response = get_trx_state();
 
 		if(response == "RX") {
 			eTime = time(0);
@@ -1676,13 +1690,23 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level)
 	return 0;
 }
 
+void abort_and_id(void)
+{
+	std::string idMessage;
+	send_abort();
+	send_abort();
+	// A number of non printable characters are required to overcome long interleave modems.
+	idMessage.assign("\n\n\n\n\n\n\n\n\n\n\nFILE TRANSFER ABORTED\n\nDE ").append(progStatus.my_call).append(" BK\n\n\n");
+	send_via_fldigi(idMessage);
+}
+
 void abort_request(void)
 {
 	int response = fl_choice("Terminate Current Transmission?", "No", "Yes", NULL);
 	if (response == 1) {
 		deactivate_button((void *) TX_BUTTON);
 		transmit_stop = true;
-		send_abort();
+		abort_and_id();
 	}
 }
 

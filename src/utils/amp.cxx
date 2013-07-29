@@ -34,7 +34,6 @@ const char * cAmp::ltypes[] = {
 	"<FILE ", "<ID ", "<DTTM ", "<SIZE ", "<DESC ", "<DATA ", "<PROG ", "<CNTL "
 };
 
-extern void preamble_detected(void); // Located in flamp.cxx
 
 cAmp::cAmp(std::string str, std::string fname)
 {
@@ -277,6 +276,58 @@ std::string cAmp::xmt_string() {
 	xmtstring.append(data_eot());
 
 	return xmtstring;
+}
+
+void cAmp::xmt_unproto(void)
+{
+	size_t pos = 0;
+	int appendFlag = 0;
+	int count = 0;
+	std::string temp;
+
+	const std::string cmdAppendMsg = "<_md>";
+//	const std::string flmsgAppendMsg = "<_lmsg>";
+
+	temp.assign(xmtbuffer);
+	
+	if(isPlainText(temp) == false)
+		convert_to_plain_text(temp);
+
+	pos = 0;
+	do {
+		pos = temp.find(sz_cmd, pos);
+		if(pos != std::string::npos) {
+			appendFlag |= CMD_FLAG;
+			temp.replace(pos, cmdAppendMsg.size(), cmdAppendMsg);
+			pos += 3;
+		}
+	} while(pos != std::string::npos);
+
+//	pos = 0;
+//	do {
+//		pos = temp.find(sz_flmsg, pos);
+//		if(pos != std::string::npos) {
+//			appendFlag |= FLMSG_FLAG;
+//			temp.replace(pos, flmsgAppendMsg.size(), flmsgAppendMsg);
+//			pos += 3;
+//		}
+//	} while(pos != std::string::npos);
+
+	if(appendFlag)
+		temp.append("\nNOTICE: Command Character Substitution!\n");
+
+	if((appendFlag & CMD_FLAG) != 0) {
+		temp.append(cmdAppendMsg).append(" <-> \'_\' = \'c\'\n");
+	}
+
+//	if((appendFlag & FLMSG_FLAG) != 0) {
+//		temp.append(flmsgAppendMsg).append(" <-> \'_\' = \'f\'\n");
+//	}
+
+	temp.append("\n");
+	
+	xmtunproto.assign(temp);
+
 }
 
 int cAmp::xmt_vector_string()

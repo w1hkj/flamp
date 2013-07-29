@@ -215,7 +215,7 @@ void status::loadLastState()
 		FLAMPpref.get("clear_tosend_on_tx_blocks", i, clear_tosend_on_tx_blocks);
 		clear_tosend_on_tx_blocks = (bool) i;
 
-		FLAMPpref.get("clear_tosend_on_tx_blocks", i, enable_tx_unproto);
+		FLAMPpref.get("enable_tx_unproto", i, enable_tx_unproto);
 		enable_tx_unproto = (bool) i;
 
 		if(enable_tx_unproto) {

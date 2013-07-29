@@ -40,8 +40,17 @@
 #define SIZE_CRC_FLAG 4
 #define PROG_CRC_FLAG 8
 
+#define CMD_FLAG   0x1
+#define FLMSG_FLAG 0x2
+
 #include "crc16.h"
 #include "timeops.h"
+#include "file_io.h"
+
+extern const char *sz_flmsg;
+extern const char *sz_cmd;
+extern const char *sz_flamp;
+extern void preamble_detected(void); // Located in flamp.cxx
 
 class cAmp {
 public:
@@ -65,6 +74,7 @@ private:
 	std::string tosend; // designated blocks if not an ALL transfer
 	std::string report_buffer;
     std::string xmtbase;
+    std::string xmtunproto;
 
 	std::vector<std::string> header_string_array;
 	std::vector<std::string> data_string_array;
@@ -133,6 +143,11 @@ public:
 	std::string xmt_buffer() { return xmtbuffer; }
 	void xmt_buffer(std::string &str) { xmtbuffer = str; }
 
+	std::string xmt_unproto_string() { return xmtunproto; }
+	void xmt_unproto_string(std::string &str) { xmtunproto = str; }
+
+	void xmt_unproto(void);
+
 	void xmt_data(std::string &str) {
 		xmtdata.assign(str);
 		fsize = xmtdata.length();
@@ -185,10 +200,10 @@ public:
 	void time_stamp(time_t *tm = NULL);
 
 	void repeat(int n) { xmt_repeat = n; }
-	int repeat() { return xmt_repeat; }
+	int  repeat() { return xmt_repeat; }
 
 	void header_repeat(int n) { repeat_header = n; }
-	int header_repeat() { return repeat_header; }
+	int  header_repeat() { return repeat_header; }
 
 	void tx_parse_report(std::string s);
 

@@ -193,7 +193,6 @@ deprecated__ typeof(strcat) strcat;
 
 #  define PATH_SEP "/"
 
-
 //======================================================================
 
 extern void ucase(std::string &);

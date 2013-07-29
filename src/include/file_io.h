@@ -52,4 +52,7 @@ extern bool binary(std::string &);
 extern bool c_binary(int c);
 extern int convert_to_plain_text(std::string &_buffer);
 extern bool isPlainText(std::string &_buffer);
+extern int convert_to_plain_text(char *_src, char *_dst, size_t count);
+extern bool isPlainText(char *_buffer, size_t count);
+
 #endif

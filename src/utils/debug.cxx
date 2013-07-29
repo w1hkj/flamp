@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
+#include <pthread.h>
 
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
@@ -64,6 +65,8 @@ debug::level_e debug::level = debug::INFO_LEVEL;
 uint32_t debug::mask = ~0u;
 
 const char* prefix[] = { _("Quiet"), _("Error"), _("Warning"), _("Info"), _("Debug") };
+
+pthread_mutex_t mutex_log = PTHREAD_MUTEX_INITIALIZER;
 
 static void slider_cb(Fl_Widget* w, void*);
 static void clear_cb(Fl_Widget *w, void*);
@@ -121,6 +124,8 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 	if (!inst)
 		return;
 
+	pthread_mutex_lock(&mutex_log);
+	
 	snprintf(fmt, sizeof(fmt), "%c: %s: %s\n", *prefix[level], func, format);
 
     while(debug_in_use) MilliSleep(10);
@@ -137,6 +142,8 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 
 	fflush(wfile);
 
+	pthread_mutex_unlock(&mutex_log);
+
 	Fl::awake(synctext, 0);
 	MilliSleep(10);
 }
@@ -145,6 +152,8 @@ void debug::slog(level_e level, const char* func, const char* srcf, int line, co
 {
 	if (!inst)
 		return;
+
+	pthread_mutex_lock(&mutex_log);
 
 	snprintf(fmt, sizeof(fmt), "%c:%s\n", *prefix[level], format);
 
@@ -158,6 +167,8 @@ void debug::slog(level_e level, const char* func, const char* srcf, int line, co
 
 	va_end(args);
 	fflush(wfile);
+
+	pthread_mutex_unlock(&mutex_log);
 
 	Fl::awake(synctext, 0);
 	MilliSleep(10);
