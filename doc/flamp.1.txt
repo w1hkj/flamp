@@ -13,8 +13,9 @@ flamp - AMP file transfer utility for use with fldigi
 == DESCRIPTION ==
 *Flamp* (fast light automatic repeat request) is a file transfer application
 that is based on the Amateur Multicast Protocol originally developed by 
-Walt Fair, Jr., W5ALT, and updated by Dave Freese, W1HKJ. It is capable
-of transmitting and receiving frames of AMP data via fldigi, as well.
+Walt Fair, Jr., W5ALT, and updated by Dave Freese, W1HKJ and Robert Stiles,
+KK5VD. It is capable of transmitting and receiving frames of AMP data via 
+fldigi, as well.
 
 
 == OPTIONS ==
@@ -99,6 +100,7 @@ AMP-2.0 specification by Dave Freese, W1HKJ: http://www.w1hkj.com/Amp.2.0.Specif
 
 == AUTHORS ==
 Flamp was written by David Freese, +W1HKJ+.
+                     Robert Stiles, +KK5VD+.
 
 This manual page was written by Dave Freese <w1hkj[at]w1hkj(dot)com>.
 

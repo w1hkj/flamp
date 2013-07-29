@@ -1,3 +1,17 @@
+
+
+=Version 2.1.00=
+
+2013-07-15  Robert Stiles  <kk5vd@yahoo.com>
+
+	623f108:   Unproto ARQ/Flmsg command filtering
+	3444d32: TxRx Interval Timer/Header Modem
+
+2013-06-20  David Freese  <w1hkj@w1hkj.com>
+
+	89b12af: MXE build
+	0622276: Binary build
+
 2013-05-05  Robert Stiles  <kk5vd@yahoo.com>
 
 	9116c90: Filter Null Characters from CirQue Buffer
