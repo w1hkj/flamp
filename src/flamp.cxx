@@ -1047,9 +1047,11 @@ void transmit_queued()
 
 void * transmit_serial_current(void *ptr)
 {
+	{
 	Fl::awake(set_button_to_cancel, (void *)0);
-	Fl::awake(deactivate_button, (void *) TX_ALL_BUTTON);
-
+	static int value = TX_ALL_BUTTON;
+	Fl::awake(deactivate_button, (void *) &value);
+	}
 	int n = tx_queue->value();
 	if (!n)
 		return run_in_thread_destroy((TX_FLDIGI_THREAD *) ptr, 3);
@@ -1117,8 +1119,11 @@ void * transmit_serial_current(void *ptr)
 
 void * transmit_serial_queued(void *ptr)
 {
+	{
 	Fl::awake(set_button_to_cancel, (void *)0);
-	Fl::awake(deactivate_button, (void *) TX_ALL_BUTTON);
+	static int value = TX_ALL_BUTTON;
+	Fl::awake(deactivate_button, (void *) &value);
+	}
 
 	float tx_time = 0;
 	if (tx_array.size() == 0)
@@ -1203,8 +1208,11 @@ void turn_rsid_off()
 
 void * transmit_interval(void * ptr)
 {
+	{
 	Fl::awake(set_button_to_cancel, (void *)0);
-	Fl::awake(deactivate_button, (void *) TX_ALL_BUTTON);
+	static int value = TX_ALL_BUTTON;
+	Fl::awake(deactivate_button, (void *) &value);
+	}
 
 	cAmp *tx = (cAmp *)0;
 	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
@@ -1648,7 +1656,10 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level)
 {
 	if(!tx_thread) return 0;
 
-	Fl::awake(deactivate_button, (void *)TX_BUTTON);
+	{
+	static int value = TX_BUTTON;
+	Fl::awake(deactivate_button, (void *) &value);
+	}
 
 	pthread_mutex_lock(&tx_thread->mutex);
 	tx_thread->thread_running = 0;
@@ -1683,9 +1694,12 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level)
 	wait_for_rx(5);
 
 	transmitting = false;
-
-	Fl::awake(activate_button, (void *)TX_BUTTON);
-	Fl::awake(activate_button, (void *)TX_ALL_BUTTON);
+	{
+	static int value = TX_BUTTON;
+	Fl::awake(activate_button, (void *)&value);
+	static int value2 = TX_ALL_BUTTON;
+	Fl::awake(activate_button, (void *)&value2);
+	}
 
 	return 0;
 }
@@ -1704,7 +1718,8 @@ void abort_request(void)
 {
 	int response = fl_choice("Terminate Current Transmission?", "No", "Yes", NULL);
 	if (response == 1) {
-		deactivate_button((void *) TX_BUTTON);
+		static int value = TX_BUTTON;
+		deactivate_button((void *) &value);
 		transmit_stop = true;
 		abort_and_id();
 	}
@@ -1713,13 +1728,13 @@ void abort_request(void)
 void send_fldigi_modem(void *ptr)
 {
 	if(!ptr) return;
-	int val = (int) ptr;
+	int *val = (int *) ptr;
 
 	char buffer[32];
 
 	memset(buffer, 0, sizeof(buffer));
 
-	switch(val) {
+	switch( *val ) {
 		case HEADER_MODEM:
 			strncpy(buffer, cbo_header_modes->value(), sizeof(buffer) - 1);
 			break;
@@ -1736,7 +1751,7 @@ void send_fldigi_modem(void *ptr)
 
 void get_trx_state_in_main_thread(void *ptr)
 {
-	if(ptr == (void *)0) return;
+	if (!ptr) return;
 
 	std::string *str = (std::string *)ptr;
 
@@ -1745,9 +1760,9 @@ void get_trx_state_in_main_thread(void *ptr)
 
 void send_via_fldigi_in_main_thread(void *ptr)
 {
-	string *data = (string *)ptr;
+	if (!ptr) return;
 
-	if(ptr == (void *)0) return;
+	string *data = (string *)ptr;
 
 	if (!bConnected) connect_to_fldigi(0);
 	if (!bConnected) return;
@@ -1757,21 +1772,23 @@ void send_via_fldigi_in_main_thread(void *ptr)
 
 void deactivate_button(void *ptr)
 {
-	int value = (int) ptr;
+	if (!ptr) return;
+	int *value = (int *) ptr;
 
-	if(value == TX_BUTTON)
+	if( *value == TX_BUTTON )
 		btn_send_file->deactivate();
-	else if(value ==TX_ALL_BUTTON)
+	else if( *value ==TX_ALL_BUTTON )
 		btn_send_queue->deactivate();
 }
 
 void activate_button(void *ptr)
 {
-	int value = (int) ptr;
+	if (!ptr) return;
+	int * value = (int *) ptr;
 
-	if(value == TX_BUTTON)
+	if( *value == TX_BUTTON )
 		btn_send_file->activate();
-	else if(value ==TX_ALL_BUTTON)
+	else if( *value == TX_ALL_BUTTON )
 		btn_send_queue->activate();
 }
 
