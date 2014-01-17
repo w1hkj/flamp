@@ -1,31 +1,39 @@
 
 
+=Version 2.1.01=
+
+2013-07-30  David Freese  <w1hkj@w1hkj.com>
+
+	7f8ea32: 64 bit compile issues
+
+
 =Version 2.1.00=
 
-2013-07-15  Robert Stiles  <kk5vd@yahoo.com>
 
-	623f108:   Unproto ARQ/Flmsg command filtering
-	3444d32: TxRx Interval Timer/Header Modem
+2013-07-29  Robert Stiles  <kk5vd@yahoo.com>
+
+	75aec64: Unproto ARQ/Flmsg command filtering
+	9f50af4: TxRx Interval Timer/Header Modem
 
 2013-06-20  David Freese  <w1hkj@w1hkj.com>
 
-	89b12af: MXE build
-	0622276: Binary build
+	4dce33b: MXE build
+	8e0334b: Binary build
 
 2013-05-05  Robert Stiles  <kk5vd@yahoo.com>
 
-	9116c90: Filter Null Characters from CirQue Buffer
-	06f9138: adjustReadQueIndex() index error on buffer count of 0
-	bc5453c: Correct naming conflict between class/local
+	9db548c: Filter Null Characters from CirQue Buffer
+	84d0c09: adjustReadQueIndex() index error on buffer count of 0
+	b74f406: Correct naming conflict between class/local
 
 2013-05-02  David Freese  <w1hkj@w1hkj.com>
 
-	90a73de: MT63 mode descriptors
+	fbf91c8: MT63 mode descriptors
 
 2013-05-02  Robert Stiles  <kk5vd@yahoo.com>
 
-	539cd45: Bug Fixes, Misc Change 	Pointer index error, Number of Tags sizeof calculation - Fixed 	Corrected timeout arq reconnect. 	Clear tosend after resending missing blocks
-	7b53114: Seperate Tag Search From CirQue - New Class TagSearch
+	36ef184: Bug Fixes, Misc Change
+	3484814: Seperate Tag Search From CirQue
 	065c6a0: Compress FLMSG in FLAMP
 	5fb778d: Add timeout to cirque class
 
