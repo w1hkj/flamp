@@ -139,13 +139,13 @@ int mingw_rename(const char *pold, const char *pnew)
 		return 0;
 	/* TODO: translate more errors */
 	if (GetLastError() == ERROR_ACCESS_DENIED &&
-	    (attrs = GetFileAttributes(pnew)) != INVALID_FILE_ATTRIBUTES) {
+		(attrs = GetFileAttributes(pnew)) != INVALID_FILE_ATTRIBUTES) {
 		if (attrs & FILE_ATTRIBUTE_DIRECTORY) {
 			errno = EISDIR;
 			return -1;
 		}
 		if ((attrs & FILE_ATTRIBUTE_READONLY) &&
-		    SetFileAttributes(pnew, attrs & ~FILE_ATTRIBUTE_READONLY)) {
+			SetFileAttributes(pnew, attrs & ~FILE_ATTRIBUTE_READONLY)) {
 			if (MoveFileEx(pold, pnew, MOVEFILE_REPLACE_EXISTING))
 				return 0;
 			/* revert file attributes on failure */
@@ -270,7 +270,7 @@ int uname(struct utsname *name)
 		strncpy (name->version, "unknown", sizeof (name->version));
 	}
 	/* "windows32" is as yet the only universal windows description allowed
-	   by config.guess and config.sub */
+	 by config.guess and config.sub */
 	strncpy(name->sysname, "windows32", sizeof (name->sysname));
 	if (!GetMachInfo(name->machine, processor))
 		strncpy(name->machine, "i386", sizeof (name->machine));
@@ -304,7 +304,7 @@ int getrusage(int who, struct rusage *usage)
 	memcpy(&uli, &ut, sizeof(FILETIME));
 	usage->ru_utime.tv_sec  = uli.QuadPart / 10000000L;
 	usage->ru_utime.tv_usec = uli.QuadPart % 10000000L;
-
+	
 	return 0;
 }
 

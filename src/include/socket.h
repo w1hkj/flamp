@@ -96,7 +96,7 @@ private:
 
 	std::string node;
 	std::string service;
-	int port;
+	//int port;
 
 #if HAVE_GETADDRINFO
 	struct addrinfo* info;

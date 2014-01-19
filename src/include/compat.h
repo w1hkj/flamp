@@ -29,10 +29,9 @@
 #include <time.h>
 #include <signal.h>
 #include <assert.h>
+#include <dirent.h>
 
-#ifdef __WIN32__
-#  define dirent fl_dirent_no_thanks
-#  else
+#ifndef __WIN32__
 #  include <dirent.h>
 #  include <sys/utsname.h>
 #  include <sys/ipc.h>

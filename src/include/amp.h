@@ -75,6 +75,7 @@ private:
 	std::string report_buffer;
     std::string xmtbase;
     std::string xmtunproto;
+	std::string xmtfilename_fullpath;
 
 	std::vector<std::string> header_string_array;
 	std::vector<std::string> data_string_array;
@@ -88,6 +89,8 @@ private:
 	std::string data_block(int index);
 	std::string data_eof(void);
 	std::string data_eot(void);
+
+	struct stat tx_statbuf;
 
 	int xmtnumblocks;
 	int xmtblocksize;
@@ -154,15 +157,41 @@ public:
 		xmtnumblocks = xmtdata.length() / xmtblocksize + (xmtdata.length() % xmtblocksize ? 1 : 0);
 	}
 
-	std::string xmt_data() { return xmtdata; };
+	std::string xmt_data(void) { return xmtdata; };
+	std::string xmt_hash(void) { return xmthash; };
 
 	void xmt_fname(std::string fn) {
 		xmtfilename.assign(fn);
-		struct stat statbuf;
-		stat(fn.c_str(), &statbuf);
-		time_stamp(&statbuf.st_mtime);
+		time_stamp(&tx_statbuf.st_mtime);
 	}
+
+	bool xmt_stat(struct stat *stat_storage) {
+		if(stat_storage) {
+			memcpy(stat_storage, &tx_statbuf, sizeof(tx_statbuf));
+			return true;
+		}
+		return false;
+	}
+
+	bool xmt_file_modified(void) {
+		struct stat cur_stat;
+		if(xmtfilename_fullpath.size() > 0) {
+			stat(xmtfilename_fullpath.c_str(), &cur_stat);
+			if(cur_stat.st_mtime == tx_statbuf.st_mtime)
+				return false;
+		}
+		return true;
+	}
+
 	std::string xmt_fname() { return xmtfilename; }
+
+	std::string xmt_full_path_fname() { return xmtfilename_fullpath; }
+
+	void xmt_full_path_fname(string fname) {
+		xmtfilename_fullpath = fname;
+		stat(xmtfilename_fullpath.c_str(), &tx_statbuf);
+		time_stamp(&tx_statbuf.st_mtime);
+	}
 
 	std::string xmt_string();
 
@@ -205,7 +234,8 @@ public:
 	void header_repeat(int n) { repeat_header = n; }
 	int  header_repeat() { return repeat_header; }
 
-	void tx_parse_report(std::string s);
+	//void tx_parse_report(std::string s);
+	void tx_parse_report(void);
 
 	// receive
 private:
@@ -246,6 +276,7 @@ public:
 	void rx_time_stamp(std::string ts) { rxdttm.assign(ts); }
 	void rx_add_data(std::string data);
 	void rx_parse_buffer();
+	void append_report(std::string s);
     void rx_parse_id(std::string data);
 	bool rx_parse_line(int ltype, char *crc, std::string data);
 	bool rx_completed() {

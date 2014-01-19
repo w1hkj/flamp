@@ -134,7 +134,7 @@ AC_MSG_RESULT([
 Configuration summary:
 
   Version ..................... $VERSION
-  
+
   Target OS ................... $target_os
 
   Static linking .............. $ac_cv_static

@@ -316,7 +316,7 @@ XmlRpcClient::generateHeader(std::string const& body)
 
   header += "Content-Type: text/xml\r\nContent-length: ";
 
-  sprintf(buff,"%d\r\n\r\n", body.size());
+  sprintf(buff,"%ld\r\n\r\n", (long) body.size());
 
   return header + buff;
 }

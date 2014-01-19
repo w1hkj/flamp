@@ -27,7 +27,7 @@ void base64::init()
 	ateof = false;
 	linelength = 0;
 
-// create the etable for encoding
+	// create the etable for encoding
 	for (int i = 0; i < 9; i++) {
 		etable[i] = 'A' + i;
 		etable[i + 9] = 'J' + i;
@@ -42,8 +42,8 @@ void base64::init()
 		etable[52 + i] = '0' + i;
 	etable[62] = '+';
 	etable[63] = '/';
-	
-// create the dtable for decoding
+
+	// create the dtable for decoding
 	for (int i= 0; i < 255; i++)
 		dtable[i] = 0x80;
 	for (int i = 'A'; i <= 'I'; i++)
@@ -69,26 +69,26 @@ string base64::encode(string in)
 {
 	int n;
 	byte igroup[3], ogroup[4];
-	
-//	output = "\n";
+
+	//	output = "\n";
 	output.clear();
 	iocp = 0;
 	ateof = false;
 	if (crlf)
 		linelength = 0;
 	iolen = in.length();
-	
+
 	while (!ateof) {
 		igroup[0] = igroup[1] = igroup[2] = 0;
 		for (n = 0; n < 3; n++) {
 			if (iocp == iolen) {
 				ateof = true;
 				break;
-			} 
+			}
 			igroup[n] = (byte)in[iocp];
 			iocp++;
 		}
- 		if (n > 0) {
+		if (n > 0) {
 			ogroup[0] = etable[igroup[0] >> 2];
 			ogroup[1] = etable[((igroup[0] & 3) << 4) | (igroup[1] >> 4)];
 			ogroup[2] = etable[((igroup[1] & 0xF) << 2) | (igroup[2] >> 6)];
@@ -122,7 +122,7 @@ string base64::decode(string in, bool &decode_error)
 	iolen = in.length();
 	byte c;
 	decode_error = false;
-	
+
 	while (iocp < iolen) {
 		byte a[4], b[4], o[3];
 

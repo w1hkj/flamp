@@ -50,7 +50,7 @@ public:
 	TagSearchException(int err_ = 0)	 : err(err_), msg(err_to_str(err_)) { }
 	TagSearchException(const char* msg_) : err(1),	msg(msg_)			 { }
 	TagSearchException(int err_, const std::string& prefix)
-		: err(err_), msg(std::string(prefix).append(": ").append(err_to_str(err_))) { }
+	: err(err_), msg(std::string(prefix).append(": ").append(err_to_str(err_))) { }
 	virtual ~TagSearchException() throw() { }
 	const char*	 what(void) const throw() { return msg.c_str(); }
 	int			 error(void) const { return err; }
@@ -80,7 +80,7 @@ public:
 
 	void stringMatchingList(const char *mList[], int mlCount);
 
-friend
+	friend
 	void * tag_search_parser(void *ptr);
 
 };

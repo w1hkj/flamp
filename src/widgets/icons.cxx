@@ -83,7 +83,7 @@ const char* make_icon_label(const char* text, const char** pixmap)
 	Fl_Image** images = new Fl_Image*[2];
 	images[0] = new Fl_Pixmap(pixmap ? pixmap : clear_row_icon);
 	images[1] = 0; // we create this on demand
-	// set_icon_label_ will set mlabel->labela later
+				   // set_icon_label_ will set mlabel->labela later
 	mlabel->typea = _FL_IMAGE_LABEL;
 
 	if (!text)

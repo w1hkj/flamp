@@ -2,8 +2,11 @@
 //
 // flamp_dialog.cxx
 //
-// Author: Dave Freese, W1HKJ
-// Copyright: 2010
+// Author(s):
+//	Dave Freese, W1HKJ
+//  Robert Stiles, KK5VD
+//
+//	Copyright: 2010, 2013
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -81,7 +84,8 @@ Fl_Button* btn_tx_remove_file = 0;
 Fl_Button* btn_send_file = 0;
 Fl_Button* btn_send_queue = 0;
 
-// Configuraton pane
+// Configuraton panel
+
 Fl_Check_Button* btn_sync_mode_flamp_fldigi = 0;
 Fl_Check_Button* btn_sync_mode_fldigi_flamp = 0;
 Fl_Check_Button* btn_fldigi_xmt_mode_change = 0;
@@ -99,57 +103,99 @@ Fl_Check_Button* btn_enable_tx_on_report = 0;
 
 Fl_Check_Button* btn_clear_tosend_on_tx_blocks = 0;
 
-// end Configuration pane.
+// end Configuration panel.
+
+// Event panel
 
 Fl_Check_Button* btn_repeat_at_times = 0;
 Fl_ComboBox*     cbo_repeat_every = 0;
 Fl_Input2*       txt_repeat_times = 0;
+
+Fl_Input2*       txt_auto_load_queue_path = 0;
+Fl_Check_Button* btn_auto_load_queue = 0;
+Fl_Check_Button* btn_load_from_tx_folder = 0;
+Fl_Button*       btn_manual_load_queue = 0;
 
 Fl_Check_Button* btn_repeat_forever = 0;
 Fl_Light_Button* do_events = 0;
 
 Fl_Output* outTimeValue = 0;
 
+// Hamcast Event subpanel panel
+
+Fl_Check_Button * btn_hamcast_mode_cycle = 0;
+
+Fl_Check_Button * btn_hamcast_mode_enable_1 = 0;
+Fl_ComboBox * cbo_hamcast_mode_selection_1 = 0;
+Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_1 = 0;
+Fl_Output * txt_hamcast_select_1_time = 0;
+
+Fl_Check_Button * btn_hamcast_mode_enable_2 = 0;
+Fl_ComboBox * cbo_hamcast_mode_selection_2 = 0;
+Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_2 = 0;
+Fl_Output * txt_hamcast_select_2_time = 0;
+
+Fl_Check_Button * btn_hamcast_mode_enable_3 = 0;
+Fl_ComboBox * cbo_hamcast_mode_selection_3 = 0;
+Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_3 = 0;
+Fl_Output * txt_hamcast_select_3_time = 0;
+
+Fl_Check_Button * btn_hamcast_mode_enable_4 = 0;
+Fl_ComboBox * cbo_hamcast_mode_selection_4 = 0;
+Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_4 = 0;
+Fl_Output * txt_hamcast_select_4_time = 0;
+
+Fl_Output * txt_hamcast_select_total_time = 0;
+
+// end hamcast Event sub panel.
+
+// end Event panel
+
 Fl_Input2*  txt_tx_selected_blocks = 0;
 
 //----------------------------------------------------------------------
-
+// Mode, CPS (avg), Latency (in seconds)
 struct st_modes s_basic_modes[] = {
-	{"DOMX22", 7.9},       {"DOMX44", 16.3},      {"DOMX88", 17.9},
-	{"MFSK16", 5.8},       {"MFSK22", 8.0},       {"MFSK31", 5.5},
-	{"MFSK32", 12.0},      {"MFSK64", 24.0},      {"MFSK128", 48.0},
-	{"MT63-500S", 5.0},     {"MT63-1KS", 10.0},     {"MT63-2KS", 20.0},
-	{"MT63-500L", 5.0},     {"MT63-1KL", 10.0},     {"MT63-2KL", 20.0},
+	{"DOMX22",          7.9,  0.0}, {"DOMX44",       16.3, 0.0},  {"DOMX88",       17.9, 0.0},
 
-	{"BPSK125", 12.0},     {"BPSK250", 24.0},
-	{"BPSK500", 48.0},     {"BPSK1000", 96.0},
+	{"MFSK16",          5.8,  0.0}, {"MFSK22",        8.0, 0.0},  {"MFSK31",        5.5, 0.0},
+	{"MFSK32",         12.0,  0.0}, {"MFSK64",       24.0, 0.0},  {"MFSK128",      48.0, 0.0},
+	{"MFSK64L",        24.0,  6.5}, {"MFSK128L",     48.0, 6.5},
 
-	{"PSK63RC4", 15.0},    {"PSK63RC5", 19.0},    {"PSK63RC10", 38.0},
-	{"PSK63RC20", 74.0},   {"PSK63RC32", 120.0},
+	{"MT63-500S",       5.0,  6.4}, {"MT63-1KS",     10.0, 3.2},  {"MT63-2KS",     20.0, 3.2},
+	{"MT63-500L",       5.0, 12.8}, {"MT63-1KL",     10.0, 6.4},  {"MT63-2KL",     20.0, 1.6},
 
-	{"PSK125C12", 144.0},
+	{"BPSK125",        12.0,  0.0}, {"BPSK250",      24.0, 0.0},
+	{"BPSK500",        48.0,  0.0}, {"BPSK1000",     96.0, 0.0},
 
-	{"PSK125R", 7.0},      {"PSK125RC4", 28.0},   {"PSK125RC5", 35.0},
-	{"PSK125RC10", 70.0},  {"PSK125RC12", 85.0},  {"PSK125RC16", 112.0},
+	{"PSK63RC4",       15.0,  0.0}, {"PSK63RC5",     19.0, 0.0},  {"PSK63RC10",    38.0, 0.0},
+	{"PSK63RC20",      74.0,  0.0}, {"PSK63RC32",   120.0, 0.0},
 
-	{"PSK250R", 15.0},     {"PSK250RC2", 30.0},   {"PSK250RC3", 45.0},
-	{"PSK250RC5", 75.0},   {"PSK250RC6", 90.0},   {"PSK250RC7", 105.0},
+	{"PSK125C12",     144.0,  0.0},
 
-	{"PSK500C2", 96.0},    {"PSK500C4", 192.0},
-	{"PSK500R", 29.0},     {"PSK500RC2", 58.0},   {"PSK500RC3", 85.8},
-	{"PSK500RC4", 114.4},
+	{"PSK125R",         7.0,  0.0}, {"PSK125RC4",    28.0, 0.0},  {"PSK125RC5",    35.0, 0.0},
+	{"PSK125RC10",     70.0,  0.0}, {"PSK125RC12",   85.0, 0.0},  {"PSK125RC16",  112.0, 0.0},
 
-	{"PSK800C2", 153.6},   {"PSK800RC2", 92.8},
+	{"PSK250C6",      144.0,  0.0},
+	
+	{"PSK250R",        15.0,  0.0}, {"PSK250RC2",    30.0, 0.0},  {"PSK250RC3",    45.0, 0.0},
+	{"PSK250RC5",      75.0,  0.0}, {"PSK250RC6",    90.0, 0.0},  {"PSK250RC7",   105.0, 0.0},
 
-	{"PSK1000C2", 192.0},  {"PSK1000R", 60.0},    {"PSK1000RC2", 120.0},
+	{"PSK500C2",       96.0,  0.0}, {"PSK500C4",     92.0, 0.0},
+	{"PSK500R",        29.0,  0.0}, {"PSK500RC2",    58.0, 0.0},  {"PSK500RC3",    85.8, 0.0},
+	{"PSK500RC4",     114.4,  0.0},
 
-	{ "Olivia-4-250",  3.0 }, { "Olivia-8-250",  1.5 },   { "Olivia-4-500",  6.0 },
-	{ "Olivia-8-500",  3.0 }, { "Olivia-16-500", 1.5 },   { "Olivia-8-1K",  6.0 },
-	{ "Olivia-16-1K", 4.0 },  { "Olivia-32-1K", 2.0 },    { "Olivia-64-2K", 2.0 },
+	{"PSK800C2",      153.6,  0.0}, {"PSK800RC2",    92.8, 0.0},
 
-	{"THOR16", 3.25},      {"THOR22", 4.46},
-	{"THOR25x4", 5.03},       {"THOR50x1", 10.06},     {"THOR50x2", 10.06},
-	{"THOR100", 20.13},      {"", 0}
+	{"PSK1000C2",     192.0,  0.0}, {"PSK1000R",     60.0, 0.0},  {"PSK1000RC2",  120.0,  0.0},
+
+	{"Olivia-4-250",    3.0,  0.0}, {"Olivia-8-250",  1.5, 0.0},  {"Olivia-4-500",  6.0,  0.0 },
+	{"Olivia-8-500",    3.0,  0.0}, {"Olivia-16-500", 1.5, 0.0},  {"Olivia-8-1K",   6.0,  0.0 },
+	{"Olivia-16-1K",    4.0,  0.0}, {"Olivia-32-1K",  2.0, 0.0},  {"Olivia-64-2K",  2.0,  0.0 },
+
+	{"THOR16",         3.25,  0.0}, {"THOR22",        4.46, 0.0},
+	{"THOR25x4",       5.03,  0.0}, {"THOR50x1",     10.06, 0.0}, {"THOR50x2",     10.06, 0.0},
+	{"THOR100",       20.13,  0.0}, {"",              0.0,  0.0}
 };
 
 // reported by get_modes
@@ -157,7 +203,7 @@ struct st_modes s_basic_modes[] = {
  NULL|CW|
  CTSTIA|DOMEX4|DOMEX5|DOMEX8|DOMX11|DOMX16|DOMX22|DOMX44|DOMX88|
  FELDHELL|SLOWHELL|HELLX5|HELLX9|FSKHELL|FSKH105|HELL80|
- MFSK8|MFSK16|MFSK32|MFSK4|MFSK11|MFSK22|MFSK31|MFSK64|MFSK128|
+ MFSK8|MFSK16|MFSK32|MFSK4|MFSK11|MFSK22|MFSK31|MFSK64|MFSK128||MFSK64L|MFSK128L|
  WEFAX576|WEFAX288|NAVTEX|SITORB|
  MT63-500S|MT63-1KS|MT63-2KS|
  MT63-500L|MT63-1KL|MT63-2KL|
@@ -190,22 +236,37 @@ bool valid_mode_check(std::string &md)
 void update_cbo_modes(std::string &fldigi_modes)
 {
 	for (int n = 0; n < 100; n++) { s_modes[n].s_mode = ""; s_modes[n].f_cps = 0; }
+
 	valid_modes.clear();
 	cbo_modes->clear();
 	cbo_header_modes->clear();
+	cbo_hamcast_mode_selection_1->clear();
+
 	int i = 0, j = 0;
 	while (s_basic_modes[i].f_cps != 0) {
 		if (fldigi_modes.find(s_basic_modes[i].s_mode) != string::npos) {
 			s_modes[j] = s_basic_modes[i];
 			cbo_modes->add(s_modes[j].s_mode.c_str());
 			cbo_header_modes->add(s_modes[j].s_mode.c_str());
+			cbo_hamcast_mode_selection_1->add(s_modes[j].s_mode.c_str());
+			cbo_hamcast_mode_selection_2->add(s_modes[j].s_mode.c_str());
+			cbo_hamcast_mode_selection_3->add(s_modes[j].s_mode.c_str());
+			cbo_hamcast_mode_selection_4->add(s_modes[j].s_mode.c_str());
 			valid_modes.append(s_modes[j].s_mode).append("|");
 			j++;
 		}
 		i++;
 	}
+
 	cbo_modes->index(progStatus.selected_mode);
 	cbo_header_modes->index(progStatus.header_selected_mode);
+	cbo_hamcast_mode_selection_1->index(progStatus.hamcast_mode_selection_1);
+	cbo_hamcast_mode_selection_2->index(progStatus.hamcast_mode_selection_2);
+	cbo_hamcast_mode_selection_3->index(progStatus.hamcast_mode_selection_3);
+	cbo_hamcast_mode_selection_4->index(progStatus.hamcast_mode_selection_4);
+	assign_bc_modem_list();
+	g_modem.assign(cbo_modes->value());
+	g_header_modem.assign(cbo_header_modes->value());
 }
 
 void init_cbo_modes()
@@ -231,12 +292,14 @@ void init_cbo_events()
 	cbo_repeat_every->add("Odd hours");
 	cbo_repeat_every->add("Repeated at");
 	cbo_repeat_every->add("One time at");
+	cbo_repeat_every->add("Continuous at");
 	cbo_repeat_every->index(progStatus.repeat_every);
 }
 
 void cb_cbo_modes()
 {
 	progStatus.selected_mode = cbo_modes->index();
+	g_modem.assign(cbo_modes->value());
 	estimate();
 	if (progStatus.sync_mode_flamp_fldigi)
 		send_new_modem(cbo_modes->value());
@@ -394,7 +457,7 @@ static void cb_btn_send_queue(Fl_Button*, void*) {
 
 	btn_send_queue->deactivate();
 
-	transmit_queued();
+	transmit_queued(false);
 }
 
 static void cb_cnt_blocksize(Fl_Button*, void*) {
@@ -402,16 +465,19 @@ static void cb_cnt_blocksize(Fl_Button*, void*) {
 	txt_tx_selected_blocks->value("");
 	update_selected_xmt();
 	estimate();
+	estimate_bc();
 }
 
 static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 	progStatus.repeatNN = (int)cnt_repeat_nbr->value();
 	estimate();
+	estimate_bc();
 }
 
 static void cb_repeat_header(Fl_Button*, void*) {
 	progStatus.repeat_header = (int)cnt_repeat_header->value();
 	estimate();
+	estimate_bc();
 }
 
 void cb_use_compression()
@@ -420,6 +486,7 @@ void cb_use_compression()
 	txt_tx_selected_blocks->value("");
 	update_selected_xmt();
 	estimate();
+	estimate_bc();
 }
 
 void cb_use_encoder()
@@ -467,6 +534,41 @@ void cb_repeat_at_times(Fl_Check_Button *b, void *)
 	}
 }
 
+void cb_auto_load_que(Fl_Check_Button *b, void *)
+{
+	int val = false;
+
+	val = btn_auto_load_queue->value();
+	progStatus.auto_load_queue_path.assign(txt_auto_load_queue_path->value());
+
+	if(progStatus.auto_load_queue_path.size() < 1 && val == true) {
+		progStatus.auto_load_queue = false;
+		btn_auto_load_queue->value(false);
+		return;
+	}
+	progStatus.auto_load_queue = val;
+	btn_auto_load_queue->value(val);
+}
+
+void cb_load_from_tx_folder(Fl_Check_Button *b, void *)
+{
+	progStatus.load_from_tx_folder = btn_load_from_tx_folder->value();
+}
+
+void cb_manual_load_que(Fl_Button *b, void *)
+{
+	int old = progStatus.auto_load_queue;
+
+	progStatus.auto_load_queue = true;
+	auto_load_tx_queue();
+	progStatus.auto_load_queue = old;
+}
+
+void cb_auto_load_queue_path(Fl_Input2 *b, void *)
+{
+	progStatus.auto_load_queue_path.assign(txt_auto_load_queue_path->value());
+}
+
 void cb_repeat_every(Fl_ComboBox *cb, void *)
 {
 	progStatus.repeat_every = cbo_repeat_every->index();
@@ -492,6 +594,8 @@ static void cb_drop_file(Fl_Input*, void*) {
 
 void cb_do_events(Fl_Light_Button *b, void*)
 {
+	if(generate_time_table) do_events->value(0);
+
 	if (do_events->value() == 1) {
 		do_events->label("Stop Events");
 	} else {
@@ -509,6 +613,7 @@ void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 		btn_fldigi_xmt_mode_change->value(progStatus.fldigi_xmt_mode_change);
 		progStatus.enable_tx_unproto = false;
 		btn_enable_tx_unproto->value(false);
+		estimate_bc();
 	}
 }
 
@@ -529,12 +634,14 @@ void cb_enable_header_modem(Fl_Check_Button *a, void *b)
 	if(progStatus.use_header_modem) {
 		progStatus.enable_tx_unproto = false;
 		btn_enable_tx_unproto->value(false);
+		estimate_bc();
 	}
 }
 
 void cb_header_modes(Fl_ComboBox *a, void *b)
 {
 	progStatus.header_selected_mode = cbo_header_modes->index();
+	g_header_modem.assign(cbo_header_modes->value());
 }
 
 void cb_disable_header_modem_on_block_fills(Fl_Check_Button *a, void *b)
@@ -563,7 +670,118 @@ void cb_enable_tx_unproto(Fl_Check_Button *a, void *b)
 		progStatus.use_header_modem = false;
 	}
 
+	unproto_widgets();
 	estimate();
+	estimate_bc();
+}
+
+void unproto_widgets(void)
+{
+	if(progStatus.enable_tx_unproto) {
+		cnt_blocksize->deactivate();
+		cnt_repeat_nbr->deactivate();
+		cnt_repeat_header->deactivate();
+		btn_use_compression->deactivate();
+		encoders->deactivate();
+		txt_tx_numblocks->deactivate();
+	} else {
+		cnt_blocksize->activate();
+		cnt_repeat_nbr->activate();
+		cnt_repeat_header->activate();
+		btn_use_compression->activate();
+		encoders->activate();
+		txt_tx_numblocks->activate();
+	}
+}
+
+void cb_hamcast_mode_cycle(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_cycle = btn_hamcast_mode_cycle->value();
+	if(progStatus.hamcast_mode_cycle) {
+		progStatus.hamcast_mode_cycle = assign_bc_modem_list();
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_enable_1(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_enable_1 = btn_hamcast_mode_enable_1->value();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_selection_1(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_selection_1 = cbo_hamcast_mode_selection_1->index();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_enable_2(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_enable_2 = btn_hamcast_mode_enable_2->value();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_selection_2(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_selection_2 = cbo_hamcast_mode_selection_2->index();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_enable_3(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_enable_3 = btn_hamcast_mode_enable_3->value();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_selection_3(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_selection_3 = cbo_hamcast_mode_selection_3->index();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_enable_4(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_enable_4 = btn_hamcast_mode_enable_4->value();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
+}
+
+void cb_hamcast_mode_selection_4(Fl_Check_Button *a, void *b)
+{
+	progStatus.hamcast_mode_selection_4 = cbo_hamcast_mode_selection_4->index();
+	if(!assign_bc_modem_list()) {
+		progStatus.hamcast_mode_cycle = false;
+		btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+	}
+	estimate_bc();
 }
 
 Fl_Double_Window* flamp_dialog() {
@@ -581,8 +799,9 @@ Fl_Double_Window* flamp_dialog() {
 	tabs->labelcolor(FL_BLACK);
 	tabs->selection_color(fl_rgb_color(245, 255, 250)); // mint cream
 
-    // Receive Tab
-	Fl_Group *Rx_tab = new Fl_Group(4, y=Y+26, W-8, H-y-2, _("Receive"));
+	// Receive Tab
+	y=Y+26;
+	Fl_Group *Rx_tab = new Fl_Group(4, y, W-8, H-y-2, _("Receive"));
 
 	y += 10;
 	txt_rx_filename = new Fl_Output(100, y, W-108, 20, _("File:"));
@@ -643,7 +862,8 @@ Fl_Double_Window* flamp_dialog() {
 	txt_rx_output->tooltip(_("Ascii Text\nData type message"));
 
 	static const int cols[] = {60, 0};
-	rx_queue = new Fl_Hold_Browser(8, y+=102, W-16, H-y-6, _("Receive Queue"));
+	y += 102;
+	rx_queue = new Fl_Hold_Browser(8, y, W-16, H-y-6, _("Receive Queue"));
 	rx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 	rx_queue->column_widths(cols);
 	rx_queue->has_scrollbar(Fl_Browser_::VERTICAL_ALWAYS);
@@ -653,11 +873,11 @@ Fl_Double_Window* flamp_dialog() {
 	Rx_tab->resizable(txt_rx_output);
 	Rx_tab->end();
 
-    // Receive Tab End
+	// Receive Tab End
 
 	// Transmit Tab
-
-	Fl_Group *Tx_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Transmit"));
+	y = Y + 26;
+	Fl_Group *Tx_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Transmit"));
 
 	y += 10;
 
@@ -778,7 +998,8 @@ Fl_Double_Window* flamp_dialog() {
 	drop_file->callback((Fl_Callback*)cb_drop_file);
 	drop_file->when(FL_WHEN_CHANGED);
 
-	tx_queue = new Fl_Hold_Browser(8, y+=26, W-16, H-y-6, _("Transmit Queue"));
+	y += 26;
+	tx_queue = new Fl_Hold_Browser(8, y, W-16, H-y-6, _("Transmit Queue"));
 	tx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 	tx_queue->has_scrollbar(Fl_Browser_::VERTICAL_ALWAYS);
 	tx_queue->callback((Fl_Callback*)cb_tx_queue);
@@ -791,11 +1012,23 @@ Fl_Double_Window* flamp_dialog() {
 
 	// Timed Even Tab
 
-	Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Events"));
+	//Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Events"));
+	y = Y+26;
 
-	y += 20;
+	Fl_Group *Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Events"));
+
+	Fl_Tabs *event_tabs = new Fl_Tabs(X+2, y, W-2*(X+2), H-y-2, "");
+	event_tabs->labelcolor(FL_BLACK);
+	event_tabs->selection_color(fl_rgb_color(245, 255, 250)); // mint cream
+
+
+	//y += 16;
+	y = Y + 52;
+	Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Timed"));
+	y += 8;
+
 	Fl_Multiline_Output* explain_events = new Fl_Multiline_Output(
-																  X+4, y, W - X - 8, 100, "");
+																  X+4, y, W - X - 8, 84, "");
 	explain_events->tooltip("");
 	explain_events->color(fl_rgb_color(255, 250, 205));
 
@@ -806,11 +1039,12 @@ Fl_Double_Window* flamp_dialog() {
 						  "\tincluded." \
 						  );
 
-	Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=126, W-2*(X+4), 120, _("Timed Events"));
+	//Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=126, W-2*(X+4), 146, _("Timed Events")); //120
+	Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=100, W-2*(X+4), 146, _("Timed Events")); //120
 	Timed_Repeat_grp->box(FL_ENGRAVED_BOX);
 	Timed_Repeat_grp->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
-	btn_repeat_at_times = new Fl_Check_Button(X+20, y+=8, 20, 20,
+	btn_repeat_at_times = new Fl_Check_Button(X+10, y+=8, 20, 20,
 											  _("Scheduled times of transmission"));
 	btn_repeat_at_times->tooltip("");
 	btn_repeat_at_times->align(FL_ALIGN_RIGHT);
@@ -818,7 +1052,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_repeat_at_times->callback((Fl_Callback*)cb_repeat_at_times);
 	btn_repeat_at_times->value(progStatus.repeat_at_times);
 
-	cbo_repeat_every = new Fl_ComboBox(X + 20, y+=30, 140, 20, "Retransmit interval");
+	cbo_repeat_every = new Fl_ComboBox(X + 250, y, 140, 20, "TX interval"); //20
 	cbo_repeat_every->begin();
 	cbo_repeat_every->align(FL_ALIGN_RIGHT);
 	cbo_repeat_every->when(FL_WHEN_RELEASE);
@@ -833,13 +1067,40 @@ Fl_Double_Window* flamp_dialog() {
 	txt_repeat_times->when(FL_WHEN_CHANGED);
 	txt_repeat_times->value(progStatus.repeat_times.c_str());
 
+	btn_auto_load_queue = new Fl_Check_Button(X+10, y+=24, 20, 20,
+											  _("Auto Load TX Queue"));
+	btn_auto_load_queue->tooltip("");
+	btn_auto_load_queue->align(FL_ALIGN_RIGHT);
+	btn_auto_load_queue->down_box(FL_DOWN_BOX);
+	btn_auto_load_queue->callback((Fl_Callback*)cb_auto_load_que);
+	btn_auto_load_queue->value(progStatus.auto_load_queue);
+
+	btn_load_from_tx_folder = new Fl_Check_Button(X+200, y, 20, 20,
+												  _("Load from TX directory"));
+	btn_load_from_tx_folder->tooltip("");
+	btn_load_from_tx_folder->align(FL_ALIGN_RIGHT);
+	btn_load_from_tx_folder->down_box(FL_DOWN_BOX);
+	btn_load_from_tx_folder->callback((Fl_Callback*)cb_load_from_tx_folder);
+	btn_load_from_tx_folder->value(progStatus.load_from_tx_folder);
+
+	btn_manual_load_queue = new Fl_Button(W - 116, y+12, 90, 22, _("Load Queue"));
+	btn_manual_load_queue->callback((Fl_Callback*)cb_manual_load_que);
+	btn_manual_load_queue->tooltip(_("Transmit this file"));
+
+	txt_auto_load_queue_path = new Fl_Input2(X+10, y+=42, W -X -20, 20, "Path to Load Queue File List");
+	txt_auto_load_queue_path->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+	txt_auto_load_queue_path->tooltip(_("Path to the file containing a list of files"));
+	txt_auto_load_queue_path->callback((Fl_Callback*)cb_auto_load_queue_path);
+	txt_auto_load_queue_path->when(FL_WHEN_CHANGED);
+	txt_auto_load_queue_path->value(progStatus.auto_load_queue_path.c_str());
+
 	Timed_Repeat_grp->end();
 
-	Fl_Group* Continuous_Events_grp = new Fl_Group(X+4, y+=70, W-2*(X+4), 36, _("Continuous repeat"));
+	Fl_Group* Continuous_Events_grp = new Fl_Group(X+4, y+=52, W-2*(X+4), 36, _("Continuous repeat"));
 	Continuous_Events_grp->box(FL_ENGRAVED_BOX);
 	Continuous_Events_grp->align(FL_ALIGN_TOP | FL_ALIGN_LEFT);
 
-	btn_repeat_forever = new Fl_Check_Button(X+20, y+8, 20, 20,
+	btn_repeat_forever = new Fl_Check_Button(X+10, y+8, 20, 20,
 											 _("Continuous repeat of transmission"));
 	btn_repeat_forever->tooltip("");
 	btn_repeat_forever->align(FL_ALIGN_RIGHT);
@@ -849,7 +1110,7 @@ Fl_Double_Window* flamp_dialog() {
 
 	Continuous_Events_grp->end();
 
-	outTimeValue = new Fl_Output(X+20, y+=52, 70, 24, "");
+	outTimeValue = new Fl_Output(X+20, y+=44, 70, 24, ""); //52
 	outTimeValue->box(FL_DOWN_BOX);
 	outTimeValue->color(fl_rgb_color(255, 250, 205));
 	outTimeValue->value("");
@@ -860,10 +1121,146 @@ Fl_Double_Window* flamp_dialog() {
 	Timed_Events_tab->end();
 
 	// Timed Even Tab End
+	// Timed Events Tab End
+	y = Y + 52;
+	Fl_Group *Hamcast_Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Hamcast"));
+	y += 8;
+
+	y += 16;
+	int lx = X+12;
+
+	Fl_Group *Hamcast_mode_group = new Fl_Group(X+4, y+=8, W-2*(X+4), 146, _("Hamcast modem rotation / Queue Transmit Time (on Timed Events)")); //120
+	Hamcast_mode_group->box(FL_ENGRAVED_BOX);
+	Hamcast_mode_group->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
+
+	btn_hamcast_mode_cycle = new Fl_Check_Button(lx, y+=8, 20, 20,
+												 _("Enable modem rotation"));
+	btn_hamcast_mode_cycle->tooltip("");
+	btn_hamcast_mode_cycle->align(FL_ALIGN_RIGHT);
+	btn_hamcast_mode_cycle->down_box(FL_DOWN_BOX);
+	btn_hamcast_mode_cycle->callback((Fl_Callback*)cb_hamcast_mode_cycle);
+	btn_hamcast_mode_cycle->value(progStatus.hamcast_mode_cycle);
+
+	txt_hamcast_select_total_time = new Fl_Output(lx+370, y, 100, 20, "Total Time: ");
+	txt_hamcast_select_total_time->tooltip(_("Transfer time"));
+	txt_hamcast_select_total_time->value("");
+
+	btn_hamcast_mode_enable_1 = new Fl_Check_Button(lx, y+=26, 20, 20, _("Enable Modem 1"));
+	btn_hamcast_mode_enable_1->tooltip("");
+	btn_hamcast_mode_enable_1->align(FL_ALIGN_RIGHT);
+	btn_hamcast_mode_enable_1->down_box(FL_DOWN_BOX);
+	btn_hamcast_mode_enable_1->callback((Fl_Callback*)cb_hamcast_mode_enable_1);
+	btn_hamcast_mode_enable_1->value(progStatus.hamcast_mode_enable_1);
+
+	cbo_hamcast_mode_selection_1 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_1->begin();
+	cbo_hamcast_mode_selection_1->align(FL_ALIGN_RIGHT);
+	cbo_hamcast_mode_selection_1->when(FL_WHEN_RELEASE);
+	cbo_hamcast_mode_selection_1->tooltip(_("fldigi modem type"));
+	cbo_hamcast_mode_selection_1->box(FL_DOWN_BOX);
+	cbo_hamcast_mode_selection_1->color(FL_BACKGROUND2_COLOR);
+	cbo_hamcast_mode_selection_1->selection_color(FL_BACKGROUND_COLOR);
+	cbo_hamcast_mode_selection_1->labeltype(FL_NORMAL_LABEL);
+	cbo_hamcast_mode_selection_1->labelfont(0);
+	cbo_hamcast_mode_selection_1->labelsize(14);
+	cbo_hamcast_mode_selection_1->labelcolor(FL_FOREGROUND_COLOR);
+	cbo_hamcast_mode_selection_1->callback((Fl_Callback*)cb_hamcast_mode_selection_1);
+	cbo_hamcast_mode_selection_1->end();
+
+	txt_hamcast_select_1_time = new Fl_Output(lx+370, y, 100, 20, "Time: ");
+	txt_hamcast_select_1_time->tooltip(_("Transfer time"));
+	txt_hamcast_select_1_time->value("");
+
+	btn_hamcast_mode_enable_2 = new Fl_Check_Button(lx, y+=26, 20, 20, _("Enable Modem 2"));
+	btn_hamcast_mode_enable_2->tooltip("");
+	btn_hamcast_mode_enable_2->align(FL_ALIGN_RIGHT);
+	btn_hamcast_mode_enable_2->down_box(FL_DOWN_BOX);
+	btn_hamcast_mode_enable_2->callback((Fl_Callback*)cb_hamcast_mode_enable_2);
+	btn_hamcast_mode_enable_2->value(progStatus.hamcast_mode_enable_2);
+
+	cbo_hamcast_mode_selection_2 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_2->begin();
+	cbo_hamcast_mode_selection_2->align(FL_ALIGN_RIGHT);
+	cbo_hamcast_mode_selection_2->when(FL_WHEN_RELEASE);
+	cbo_hamcast_mode_selection_2->tooltip(_("fldigi modem type"));
+	cbo_hamcast_mode_selection_2->box(FL_DOWN_BOX);
+	cbo_hamcast_mode_selection_2->color(FL_BACKGROUND2_COLOR);
+	cbo_hamcast_mode_selection_2->selection_color(FL_BACKGROUND_COLOR);
+	cbo_hamcast_mode_selection_2->labeltype(FL_NORMAL_LABEL);
+	cbo_hamcast_mode_selection_2->labelfont(0);
+	cbo_hamcast_mode_selection_2->labelsize(14);
+	cbo_hamcast_mode_selection_2->labelcolor(FL_FOREGROUND_COLOR);
+	cbo_hamcast_mode_selection_2->callback((Fl_Callback*)cb_hamcast_mode_selection_2);
+	cbo_hamcast_mode_selection_2->end();
+
+	txt_hamcast_select_2_time = new Fl_Output(lx+370, y, 100, 20, "Time: ");
+	txt_hamcast_select_2_time->tooltip(_("Transfer time"));
+	txt_hamcast_select_2_time->value("");
+
+	btn_hamcast_mode_enable_3 = new Fl_Check_Button(lx, y+=26, 20, 20, _("Enable Modem 3"));
+	btn_hamcast_mode_enable_3->tooltip("");
+	btn_hamcast_mode_enable_3->align(FL_ALIGN_RIGHT);
+	btn_hamcast_mode_enable_3->down_box(FL_DOWN_BOX);
+	btn_hamcast_mode_enable_3->callback((Fl_Callback*)cb_hamcast_mode_enable_3);
+	btn_hamcast_mode_enable_3->value(progStatus.hamcast_mode_enable_3);
+
+	cbo_hamcast_mode_selection_3 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_3->begin();
+	cbo_hamcast_mode_selection_3->align(FL_ALIGN_RIGHT);
+	cbo_hamcast_mode_selection_3->when(FL_WHEN_RELEASE);
+	cbo_hamcast_mode_selection_3->tooltip(_("fldigi modem type"));
+	cbo_hamcast_mode_selection_3->box(FL_DOWN_BOX);
+	cbo_hamcast_mode_selection_3->color(FL_BACKGROUND2_COLOR);
+	cbo_hamcast_mode_selection_3->selection_color(FL_BACKGROUND_COLOR);
+	cbo_hamcast_mode_selection_3->labeltype(FL_NORMAL_LABEL);
+	cbo_hamcast_mode_selection_3->labelfont(0);
+	cbo_hamcast_mode_selection_3->labelsize(14);
+	cbo_hamcast_mode_selection_3->labelcolor(FL_FOREGROUND_COLOR);
+	cbo_hamcast_mode_selection_3->callback((Fl_Callback*)cb_hamcast_mode_selection_3);
+	cbo_hamcast_mode_selection_3->end();
+
+	txt_hamcast_select_3_time = new Fl_Output(lx+370, y, 100, 20, "Time: ");
+	txt_hamcast_select_3_time->tooltip(_("Transfer time"));
+	txt_hamcast_select_3_time->value("");
+
+	btn_hamcast_mode_enable_4 = new Fl_Check_Button(lx, y+=26, 20, 20, _("Enable Modem 4"));
+	btn_hamcast_mode_enable_4->tooltip("");
+	btn_hamcast_mode_enable_4->align(FL_ALIGN_RIGHT);
+	btn_hamcast_mode_enable_4->down_box(FL_DOWN_BOX);
+	btn_hamcast_mode_enable_4->callback((Fl_Callback*)cb_hamcast_mode_enable_4);
+	btn_hamcast_mode_enable_4->value(progStatus.hamcast_mode_enable_4);
+
+	cbo_hamcast_mode_selection_4 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_4->begin();
+	cbo_hamcast_mode_selection_4->align(FL_ALIGN_RIGHT);
+	cbo_hamcast_mode_selection_4->when(FL_WHEN_RELEASE);
+	cbo_hamcast_mode_selection_4->tooltip(_("fldigi modem type"));
+	cbo_hamcast_mode_selection_4->box(FL_DOWN_BOX);
+	cbo_hamcast_mode_selection_4->color(FL_BACKGROUND2_COLOR);
+	cbo_hamcast_mode_selection_4->selection_color(FL_BACKGROUND_COLOR);
+	cbo_hamcast_mode_selection_4->labeltype(FL_NORMAL_LABEL);
+	cbo_hamcast_mode_selection_4->labelfont(0);
+	cbo_hamcast_mode_selection_4->labelsize(14);
+	cbo_hamcast_mode_selection_4->labelcolor(FL_FOREGROUND_COLOR);
+	cbo_hamcast_mode_selection_4->callback((Fl_Callback*)cb_hamcast_mode_selection_4);
+	cbo_hamcast_mode_selection_4->end();
+
+	txt_hamcast_select_4_time = new Fl_Output(lx+370, y, 100, 20, "Time: ");
+	txt_hamcast_select_4_time->tooltip(_("Transfer time"));
+	txt_hamcast_select_4_time->value("");
+	Hamcast_Events_tab->end();
+	// Hamcast Events Tab End
+
+	event_tabs->add(Timed_Events_tab);
+	event_tabs->add(Hamcast_Events_tab);
+
+	event_tabs->end();
+	Events_tab->end();
+	// Events Tab End
 
 	// Configuration Tab
-
-	Fl_Group *Config_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Configure"));
+	y = Y + 26;
+	Fl_Group *Config_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Configure"));
 
 	y += 10;
 
@@ -911,7 +1308,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_tx_on_report->value(progStatus.use_tx_on_report);
 
 	btn_enable_tx_unproto = new Fl_Check_Button(X+70, y+=26, 20, 20,
-												  _("Transmit unproto (plain text, 7bit ASCII)"));
+												_("Transmit unproto (plain text, 7bit ASCII)"));
 	btn_enable_tx_unproto->tooltip("");
 	btn_enable_tx_unproto->align(FL_ALIGN_RIGHT);
 	btn_enable_tx_unproto->down_box(FL_DOWN_BOX);
@@ -965,7 +1362,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_txrx_interval->down_box(FL_DOWN_BOX);
 	btn_enable_txrx_interval->callback((Fl_Callback*)cb_enable_txrx_interval);
 	btn_enable_txrx_interval->value(progStatus.use_txrx_interval);
-
+	
 	cnt_tx_internval_mins = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Tx Duration Mins"));
 	cnt_tx_internval_mins->step(1);
 	cnt_tx_internval_mins->value(progStatus.tx_interval_minutes);
@@ -974,7 +1371,7 @@ Fl_Double_Window* flamp_dialog() {
 	cnt_tx_internval_mins->align(FL_ALIGN_RIGHT);
 	cnt_tx_internval_mins->callback((Fl_Callback*)cb_tx_interval_mins);
 	cnt_tx_internval_mins->tooltip(_("Transmit Duration in Minutes"));
-
+	
 	cnt_rx_internval_secs = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Rx Duration Secs"));
 	cnt_rx_internval_secs->step(1);
 	cnt_rx_internval_secs->value(progStatus.rx_interval_seconds);
@@ -983,17 +1380,17 @@ Fl_Double_Window* flamp_dialog() {
 	cnt_rx_internval_secs->align(FL_ALIGN_RIGHT);
 	cnt_rx_internval_secs->callback((Fl_Callback*)cb_rx_interval_secs);
 	cnt_rx_internval_secs->tooltip(_("Receive Duration in Seconds"));
-
-
+	
+	
 	Config_tab->end();
-
+	
 	// Configuration Tab End
-
+	
 	tabs->add(Rx_tab);
 	tabs->add(Tx_tab);
-	tabs->add(Timed_Events_tab);
+	tabs->add(Events_tab);
 	tabs->add(Config_tab);
-
+	
 	tabs->end();
 	w->end();
 	

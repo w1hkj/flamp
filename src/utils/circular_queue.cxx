@@ -406,7 +406,7 @@ bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 			timeValue = currentTime;
 			ret = true;
 			break;
-
+			
 		case TIME_COUNT:
 			if(currentTime > ExpTime) {
 				timeValue = 0;
@@ -414,10 +414,10 @@ bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 			}
 			break;
 	}
-
+	
 	if(timeValue == 0 && seconds > 0)
 		timeValue = currentTime;
-
+	
 	return ret;
 }
 
@@ -425,12 +425,12 @@ void Circular_queue::sleep(int seconds, int milliseconds)
 {
 	struct timespec		ts;
 	struct timeval		tp;
-
+	
 	gettimeofday(&tp, NULL);
-
+	
 	ts.tv_nsec = (tp.tv_usec * 1000) + milliseconds * 1000000;
 	ts.tv_sec  = tp.tv_sec + seconds;
-
+	
 	pthread_mutex_lock(&mutex);
 	pthread_cond_timedwait(&condition, &mutex, &ts);
 	pthread_mutex_unlock(&mutex);

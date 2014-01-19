@@ -73,6 +73,23 @@ static void clear_cb(Fl_Widget *w, void*);
 static void save_cb(Fl_Widget *w, void*);
 static void synctext(void *);
 
+int strlen_n(char *buf, size_t limit)
+{
+	size_t index = 0;
+	int count = 0;
+	int value = 0;
+
+	if(limit < 1) return 0;
+	if(!buf) return 0;
+
+	for(index = 0; index < limit; index++) {
+		value = *buf++;
+		if(value == 0) break;
+		count++;
+	}
+	return count;
+}
+
 void debug::start(const char* filename)
 {
 	if (debug::inst)
@@ -125,10 +142,10 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 		return;
 
 	pthread_mutex_lock(&mutex_log);
-	
+
 	snprintf(fmt, sizeof(fmt), "%c: %s: %s\n", *prefix[level], func, format);
 
-    while(debug_in_use) MilliSleep(10);
+	while(debug_in_use) MilliSleep(10);
 
 	va_list args;
 	va_start(args, format);
@@ -139,8 +156,9 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 	va_end(args);
 
 	fprintf(wfile, "%s", sztemp);
-
 	fflush(wfile);
+
+	append_dbg_buffer(sztemp);
 
 	pthread_mutex_unlock(&mutex_log);
 
@@ -157,7 +175,7 @@ void debug::slog(level_e level, const char* func, const char* srcf, int line, co
 
 	snprintf(fmt, sizeof(fmt), "%c:%s\n", *prefix[level], format);
 
-    while(debug_in_use) MilliSleep(10);
+	while(debug_in_use) MilliSleep(10);
 
 	va_list args;
 	va_start(args, format);
@@ -184,9 +202,9 @@ void debug::show(void)
 	window->show();
 }
 
-void debug::sync_text(void* arg)
+void debug::sync_text(void *arg)
 {
-    debug_in_use = true;
+	debug_in_use = true;
 	size_t p0 = 0, p1 = estr.find('\n');
 	while (p1 != string::npos) {
 		btext->insert(1, estr.substr(p0,p1-p0).c_str());
@@ -194,8 +212,53 @@ void debug::sync_text(void* arg)
 		p0 = p1 + 1;
 		p1 = estr.find('\n', p0);
 	}
-    estr = "";
-    debug_in_use = false;
+	estr = "";
+	debug_in_use = false;
+}
+
+void debug::append_dbg_buffer(char * message)
+{
+	debug_in_use = true;
+	std::string msg;
+	char strTime[64];
+	char *cPtr = (char *)0;
+	int len = 0;
+	int index = 0;
+	int strIndex = 0;
+	time_t current_time = 0;
+
+	if(!message) return;
+
+	msg.assign(message);
+
+	if(msg.size() < 1) return;
+
+	size_t p1 = msg.find('\n');
+
+	if(p1 == string::npos) {
+		msg.append("\n");
+	}
+
+	memset(strTime, 0, sizeof(strTime));
+	current_time = time(0);
+	cPtr = ctime(&current_time);
+
+	len = strlen_n(cPtr, sizeof(strTime) - 1);
+
+	if(len) {
+		strIndex = 0;
+		for(index = 0; index < len; index++) {
+			if(cPtr[index] == '\r' || cPtr[index] == '\n')
+				strTime[strIndex++] = 0;
+			else
+				strTime[strIndex++] = cPtr[index];
+		}
+		dbg_buffer.append(strTime).append("  ");
+	}
+
+	dbg_buffer.append(msg);
+
+	debug_in_use = false;
 }
 
 debug::debug(const char* filename)
@@ -224,15 +287,15 @@ debug::~debug()
 
 static void synctext(void *d)
 {
-    debug_in_use = true;
+	debug_in_use = true;
 	size_t p0 = 0, p1 = estr.find('\n');
 	while (p1 != string::npos) {
 		btext->insert(1, estr.substr(p0,p1-p0).c_str());
 		p0 = p1 + 1;
 		p1 = estr.find('\n', p0);
 	}
-    estr = "";
-    debug_in_use = false;
+	estr = "";
+	debug_in_use = false;
 }
 
 static void slider_cb(Fl_Widget* w, void*)

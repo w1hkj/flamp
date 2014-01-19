@@ -25,10 +25,10 @@
 #include <string>
 #include <cstring>
 
-extern float seconds_from_c_string(const char *mode, const char *string, int length);
-extern float minutes_from_c_string(const char *mode, const char *string, int length);
+extern float seconds_from_c_string(const char *mode, const char *string, int length, float *overhead);
+extern float minutes_from_c_string(const char *mode, const char *string, int length, float *overhead);
 
-extern float seconds_from_string(std::string mode, std::string& str);
-extern float minutes_from_string(std::string mode, std::string& str);
+extern float seconds_from_string(std::string mode, std::string& str, float *overhead);
+extern float minutes_from_string(std::string mode, std::string& str, float *overhead);
 
 #endif // __TIME_TABLE_H

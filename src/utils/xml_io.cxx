@@ -32,26 +32,30 @@
 using namespace std;
 using XmlRpc::XmlRpcValue;
 
-static const double TIMEOUT = 1.0;
+#define DEFAULT_XMLRPC_TIMEOUT 6.0
+
+double xmlrpc_timeout = DEFAULT_XMLRPC_TIMEOUT;
 
 // these are get only
-static const char* modem_get_name		= "modem.get_name";
-static const char* modem_get_names		= "modem.get_names";
+static const char* modem_get_name		     = "modem.get_name";
+static const char* modem_get_names		     = "modem.get_names";
 
 // these are set only
-static const char* modem_set_by_name	= "modem.set_by_name";
-static const char* text_clear_tx		= "text.clear_tx";
-static const char* text_add_tx			= "text.add_tx";
-static const char* text_clear_rx		= "text.clear_rx";
-static const char* text_get_rx			= "rx.get_data";
-static const char* main_get_trx_state	= "main.get_trx_state";
-static const char* main_tx				= "main.tx";
-static const char* main_tune			= "main.tune";
-static const char* main_rx				= "main.rx";
-static const char* main_abort			= "main.abort";
-static const char* main_get_rsid        = "main.get_rsid";
-static const char* main_set_rsid        = "main.set_rsid";
-static const char* main_toggle_rsid     = "main.toggle_rsid";
+static const char* modem_set_by_name	     = "modem.set_by_name";
+static const char* text_clear_tx		     = "text.clear_tx";
+static const char* text_add_tx			     = "text.add_tx";
+static const char* text_clear_rx		     = "text.clear_rx";
+static const char* text_get_rx			     = "rx.get_data";
+static const char* main_get_trx_state	     = "main.get_trx_state";
+static const char* main_tx				     = "main.tx";
+static const char* main_tune			     = "main.tune";
+static const char* main_rx				     = "main.rx";
+static const char* main_abort			     = "main.abort";
+static const char* main_get_rsid             = "main.get_rsid";
+static const char* main_set_rsid             = "main.set_rsid";
+static const char* main_get_char_rates       = "main.get_char_rates";
+static const char* main_get_tx_timing        = "main.get_tx_timing";
+static const char* main_get_char_timing      = "main.get_char_timing";
 
 static XmlRpc::XmlRpcClient* client;
 
@@ -109,7 +113,7 @@ void close_xmlrpc()
 static inline void execute(const char* name, const XmlRpcValue& param, XmlRpcValue& result)
 {
 	if (client) {
-		if (!client->execute(name, param, result, TIMEOUT)) {
+		if (!client->execute(name, param, result, xmlrpc_timeout)) {
 			xmlrpc_errno = errno;
 
 			if(client->isFault())
@@ -121,13 +125,31 @@ static inline void execute(const char* name, const XmlRpcValue& param, XmlRpcVal
 	xmlrpc_errno = errno;
 }
 
+void set_xmlrpc_timeout(double value)
+{
+	pthread_mutex_lock(&mutex_xmlrpc);
+	if(value < DEFAULT_XMLRPC_TIMEOUT) return;
+	xmlrpc_timeout = value;
+	pthread_mutex_unlock(&mutex_xmlrpc);
+}
+
+void set_xmlrpc_timeout_default(void)
+{
+	xmlrpc_timeout = DEFAULT_XMLRPC_TIMEOUT;
+}
+
+
 // --------------------------------------------------------------------
 // send functions
 // --------------------------------------------------------------------
+extern std::string g_modem;
 
 void send_new_modem(std::string modem)
 {
 	pthread_mutex_lock(&mutex_xmlrpc);
+
+	g_modem.assign(modem);
+
 	try {
 		XmlRpcValue mode(modem), res;
 		execute(modem_set_by_name, mode, res);
@@ -243,21 +265,73 @@ void send_tune(void)
 	pthread_mutex_unlock(&mutex_xmlrpc);
 }
 
+std::string get_tx_timing(std::string data)
+{
+	XmlRpcValue status;
+	XmlRpcValue xmlData((void *)data.c_str(), data.size());
+	static string response;
+
+	pthread_mutex_lock(&mutex_xmlrpc);
+	try {
+		execute(main_get_tx_timing, xmlData, status);
+		string resp = status;
+		response = resp;
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+	}
+	update_interval = XMLRPC_UPDATE_AFTER_WRITE;
+	pthread_mutex_unlock(&mutex_xmlrpc);
+
+	return response;
+}
+
+std::string get_char_timing(int character)
+{
+	pthread_mutex_lock(&mutex_xmlrpc);
+
+	XmlRpcValue status;
+	static string response;
+	char buff[20];
+
+	memset(buff, 0, sizeof(buff));
+
+	snprintf(buff, sizeof(buff) - 1, "%d", character);
+
+	string data;
+	data.assign(buff);
+
+    XmlRpcValue xmlData((void *) data.c_str(), data.size());
+
+	try {
+		execute(main_get_char_timing, xmlData, status);
+		string resp = status;
+		response = resp;
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+	}
+
+	update_interval = XMLRPC_UPDATE_AFTER_WRITE * 2;
+	pthread_mutex_unlock(&mutex_xmlrpc);
+
+	return response;
+}
+
 // --------------------------------------------------------------------
 // receive functions
 // --------------------------------------------------------------------
 
 static void set_combo(void *str)
 {
- 	string s = (char *)str;
+	string s = (char *)str;
 
 	if(progStatus.use_header_modem != 0) return;
 
- 	if (s != cbo_modes->value() && valid_mode_check(s)) {
- 		cbo_modes->value(s.c_str());
+	if (s != cbo_modes->value() && valid_mode_check(s)) {
+		cbo_modes->value(s.c_str());
 		progStatus.selected_mode = cbo_modes->index();
- 		estimate();
- 	}
+		g_modem.assign(cbo_modes->value());
+		estimate();
+	}
 }
 
 string get_rsid_state(void)
@@ -298,28 +372,27 @@ string get_trx_state()
 	return response;
 }
 
-string get_rx_data()
+string get_char_rates()
 {
 	XmlRpcValue status;
 	XmlRpcValue query;
-	std::vector<char> response;
-	static string report;
+	static string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
-		execute(text_get_rx, query, status);
-		response = status;
-		report.clear();
-		for (size_t n = 0; n < response.size(); n++)
-			report += response[n];
-
+		execute(main_get_char_rates, query, status);
+		string resp = status;
+		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
 	}
 	pthread_mutex_unlock(&mutex_xmlrpc);
 
-	return report;
+	return response;
 }
+
+
+
 
 static void get_fldigi_modem()
 {

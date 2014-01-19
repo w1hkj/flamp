@@ -23,7 +23,7 @@
 #include <config.h>
 
 #if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3 ) || \
-    (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
+(FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
 
 // Use Windows' chooser
 #	if defined(__WIN32__) || defined(__CYGWIN__)
@@ -31,7 +31,7 @@
 #	endif
 
 // Use Apple's chooser
-#	if defined(__APPLE__) 
+#	if defined(__APPLE__)
 #	if !defined(USE_FLTK_CHOOSER)
 #	include "Fl_Native_File_Chooser_MAC.cxx"
 #   else

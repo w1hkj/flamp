@@ -73,6 +73,24 @@ struct status {
 
 	bool enable_tx_unproto;
 	
+	bool auto_load_queue;
+	bool load_from_tx_folder;
+	string auto_load_queue_path;
+
+	bool hamcast_mode_cycle;
+
+	bool hamcast_mode_enable_1;
+	int  hamcast_mode_selection_1;
+
+	bool hamcast_mode_enable_2;
+	int  hamcast_mode_selection_2;
+
+	bool hamcast_mode_enable_3;
+	int  hamcast_mode_selection_3;
+
+	bool hamcast_mode_enable_4;
+	int  hamcast_mode_selection_4;
+
 	void saveLastState();
 	void loadLastState();
 };

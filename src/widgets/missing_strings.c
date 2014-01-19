@@ -24,83 +24,83 @@
  * Please report all bugs and problems on the following page:
  *
  *     http://www.fltk.org/str.php
-*/
+ */
 
 #include "missing_strings.h"
 
 // versions of FLTK < 1.3.2 do not contain fl_string
 #if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3 ) || \
-    (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
+(FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
 
 /*
-* 'fl_strlcat()' - Safely concatenate two strings.
-*/
+ * 'fl_strlcat()' - Safely concatenate two strings.
+ */
 
 size_t				/* O - Length of string */
 fl_strlcat(char       *dst,	/* O - Destination string */
-           const char *src,	/* I - Source string */
-	   size_t     size) {	/* I - Size of destination string buffer */
-  size_t	srclen;		/* Length of source string */
-  size_t	dstlen;		/* Length of destination string */
+		   const char *src,	/* I - Source string */
+		   size_t     size) {	/* I - Size of destination string buffer */
+	size_t	srclen;		/* Length of source string */
+	size_t	dstlen;		/* Length of destination string */
 
 
-/*
-* Figure out how much room is left...
-*/
+	/*
+	 * Figure out how much room is left...
+	 */
 
-  dstlen = strlen(dst);
-  size   -= dstlen + 1;
+	dstlen = strlen(dst);
+	size   -= dstlen + 1;
 
-  if (!size) return (dstlen);	/* No room, return immediately... */
+	if (!size) return (dstlen);	/* No room, return immediately... */
 
-/*
-* Figure out how much room is needed...
-*/
+	/*
+	 * Figure out how much room is needed...
+	 */
 
-  srclen = strlen(src);
+	srclen = strlen(src);
 
-/*
-* Copy the appropriate amount...
-*/
+	/*
+	 * Copy the appropriate amount...
+	 */
 
-  if (srclen > size) srclen = size;
+	if (srclen > size) srclen = size;
 
-  memcpy(dst + dstlen, src, srclen);
-  dst[dstlen + srclen] = '\0';
+	memcpy(dst + dstlen, src, srclen);
+	dst[dstlen + srclen] = '\0';
 
-  return (dstlen + srclen);
+	return (dstlen + srclen);
 }
 
 
 /*
-* 'fl_strlcpy()' - Safely copy two strings.
-*/
+ * 'fl_strlcpy()' - Safely copy two strings.
+ */
 
 size_t				/* O - Length of string */
 fl_strlcpy(char       *dst,	/* O - Destination string */
-           const char *src,	/* I - Source string */
-	   size_t      size) {	/* I - Size of destination string buffer */
-  size_t	srclen;		/* Length of source string */
+		   const char *src,	/* I - Source string */
+		   size_t      size) {	/* I - Size of destination string buffer */
+	size_t	srclen;		/* Length of source string */
 
 
-/*
-* Figure out how much room is needed...
-*/
+	/*
+	 * Figure out how much room is needed...
+	 */
 
-  size --;
+	size --;
 
-  srclen = strlen(src);
+	srclen = strlen(src);
 
-/*
-* Copy the appropriate amount...
-*/
+	/*
+	 * Copy the appropriate amount...
+	 */
 
-  if (srclen > size) srclen = size;
-
-  memcpy(dst, src, srclen);
-  dst[srclen] = '\0';
-
-  return (srclen);
+	if (srclen > size) srclen = size;
+	
+	memcpy(dst, src, srclen);
+	dst[srclen] = '\0';
+	
+	return (srclen);
 }
 
 #endif

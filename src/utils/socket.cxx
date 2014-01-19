@@ -196,7 +196,7 @@ static void free_servent(struct servent* sp)
 //
 
 Address::Address(const char* host, int port, const char* proto_name)
-	: node(host), copied(false)
+: node(host), copied(false)
 {
 #if HAVE_GETADDRINFO
 	info = NULL;
@@ -216,7 +216,7 @@ Address::Address(const char* host, int port, const char* proto_name)
 }
 
 Address::Address(const char* host, const char* port_name, const char* proto_name)
-	: node(host), service(port_name), copied(false)
+: node(host), service(port_name), copied(false)
 {
 #if HAVE_GETADDRINFO
 	info = NULL;
@@ -310,8 +310,8 @@ void Address::lookup(const char* proto_name)
 
 	int r;
 	if ((r = getaddrinfo(node.empty() ? NULL : node.c_str(), service.c_str(), &hints, &info)) < 0) {
-string errstr = "getaddrinfo: ";
-errstr.append(node).append(" : ").append(service);
+		string errstr = "getaddrinfo: ";
+		errstr.append(node).append(" : ").append(service);
 		throw SocketException(r, errstr.c_str());
 	}
 
@@ -325,8 +325,8 @@ errstr.append(node).append(" : ").append(service);
 
 	if ((hp = gethostbyname(node.c_str())) == NULL) {
 #ifdef __WIN32__
-string errstr = "gethostbyname: ";
-errstr.append(node).append(" not found");
+		string errstr = "gethostbyname: ";
+		errstr.append(node).append(" not found");
 		throw SocketException(0, errstr.c_str());
 #else
 		throw SocketException(hstrerror(HOST_NOT_FOUND));
@@ -421,8 +421,8 @@ string Address::get_str(const addr_info_t* addr)
 	char host[NI_MAXHOST], port[NI_MAXSERV];
 	memset(host, 0, sizeof(host));
 	if (getnameinfo(addr->ai_addr, sizeof(struct sockaddr_storage),
-			host, sizeof(host), port, sizeof(port),
-			NI_NUMERICHOST | NI_NUMERICSERV) == 0)
+					host, sizeof(host), port, sizeof(port),
+					NI_NUMERICHOST | NI_NUMERICSERV) == 0)
 		return string("[").append(host).append("]:").append(port);
 	else
 		return "";
@@ -459,7 +459,7 @@ Socket::Socket(const Address& addr)
 /// @param fd A file descriptor
 ///
 Socket::Socket(int fd)
-	: sockfd(fd)
+: sockfd(fd)
 {
 	buffer = new char[BUFSIZ];
 	anum = 0;
@@ -484,8 +484,8 @@ Socket::Socket(int fd)
 /// Constructs a Socket object by copying another instance
 ///
 Socket::Socket(const Socket& s)
-	: sockfd(s.sockfd), address(s.address), anum(s.anum),
-	  nonblocking(s.nonblocking), autoclose(true)
+: sockfd(s.sockfd), address(s.address), anum(s.anum),
+nonblocking(s.nonblocking), autoclose(true)
 {
 	buffer = new char[BUFSIZ];
 	ainfo = address.get(anum);

@@ -33,6 +33,7 @@ const char * searchTags[] = {
 	"<PROG ",
 	"<CNTL ",
 	"<SIZE ",
+	"<MISSING ",
 	(char *)0
 };
 
@@ -164,24 +165,24 @@ void * tag_search_parser(void *ptr)
 
 				if(matchTo != match)
 					continue;
-
+				
 				read_count = 0;
-
+				
 				if(ts_ptr->inhibitDataOut == CQUE_RESUME) {
 					offset = (ts_ptr->matchFound)((void *)ts_ptr);
 					break;
 				}
 			}
 		}
-
+		
 		if(read_count > 0)
 			ts_ptr->adjustReadQueIndex(read_count);
-
+		
 		ts_ptr->milliSleep(50);
-
+		
 	}
-
+	
 	ts_ptr->thread_running = 0;
-
+	
 	return ptr;
 }

@@ -43,7 +43,7 @@ status progStatus = {
 	"127.0.0.1",	// fldigi xmlrpc socket address
 	"7362",			// fldigi xmlrpc socket port
 
-					// User Assigned addr/ports not saved.
+	// User Assigned addr/ports not saved.
 	"",				// User assigned fldigi socket address
 	"",				// User assigned fldigi socket port
 	"",				// User assigned fldigi xmlrpc socket address
@@ -77,7 +77,28 @@ status progStatus = {
 
 	false,			// bool clear_tosend_on_tx_blocks;
 
-	false           // bool enable_tx_unproto
+	false,          // bool enable_tx_unproto
+
+	false,          // bool auto_load_queue
+
+	false,          // bool load_from_tx_folder
+
+	"",				// string auto_load_queue_path
+
+	false,          // bool hamcast_mode_cycle
+
+	false,          // bool hamcast_mode_enable_1
+	1,              // int hamcast_mode_selection_1
+
+	false,          // bool hamcast_mode_enable_2
+	1,              // int hamcast_mode_selection_2
+
+	false,          // bool hamcast_mode_enable_3
+	1,              // int hamcast_mode_selection_3
+
+	false,          // bool hamcast_mode_enable_4
+	1,              // int hamcast_mode_selection_4
+
 };
 
 void status::saveLastState()
@@ -133,6 +154,26 @@ void status::saveLastState()
 	FLAMPpref.set("clear_tosend_on_tx_blocks", clear_tosend_on_tx_blocks);
 
 	FLAMPpref.set("enable_tx_unproto", enable_tx_unproto);
+
+	FLAMPpref.set("auto_load_queue", auto_load_queue);
+	FLAMPpref.set("load_from_tx_folder", load_from_tx_folder);
+
+	FLAMPpref.set("auto_load_queue_path", auto_load_queue_path.c_str());
+
+	FLAMPpref.set("hamcast_mode_cycle", hamcast_mode_cycle);
+
+	FLAMPpref.set("hamcast_mode_enable_1", hamcast_mode_enable_1);
+	FLAMPpref.set("hamcast_mode_selection_1", hamcast_mode_selection_1);
+
+	FLAMPpref.set("hamcast_mode_enable_2", hamcast_mode_enable_2);
+	FLAMPpref.set("hamcast_mode_selection_2", hamcast_mode_selection_2);
+
+	FLAMPpref.set("hamcast_mode_enable_3", hamcast_mode_enable_3);
+	FLAMPpref.set("hamcast_mode_selection_3", hamcast_mode_selection_3);
+
+	FLAMPpref.set("hamcast_mode_enable_4", hamcast_mode_enable_4);
+	FLAMPpref.set("hamcast_mode_selection_4", hamcast_mode_selection_4);
+
 }
 
 void status::loadLastState()
@@ -186,8 +227,10 @@ void status::loadLastState()
 		FLAMPpref.get("repeat_every", repeat_every, repeat_every);
 		FLAMPpref.get("repeat_at_times", i, repeat_at_times);
 		repeat_at_times = i;
+
 		FLAMPpref.get("repeat_times", defbuffer, repeat_times.c_str());
 		repeat_times = defbuffer; free(defbuffer);
+
 		FLAMPpref.get("repeat_forever", i, repeat_forever);
 		repeat_forever = i;
 
@@ -208,7 +251,7 @@ void status::loadLastState()
 
 		FLAMPpref.get("header_selected_mode", i, header_selected_mode);
 		header_selected_mode = i;
-		
+
 		FLAMPpref.get("use_tx_on_report", i, use_tx_on_report);
 		use_tx_on_report = i;
 
@@ -218,9 +261,50 @@ void status::loadLastState()
 		FLAMPpref.get("enable_tx_unproto", i, enable_tx_unproto);
 		enable_tx_unproto = (bool) i;
 
+		FLAMPpref.get("auto_load_queue", i, auto_load_queue);
+		auto_load_queue = (bool) i;
+
+		FLAMPpref.get("load_from_tx_folder", i, load_from_tx_folder);
+		load_from_tx_folder = (bool) i;
+
+		FLAMPpref.get("auto_load_queue_path", defbuffer, "");
+		auto_load_queue_path.assign(defbuffer);
+		free(defbuffer);
+
+		FLAMPpref.get("hamcast_mode_cycle", i, hamcast_mode_cycle);
+		hamcast_mode_cycle = (bool) i;
+
+		FLAMPpref.get("hamcast_mode_enable_1", i, hamcast_mode_enable_1);
+		hamcast_mode_enable_1 = (bool) i;
+
+		FLAMPpref.get("hamcast_mode_selection_1", i, hamcast_mode_selection_1);
+		hamcast_mode_selection_1 = i;
+
+		FLAMPpref.get("hamcast_mode_enable_2", i, hamcast_mode_enable_2);
+		hamcast_mode_enable_2 = (bool) i;
+
+		FLAMPpref.get("hamcast_mode_selection_2", i, hamcast_mode_selection_2);
+		hamcast_mode_selection_2 = i;
+
+		FLAMPpref.get("hamcast_mode_enable_3", i, hamcast_mode_enable_3);
+		hamcast_mode_enable_3 = (bool) i;
+
+		FLAMPpref.get("hamcast_mode_selection_3", i, hamcast_mode_selection_3);
+		hamcast_mode_selection_3 = i;
+		
+		FLAMPpref.get("hamcast_mode_enable_4", i, hamcast_mode_enable_4);
+		hamcast_mode_enable_4 = (bool) i;
+		
+		FLAMPpref.get("hamcast_mode_selection_4", i, hamcast_mode_selection_4);
+		hamcast_mode_selection_4 = i;
+		
+		
+		if(auto_load_queue_path.size() < 1)
+			auto_load_queue = false;
+		
 		if(enable_tx_unproto) {
 			use_txrx_interval = false;
 			use_header_modem = false;
 		}
-	} 
+	}
 }

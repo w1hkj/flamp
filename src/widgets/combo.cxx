@@ -8,7 +8,7 @@
 void popbrwsr_cb (Fl_Widget *v, long d);
 
 Fl_PopBrowser::Fl_PopBrowser (int X, int Y, int W, int H, retvals R)
- : Fl_Window (X, Y, W, H, "")
+: Fl_Window (X, Y, W, H, "")
 {
 	Rvals = R;
 	hRow  = H;
@@ -31,7 +31,7 @@ int Fl_PopBrowser::handle(int event)
 	if (!Fl::event_inside( child(0) ) && event == FL_PUSH) {
 		pophide();
 		return 1;
- 	}
+	}
 	return Fl_Group::handle(event);
 }
 
@@ -59,8 +59,8 @@ void Fl_PopBrowser::popshow (int x, int y)
 	if (popbrwsr->size() == 0) return;
 	if (nRows > parent->lsize()) nRows = parent->lsize();
 
-// locate first occurance of Output string value in the list
-// and display that if found
+	// locate first occurance of Output string value in the list
+	// and display that if found
 	int i = parent->index();
 	if (!(i >= 0 && i < parent->listsize)) {
 		for (i = 0; i < parent->listsize; i++)
@@ -70,15 +70,15 @@ void Fl_PopBrowser::popshow (int x, int y)
 			i = 0;
 	}
 
-// resize and reposition the popup to insure that it is within the bounds
-// of the uppermost parent widget
-// preferred position is just below and at the same x position as the
-// parent widget
+	// resize and reposition the popup to insure that it is within the bounds
+	// of the uppermost parent widget
+	// preferred position is just below and at the same x position as the
+	// parent widget
 
 	Fl_Widget *gparent = parent;
 	int	xp = gparent->x(),
-		yp = gparent->y(),
-		hp = gparent->h();
+	yp = gparent->y(),
+	hp = gparent->h();
 	while ((gparent = gparent->parent())) {
 		xp = gparent->x();
 		yp = gparent->y();
@@ -112,13 +112,13 @@ void Fl_PopBrowser::pophide ()
 {
 	hide ();
 	Fl::release();
-}   
+}
 
 void Fl_PopBrowser::popbrwsr_cb_i (Fl_Widget *v, long d)
 {
 	Fl_PopBrowser *me = (Fl_PopBrowser *)(v->parent());
 	Fl_Input *tgt = me->Rvals.Inp;
-// update the return values
+	// update the return values
 	int row = (me->popbrwsr)->value();
 	if (row == 0) return;
 	me->popbrwsr->deselect();
@@ -129,8 +129,8 @@ void Fl_PopBrowser::popbrwsr_cb_i (Fl_Widget *v, long d)
 		*(me->Rvals.idx) = row - 1;
 	}
 	me->pophide();
-// user selected an item from the browser list, so execute the
-// callback if one is registered.
+	// user selected an item from the browser list, so execute the
+	// callback if one is registered.
 	if (me->parent)
 		(me->parent)->do_callback();
 	return;
@@ -149,9 +149,9 @@ void Fl_ComboBox::fl_popbrwsr(Fl_Widget *p)
 	if (Brwsr == 0) {
 		Brwsr = new Fl_PopBrowser(xpos, ypos, width, height, R);
 	}
-// pass the calling widget to the popup browser so that the
-// correct callback function can be called when the user selects an item
-// from the browser list
+	// pass the calling widget to the popup browser so that the
+	// correct callback function can be called when the user selects an item
+	// from the browser list
 	Brwsr->parent = (Fl_ComboBox *) p;
 	Brwsr->popshow(xpos, ypos);
 	return;
@@ -166,7 +166,7 @@ void btnComboBox_cb (Fl_Widget *v, void *d)
 
 
 Fl_ComboBox::Fl_ComboBox (int X,int Y,int W,int H, const char *L)
- : Fl_Group (X, Y, W, H, L)
+: Fl_Group (X, Y, W, H, L)
 {
 	width = W; height = H - 4;
 	Btn = new Fl_Button (X + W - 18, Y + 1, 18, H - 2, "@#-32>");
@@ -250,7 +250,7 @@ int Fl_ComboBox::index() {
 }
 
 void * Fl_ComboBox::data() {
-	return retdata; 
+	return retdata;
 }
 
 void Fl_ComboBox::add( const char *s, void * d)
@@ -258,21 +258,21 @@ void Fl_ComboBox::add( const char *s, void * d)
 	if (Brwsr == 0) {
 		Brwsr = new Fl_PopBrowser(0, 0, width, height, R);
 	}
-// test for uniqueness of entry if required
+	// test for uniqueness of entry if required
 	if ((listtype & FL_COMBO_UNIQUE) == FL_COMBO_UNIQUE) {
 		if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
 			for (int i = 0; i < listsize; i++) {
 				if (strcasecmp (s, datalist[i]->s) == 0)
-				return;
+					return;
 			}
 		} else {
 			for (int i = 0; i < listsize; i++) {
 				if (strcmp (s, datalist[i]->s) == 0)
-				return;
+					return;
 			}
 		}
 	}
-// not unique or not in list, so add this entry
+	// not unique or not in list, so add this entry
 	datalist[listsize] = new datambr;
 	datalist[listsize]->s = new char [strlen(s) + 1];
 	datalist[listsize]->s[0] = 0;
@@ -296,7 +296,7 @@ void Fl_ComboBox::clear()
 		Brwsr = new Fl_PopBrowser(0, 0, width, height, R);
 	else
 		Brwsr->clear();
-	
+
 	if (listsize == 0) return;
 	for (int i = 0; i < listsize; i++) {
 		delete [] datalist[i]->s;
@@ -322,9 +322,9 @@ int DataCompare( const void *x1, const void *x2 )
 void Fl_ComboBox::sort() {
 	Brwsr->clear ();
 	qsort (&datalist[0],
-		 listsize,
-		 sizeof (datambr *),
-		 DataCompare);
+		   listsize,
+		   sizeof (datambr *),
+		   DataCompare);
 	for (int i = 0; i < listsize; i++)
 		Brwsr->add (datalist[i]->s, datalist[i]->d);
 }

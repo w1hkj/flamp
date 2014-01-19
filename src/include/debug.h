@@ -44,7 +44,8 @@ public:
 	static level_e level;
 	static uint32_t mask;
 private:
-	static void sync_text(void*);
+	static void sync_text(void *);
+	static void append_dbg_buffer(char * message);
 	debug(const char* filename);
 	debug(const debug&);
 	debug& operator=(const debug&);

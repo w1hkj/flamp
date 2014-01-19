@@ -46,6 +46,7 @@ cAmp::cAmp(std::string str, std::string fname)
 	xmthash.clear();
 	tosend.clear();
 	report_buffer.clear();
+	memset(&tx_statbuf, 0, sizeof(tx_statbuf));
 
 	use_compression = false;
 	use_forced_compression = false;
@@ -282,14 +283,14 @@ void cAmp::xmt_unproto(void)
 {
 	size_t pos = 0;
 	int appendFlag = 0;
-	int count = 0;
+	// int count = 0;
 	std::string temp;
 
 	const std::string cmdAppendMsg = "<_md>";
-//	const std::string flmsgAppendMsg = "<_lmsg>";
+	//	const std::string flmsgAppendMsg = "<_lmsg>";
 
 	temp.assign(xmtbuffer);
-	
+
 	if(isPlainText(temp) == false)
 		convert_to_plain_text(temp);
 
@@ -303,15 +304,15 @@ void cAmp::xmt_unproto(void)
 		}
 	} while(pos != std::string::npos);
 
-//	pos = 0;
-//	do {
-//		pos = temp.find(sz_flmsg, pos);
-//		if(pos != std::string::npos) {
-//			appendFlag |= FLMSG_FLAG;
-//			temp.replace(pos, flmsgAppendMsg.size(), flmsgAppendMsg);
-//			pos += 3;
-//		}
-//	} while(pos != std::string::npos);
+	//	pos = 0;
+	//	do {
+	//		pos = temp.find(sz_flmsg, pos);
+	//		if(pos != std::string::npos) {
+	//			appendFlag |= FLMSG_FLAG;
+	//			temp.replace(pos, flmsgAppendMsg.size(), flmsgAppendMsg);
+	//			pos += 3;
+	//		}
+	//	} while(pos != std::string::npos);
 
 	if(appendFlag)
 		temp.append("\nNOTICE: Command Character Substitution!\n");
@@ -320,12 +321,12 @@ void cAmp::xmt_unproto(void)
 		temp.append(cmdAppendMsg).append(" <-> \'_\' = \'c\'\n");
 	}
 
-//	if((appendFlag & FLMSG_FLAG) != 0) {
-//		temp.append(flmsgAppendMsg).append(" <-> \'_\' = \'f\'\n");
-//	}
+	//	if((appendFlag & FLMSG_FLAG) != 0) {
+	//		temp.append(flmsgAppendMsg).append(" <-> \'_\' = \'f\'\n");
+	//	}
 
 	temp.append("\n");
-	
+
 	xmtunproto.assign(temp);
 
 }
@@ -608,7 +609,13 @@ std::string cAmp::rx_report()
 	return report;
 }
 
-void cAmp::tx_parse_report(std::string s)
+void cAmp::append_report(std::string s)
+{
+	report_buffer.append(s);
+}
+
+//void cAmp::tx_parse_report(std::string s)
+void cAmp::tx_parse_report(void)
 {
 	// parse the incoming text stream for instances of
 	// <MISSING nn CCCC>{cccc}n0 n1 n2 n3 ... nN
@@ -621,12 +628,11 @@ void cAmp::tx_parse_report(std::string s)
 	static const char *sz_missing = "<MISSING ";
 	static const char *sz_preamble = "PREAMBLE";
 
-	report_buffer.append(s);
-
 	size_t p = 0, p1 = 0;
 	int len;
 	char crc[5];
 	string preamble_block;
+	string data;
 
 	p = report_buffer.find(sz_missing);
 
@@ -636,11 +642,11 @@ void cAmp::tx_parse_report(std::string s)
 			p1 = report_buffer.find(">", strlen(sz_missing));
 			if (p1 != std::string::npos) {
 				if (report_buffer.length() >= p1 + 1 + len) {
-					string data = report_buffer.substr(p1 + 1, len);
+					data.assign(report_buffer.substr(p1 + 1, len));
 					if (xmthash == data.substr(1,4)) {
 						if (strcmp(crc, chksum.scrc16(data.c_str()).c_str()) == 0) {
 							if(data.find(sz_preamble) != std::string::npos) {
-								preamble_block.assign(" 1");
+								preamble_block.assign(" 0");
 								preamble_detected_flag = true;
 							} else {
 								tosend.append(" ").append(data.substr(6));
@@ -660,9 +666,9 @@ void cAmp::tx_parse_report(std::string s)
 
 	if(preamble_block.size()) {
 		blocks.append(preamble_block);
-	    preamble_block.clear();
+		preamble_block.clear();
 	}
-
+	
 	int iblock;
 	list<int> iblocks;
 	list<int>::iterator pblock;

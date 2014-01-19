@@ -153,12 +153,12 @@ int get_bufsize(int fd, int dir, int* len)
 {
 	socklen_t optlen = sizeof(*len);
 	return getsockopt(fd, SOL_SOCKET, (dir == 0 ? SO_RCVBUF : SO_SNDBUF),
-			  (char*)len, &optlen);
+					  (char*)len, &optlen);
 }
 int set_bufsize(int fd, int dir, int len)
 {
 	return setsockopt(fd, SOL_SOCKET, (dir == 0 ? SO_RCVBUF : SO_SNDBUF),
-			  (const char*)&len, sizeof(len));
+					  (const char*)&len, sizeof(len));
 }
 
 #ifndef __WIN32__
@@ -228,7 +228,7 @@ const char* str2hex(const unsigned char* str, size_t len)
 	}
 	if (unlikely(hexbuf->size() < len * 3))
 		hexbuf->resize(len * 3);
- 
+
 	char* p = &(*hexbuf)[0];
 	size_t i;
 	for (i = 0; i < len; i++) {
@@ -237,7 +237,7 @@ const char* str2hex(const unsigned char* str, size_t len)
 		*p++ = ' ';
 	}
 	*(p - 1) = '\0';
- 
+
 	return &(*hexbuf)[0];
 }
 
@@ -245,13 +245,13 @@ const char* str2hex(const char* str, size_t len)
 {
 	return str2hex((const unsigned char*)str, len ? len : strlen(str));
 }
- 
+
 static std::vector<char>* binbuf;
 const char* uint2bin(unsigned u, size_t len)
 {
 	if (unlikely(len == 0))
 		len = sizeof(u) * CHAR_BIT;
- 
+
 	if (unlikely(!binbuf)) {
 		binbuf = new std::vector<char>;
 		binbuf->reserve(sizeof(u) * CHAR_BIT);

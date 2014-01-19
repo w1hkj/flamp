@@ -137,7 +137,7 @@ string base128::encode(string &in)
 			if (iocp == iolen) {
 				ateof = true;
 				break;
-			} 
+			}
 			igroup[n] = (byte)in[iocp];
 			iocp++;
 		}
@@ -165,9 +165,9 @@ string base128::decode(string &in, bool &decode_error)
 	size_t nbr = 0;
 	string temp = in;
 	size_t p = temp.find("\n");
-	
+
 	decode_error = false;
-	
+
 	if (p == string::npos) {
 		decode_error = true;
 		return "ERROR: b128 missing character count";
@@ -206,7 +206,7 @@ string base128::decode(string &in, bool &decode_error)
 		o[4] = ((b[4] << 5) & 0xE0) | ((b[5] >> 2) & 0x1F);
 		o[5] = ((b[5] << 6) & 0xC0) | ((b[6] >> 1) & 0x3F);
 		o[6] = ((b[6] << 7) & 0x80) |  (b[7]       & 0x7F);
-
+		
 		for (i = 0; i < 7; i++) {
 			if (iocp++ < nbr)
 				output += o[i];

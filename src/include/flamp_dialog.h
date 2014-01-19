@@ -90,6 +90,9 @@ extern Fl_Output* outTimeValue;
 extern Fl_Button* btn_send_file;
 extern Fl_Button* btn_send_queue;
 
+extern Fl_Input2*       txt_auto_load_queue_path;
+extern Fl_Check_Button* btn_auto_load_queue;
+
 extern void cb_do_events(Fl_Light_Button *b, void*);
 
 extern Fl_Check_Button* btn_use_compression;
@@ -104,7 +107,7 @@ extern Fl_Double_Window* flamp_dialog();
 
 extern bool valid_mode_check(std::string &md);
 
-struct st_modes {std::string s_mode; float f_cps;};
+struct st_modes {std::string s_mode; float f_cps; float latency;};
 extern struct st_modes s_basic_modes[];
 extern struct st_modes s_modes[];
 
@@ -112,5 +115,36 @@ extern void update_cbo_modes(std::string &fldigi_modes);
 
 extern Fl_Check_Button* btn_enable_header_modem;
 extern void cb_enable_header_modem(Fl_Check_Button *a, void *b);
+extern void unproto_widgets(void);
+
+// Hamcasting panel
+
+extern Fl_Check_Button * btn_hamcast_mode_cycle;
+
+extern Fl_Check_Button * btn_hamcast_mode_enable_1;
+extern Fl_ComboBox * cbo_hamcast_mode_selection_1;
+extern Fl_Output * txt_hamcast_select_1_time;
+
+extern Fl_Check_Button * btn_hamcast_mode_enable_2;
+extern Fl_ComboBox * cbo_hamcast_mode_selection_2;
+extern Fl_Output * txt_hamcast_select_2_time;
+
+extern Fl_Check_Button * btn_hamcast_mode_enable_3;
+extern Fl_ComboBox * cbo_hamcast_mode_selection_3;
+extern Fl_Output * txt_hamcast_select_3_time;
+
+extern Fl_Check_Button * btn_hamcast_mode_enable_4;
+extern Fl_ComboBox * cbo_hamcast_mode_selection_4;
+extern Fl_Output * txt_hamcast_select_4_time;
+
+extern Fl_Output * txt_hamcast_select_total_time;
+
+extern bool assign_bc_modem_list(void);
+extern void estimate_bc(void);
+
+extern std::string g_modem;
+extern std::string g_header_modem;
+
+// end Hamcasting panel
 
 #endif

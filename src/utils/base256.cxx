@@ -135,13 +135,13 @@ string base256::decode(string &in, bool &decode_error)
 	size_t nbr = 0;
 	string output = in;
 	decode_error = false;
-	
+
 	size_t p = output.find("\n");
 	if (p == string::npos) {
 		decode_error = true;
 		return "ERROR: base256 missing character count";
 	}
-
+	
 	sscanf(output.substr(0, p).c_str(), "%d", &temp);
 	nbr = temp;
 	

@@ -41,7 +41,7 @@ void Fl_BlockMap::draw()
 	int ty = y();
 	int th = h();
 
-// draw an empty widget
+	// draw an empty widget
 	fl_push_clip(x(), y(), w(), h());
 	draw_box(box(), tx, ty, tw, th, color());
 
@@ -72,15 +72,15 @@ void Fl_BlockMap::draw()
 }
 
 
-/**	
-		The constructor creates the progress bar using the position, size, and label.
-		
-		You can set the background color with color() and the
-		mapping color with selection_color(), or you can set both colors
-		together with color(unsigned bg, unsigned sel).
-		
-		The default colors are FL_LIGHT3 and FL_DARK_BLUE, resp.
-*/
+/**
+ The constructor creates the progress bar using the position, size, and label.
+
+ You can set the background color with color() and the
+ mapping color with selection_color(), or you can set both colors
+ together with color(unsigned bg, unsigned sel).
+
+ The default colors are FL_LIGHT3 and FL_DARK_BLUE, resp.
+ */
 Fl_BlockMap::Fl_BlockMap(int X, int Y, int W, int H, const char* L)
 : Fl_Widget(X, Y, W, H, L) {
 	align(FL_ALIGN_LEFT);

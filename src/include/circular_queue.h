@@ -73,7 +73,7 @@ private:
 	int buffer_size;
 	int index_mask;
 	int exit_thread;
-	int listCount;
+	//int listCount;
 	int bufferCount;
 	char *buffer;
 

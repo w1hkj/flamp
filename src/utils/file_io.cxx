@@ -443,7 +443,7 @@ int not_allowed[256] = {
 
 bool binary(std::string &s)
 {
- 	for (size_t n = 0; n < s.length(); n++) {
+	for (size_t n = 0; n < s.length(); n++) {
 		if (not_allowed[(s[n] & 0xFF)])
 			return true;
 	}
@@ -469,7 +469,7 @@ bool isPlainText(std::string &_buffer)
 		data = _buffer[index];
 		if(c_binary(data) || (data & 0x80)) {
 			return false;
-        }
+		}
 	}
 	return true;
 }
@@ -480,12 +480,12 @@ bool isPlainText(char *_buffer, size_t count)
 	int data = 0;
 
 	if(!_buffer || count) return false;
-	
+
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
 		if(c_binary(data) || (data & 0x80)) {
 			return false;
-        }
+		}
 	}
 	return true;
 }
@@ -496,10 +496,10 @@ int convert_to_plain_text(std::string &_buffer)
 	char *dest_buffer = (char *)0;
 	size_t result_count = 0;
 	size_t count = 0;
-	
+
 	buffer = (char *) _buffer.c_str();
 	count = (size_t) _buffer.size();
-	
+
 	if(!buffer || count < 1) return 0;
 
 	dest_buffer = (char *) malloc(count + 2);
@@ -517,7 +517,7 @@ int convert_to_plain_text(std::string &_buffer)
 	}
 
 	free(dest_buffer);
-	
+
 	return (int) result_count;
 }
 
@@ -525,23 +525,23 @@ int convert_to_plain_text(char *_src, char *_dst, size_t count)
 {
 	size_t index = 0;
 	size_t data = 0;
-	size_t change_count = 0;
+	//size_t change_count = 0;
 	size_t dest_count = 0;
-
+	
 	char *buffer = _src;
 	char *dest = (char *)0;
 	char *cPtr = (char *)0;
-
+	
 	if(_src == (char *)0 || _dst == (char *)0) return 0;
-
+	
 	if(count < 1) return 0;
-
+	
 	dest = (char *) malloc(count + 2);
-
+	
 	if(dest == (char *)0) return 0;
-
+	
 	memset(dest, 0, count + 2);
-
+	
 	cPtr = dest;
 	for(index = 0; index < count; index++) {
 		data = buffer[index];
@@ -551,13 +551,13 @@ int convert_to_plain_text(char *_src, char *_dst, size_t count)
 		*cPtr++ = data;
 		dest_count++;
 	}
-
+	
 	if(dest_count > 0) {
 		memcpy(_dst, dest, dest_count);
 	}
-
+	
 	free(dest);
-
+	
 	return (int) dest_count;
 }
 
