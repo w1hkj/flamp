@@ -12,7 +12,7 @@ dnl major and minor must be integers; patch may
 dnl contain other characters or be empty
 m4_define(FLAMP_MAJOR,  [2])
 m4_define(FLAMP_MINOR,  [1])
-m4_define(FLAMP_PATCH,  [.01])
+m4_define(FLAMP_PATCH,  [.02])
 
 AC_INIT([FLAMP], FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH, [w1hkj AT w1hkj DOT com])
 
