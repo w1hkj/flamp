@@ -5,16 +5,20 @@
 // Author: Dave Freese, W1HKJ
 // Copyright: 2010
 //
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is
-// copyright under the GNU General Public License.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc.
-// 59 Temple Place, Suite 330
-// Boston, MA  02111-1307 USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // =====================================================================
 
@@ -36,36 +40,36 @@ public:
 	void reset() { crcval = 0xFFFF;}
 	unsigned int val() {return (crcval & 0xFFFF);}
 	string sval() {
-		snprintf(ss, sizeof(ss), "%04X", val());
-		return ss;
+		snprintf((char *) ss, sizeof(ss), "%04X", val());
+		return string(ss);
 	}
-    
-	void update(char c) {
-		crcval ^= c;
-        for (int i = 0; i < 8; ++i) {
-            if (crcval & 1)
-                crcval = (crcval >> 1) ^ 0xA001;
-            else
-                crcval = (crcval >> 1);
-        }
+
+	void update(unsigned int c) {
+		crcval ^= (c & 0xFF);
+		for (int i = 0; i < 8; ++i) {
+			if (crcval & 1)
+				crcval = (crcval >> 1) ^ 0xA001;
+			else
+				crcval = (crcval >> 1);
+		}
 	}
 
 	unsigned int crc16(char c) {
-		update(c); 
+		update((unsigned int) c);
 		return val();
 	}
 
-    unsigned int crc16(char *s, size_t count) {
+	unsigned int crc16(char *s, size_t count) {
 		reset();
 		for (size_t i = 0; i < count; i++)
-			update((char)(s[i] & 0xFF));  // only use lower half of unicode
+			update((unsigned int)(s[i] & 0xFF));  // only use lower half of unicode
 		return val();
 	}
 
 	unsigned int crc16(string s) {
 		reset();
 		for (size_t i = 0; i < s.length(); i++)
-			update((char)(s[i] & 0xFF));  // only use lower half of unicode
+			update((unsigned int)(s[i] & 0xFF));  // only use lower half of unicode
 		return val();
 	}
 	string scrc16(string s) {

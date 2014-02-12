@@ -1,0 +1,1005 @@
+/******************************************************************************
+ * Copyright (C) 2013 Robert Stiles, KK5VD.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation under the terms of the GNU General Public License is hereby
+ * granted. No representations are made about the suitability of this software
+ * for any purpose. It is provided "as is" without express or implied warranty.
+ * See the GNU General Public License for more details.
+ *
+ * Documents produced by Doxygen are derivative works derived from the
+ * input used in their production; they are not affected by this license.
+ *
+ * Requires Doxygen for HTML output
+ * plus LiveTeX (LaTeX) for PDF output
+ *
+ */
+
+
+/*!
+
+\mainpage FLAMP Users Manual - Version 2.2
+
+<center>
+\image latex flampLogo.png "" width=2.0in
+\image html flampLogo.png ""
+</center>
+
+\tableofcontents
+
+<!--FLAMP User Manual-->
+\section flampDesc FLAMP Description
+
+<b>Notice</b>: This version of FLAMP is not compatible with version 1.x.x
+<br>
+
+<b>FLAMP</b> is a program for AMP or Amateur Multicast Protocol. An FLAMP
+session will transmit one or more files with one or more iterations of the
+transmission. Each file is broken into blocks, each of which has a check sum.
+The receiving station saves the blocks that pass check sum. Successive
+transmissions will fill in the missing blocks provided that the new blocks
+pass the check sum. After the transmission sequence, the entire file is
+assembled and may be saved. “Fills” may be provided by retransmitting the
+entire file or by the sending station only sending the missing blocks.
+Start by downloading the current version of FLAMP from
+<a href="http://www.w1hkj.com/download.html">w1hkj's website</a>. Install
+the software as you would any of the NBEMS applications. You should also
+uninstall any older or development versions.
+
+\section initConfig Initial Configuration
+
+\image latex ConfigurePanel.png "Configure Panel" width=3.5in
+\image html ConfigurePanel.png "Configure Panel"
+
+When you open FLAMP you will see a screen with four tabs, Receive, Transmit,
+Events and Configure. Click on the Configure tab and fill in your call sign
+and relevant information as shown. There are other options which will be
+covered later.
+
+\section s_config_Script Configuration Scripts
+
+See \ref scripting_page for full details.
+
+\section txProcedure Transmit Procedure
+
+\image latex TransmitPanel.png "Transmit Panel" width=3.5in
+\image html TransmitPanel.png "Transmit Panel"
+
+FLAMP divides a message file into blocks, each of which will be checked for
+errors when received. You can select the block size with the Blk size
+selector. The range is from 16 to 2048 in increments of 16.
+
+FLAMP will repeat the transmission from 1 to 10 times with an option of
+repeating the header data independently. Select the appropriate number
+based on transmission mode (i.e. mode performance) and propagation
+conditions.
+
+File identification is derived from multiple sources of information.
+These include date and time of the last file modification, compression,
+base encoding, and block size. Therefore, additional transmission sequences
+may be performed if necessary as long as these settings are not changed.
+If these settings are modified, FLAMP will treat the file as a new transmit
+queue item.
+
+On the "Send to" line you may add any specific recipients for the file.
+The default is “QST” (general call to all amateur radio operators) which
+may not be appropriate in some countries.
+
+To send a file, it has to be added to the queue. Click Add and then browse
+for the file or you can drag and drop the file from your desktop to the
+DnD icon (one or more files). FLAMP will handle any file format.
+
+You have the option to compress the file with the Comp check box and select
+the level of encoding: base-64, base-128, or base-256. A warning dialog
+will be displayed if the compression is not selected and a file is added
+to the transmit queue that requires compression (images, all files with
+high bit set bytes, etc).  Compression, base encoding, and description
+fields are a per file configurable item.
+
+<b>Note:</b>    In some circumstances depending on the contents of a file.
+FLAMP will automatically enable compression.   Disabling compression on
+these files(s) may have unintended effects between FLAMP and FLDIGI.  It
+is strongly suggested that compression remain enabled in these cases.
+The blocks line and Fetch button will be discussed later.
+
+FLAMP provides some additional information. When you select the
+compression/no compression option and the mode you will see the file size,
+number of blocks and estimated transmission time. This is useful for
+determining trade offs in terms of mode, repeats, compression and block
+size. Please note that the file size is the total transfer
+size (in bytes) and includes the AMP protocol overhead.
+
+<b>Note:</b>    When Tx/Rx Interval is enables transmit time does not
+include the time between transmit periods.
+
+When the file has been added to the Transmit Queue, you may add a file
+description in the Description line. This could be just a basic description
+of the file or have handling instructions. If sending just one file, you
+must highlight the file in the queue and press the 'Xmit' button to transmit.
+This will place the file name and description in the corresponding lines.
+If you have more than one file in the queue, you may transmit all of the
+files by clicking 'Xmt All'. Highlighting is not necessary.
+
+<br>
+
+\image latex TerminateTransfer.png "Terminate Transmit Warning" width=2.9in
+\image html TerminateTransfer.png "Terminate Transmit Warning"
+
+The file transfer can be terminated by selecting the cancel button.  Once
+selecting cancel the user has the option to cancel or continue with the
+transfer termination by selecting "Yes" or "No" in the presented dialog
+box. Termination resets FLDIGI internal buffers and returns to a RX state.
+
+\section txModeOp Transmit Mode Options
+
+Located on the Configure panel.
+
+\image latex ModemHeader.png "Header Modem" width=1.3in
+\image html ModemHeader.png "Header Modem"
+
+Enable Header Modem will allow the Critical Header data to be transmitted
+using slower more robust mode.   The modem is user selectable.   FLDIGI's
+Tx/Rx RSID will be activated prior to transmission.
+
+\image latex InhibitHeaderModemOnFills.png "Inhibit Header Modem" width=1.75in
+\image html InhibitHeaderModemOnFills.png "Inhibit Header Modem"
+
+Inhibits header modem when block fills are being transmitted.  Header modem
+use is resumed after the Fetch text field is cleared.   If a "PREAMBLE"
+report is received this feature is ignored until after the block fill
+transmission is completed. At which time the internal flag is reset until
+another "PREAMBLE" report is received.
+
+\anchor interval_timer
+
+\image latex IntervalTimer.png "Interval Timer" width=1.5in
+\image html IntervalTimer.png "Interval Timer"
+
+Enable TX/RX Interval time allows the segmentation of data to be transmitted
+at specific intervals.  Used for transmitting data over repeater systems
+that incorporate limited/restricted transmit time frames.   The actual
+transmit time maybe less then the selected time by 10-15% depending on the
+modem and block size used.
+
+\image latex ChangeFldigiOnTx.png "Change Modem on Transmit" width=2.0in
+\image html ChangeFldigiOnTx.png "Change Modem on Transmit"
+
+Enabling TX/RX Interval requires Change FLDIGI mode just prior to transmit
+activation.  This ensure the transmit duration is correct for the FLAMP
+selected modem (software controlled).    This feature is user controlled
+when Enable TX/RX interval is disabled.
+
+\image latex ClearMissingBlocks.png "Clear Missing Blocks" width=2.5in
+\image html ClearMissingBlocks.png "Clear Missing Blocks"
+
+Enabling Clear Missing Blocks on Transmit clears the Fetch text field of
+all missing blocks after a fill transmission has been conducted.
+Disabled leaves the Fetch text field unaltered.
+
+
+\image latex EnableUnproto.png "Enable Unproto" width=2.0in
+\image html EnableUnproto.png "Enable Unproto"
+
+Enable Transmit Unproto allows for the transmission of plain text without
+FLAMP control codes and checksum values.  This mode restricts the data
+to 7 bit ASCII.  Any file that contains control characters and/or binary
+(upper bit set) will be removed and the remaining 7 bit ASCII data will be
+transmitted.  FLAMP will not be able to receive this data as it lacks the
+necessary control information.
+
+\image latex unprotoTransmitPanel.png "Unproto Widget Deactivation" width=3.5in
+\image html unprotoTransmitPanel.png "Unproto Widget Deactivation"
+
+\image latex unproto_interval_tx_panel.png "Unproto With Interval Enabled" width=3.5in
+\image html unproto_interval_tx_panel.png "Unproto With Interval Enabled"
+
+Enabling unproto disables (grayed out) some widgets in the Transmit panel.
+
+If the unproto message contains embedded ARQ commands a character within
+the command will be substituted to prevent FLDIGI from processing them.
+A notice will be appended to the transmitted message indicating the change.
+
+\verbatim
+NOTICE: Command Character Substitution!
+<_md> <-> '_' = 'c'
+\endverbatim
+
+
+\section txIntervalwarning Transmit Interval Time Warning
+
+\image latex BlockTxTImeWarning.png "Block Tx Time Warning" width=2.9in
+\image html BlockTxTImeWarning.png "Block Tx Time Warning"
+
+When using Transmit/Receive Interval option there is a possibility of a
+block segment transmit time will exceed the interval transmit time.
+If this condition occurs a warning dialog box will be displayed listing
+the options required to correct the condition.  FLAMP will not transmit
+until this condition is resolved.
+
+\section modeSync Mode Synchronization: FLDIGI to/from FLAMP
+
+FLAMP and FLDIGI have the capability to synchronize modes, i.e. you only
+have to set the mode on one or the other and the second will follow. This
+feature may also be disabled so that the mode being used with FLDIGI at a
+given moment can be independent of the mode being used for FLAMP file
+transfers.
+
+\image latex ConfigurePanel.png "Configure Panel" width=3.5in
+\image html ConfigurePanel.png "Configure Panel"
+
+On the Configure screen note the three top options as shown. The first
+option auto syncs FLDIGI to the mode selected on FLAMP. The second syncs
+FLAMP to the mode selected on FLDIGI. These two options are not mutually
+exclusive: if the first two options are selected, the mode selection
+is bilateral.
+
+The third option will override the current FLDIGI mode (e.g. a keyboard
+mode such as Olivia 8/500) with the mode selected with FLAMP for file
+transfers (e.g. one of the MT63 modes). The mode change will take place
+at the time of transmission.
+
+If none of the boxes is checked, there will be no synchronization.
+
+Before transmitting, an FLAMP compatible version of FLDIGI must be running
+with the mode selected and frequency clear.
+
+\section rxProcedure Receive Procedure
+
+\image latex ReceivePanelEmpty.png "Receive Panel" width=3.5in
+\image html ReceivePanelEmpty.png "Receive Panel"
+
+The receiving stations must have FLAMP open with FLDIGI running. FLDIGI
+will not “wake up” FLAMP as it does with, for example, FLMSG. However,
+more recent versions of FLDIGI sports the option of auto executing FLAMP
+and other NBEMS tools. See FLDIGI user manual for details.
+
+The receive operation is hands-off. As the blocks are received the
+file information is filled in (file name, date/time, etc.) and the
+successfully received blocks will be depicted as dark blue rectangles
+on the progress bar. The blocks are positional. That is, a missing block
+will simply be a white space where the block would be if received
+correctly. On subsequent receptions that block will fill in when received
+correctly. The percent complete on the respective line also shows the
+state of each file being received.
+
+\image latex ReceivePanelPartial.png "Receive Panel" width=3.5in
+\image html ReceivePanelPartial.png "Receive Panel"
+
+You will also see block numbers showing up in the Missing line. When the
+complete file is received, that line should be blank. Received text files
+will appear in complete form and readable in the Data panel.
+
+To save a file, click Save with the file highlighted. This will place the
+file in the rx folder in the default directory:
+
+<center>
+| Operating System  | Folder/Directory                        |
+| :---------------: | :------------------------------------   |
+| Windows &dagger;  | C:\\Documents & Settings\\User\\flamp   |
+| Windows &dagger;  | C:\\Users\\User_login_name\\flamp.files |
+| Linux             | /home/user/.flamp                       |
+| Macintosh         | /Users/User_Login_Name/.flamp           |
+</center>
+<br>
+<b>Note:</b>
+&dagger; Depending on Windows version or install configuration.
+
+The received file size is the actual file size, i.e. the actual bytes
+being transported (per repeat) less all of the Amp header information.
+
+The Send to information does not appear on the FLAMP screen. It will be seen
+in the FLDIGI RX panel as shown below:
+
+Data segments encoded in base64.
+
+\verbatim
+N0BDY DE S0MCAL
+<PROG 18 E9CE>{0EE2}FLAMP x.x.x
+<FILE 28 13C7>{0EE2}20130323070339:Fox.txt
+<ID 41 EEBC>{0EE2}S0MCAL Tesla's Lab Colorado Springs
+<SIZE 14 2F49>{0EE2}221 5 48
+<DESC 15 856E>{0EE2}Lazy Dogs
+<DATA 56 B927>{0EE2:1}[b64:start]AUxaTUEAAAggXQAAAAQAEAxB/TEWllgk3J5mK
+<DATA 56 BAFA>{0EE2:2}pYEOyC+U2nmNwaGCVvFVmqBX/av7rhbtp4H4xoY39GsVdk5W
+<DATA 56 24A2>{0EE2:3}ZmH3Jm/CULrcdlB39rhWJUUCcE0jXPg1l3yWPIV2q4fQDgaz
+<DATA 56 87D0>{0EE2:4}FXD/IqYKt7x07GamZsVFZORzk/TLgX4vBXqTc86KGO7kCFhJ
+<DATA 37 8435>{0EE2:5}Wpmo3mbURumL0Xj8cIE[b64:end]
+<CNTL 10 8E8D>{0EE2:EOF}
+<CNTL 10 2E81>{0EE2:EOT}
+N0BDY DE S0MCAL K
+\endverbatim
+
+\image latex ReceivePanelPartialCropped.png "Receive Panel (Cropped)" width=3.4in
+\image html ReceivePanelPartialCropped.png "Receive Panel (Cropped)"
+
+This image shows a partially completed file. Three blocks were missed
+in the first pass and they will (hopefully) be filled in during a repeated
+transmission.
+
+Note that the blocks with errors show up in the Missing line. In this case,
+blocks 3, 4 and 5 were received with errors. The Receive Queue panel will
+show the percent received. Nothing will appear in the Data panel.
+
+\section missingBlocks Requesting Missing Blocks/Header
+
+If a transmission sequence has been completed and one or more stations
+have missing blocks or header information, the receiving operators may
+request the fill-ins using the Report button.
+
+The Report button adds a text stream to the FLDIGI Tx buffer, but does
+not start the FLDIGI transmit processing (unless this option is enabled
+in the config panel, "Enable TX on Report"). The recipient sends the Tx buffer
+using the T/R command when it is his or her turn to make the report. The
+report format in FLDIGI transmit panel will look like this:
+
+\verbatim
+DE S0MCAL File : Fox.txt
+<MISSING 12 8793>{0EE2}1 2 3
+DE S0MCAL K
+\endverbatim
+
+In the event the header data is missing:
+
+Missing file name (<FILE tag).
+
+\verbatim
+DE S0MCAL File : Unassigned
+<MISSING 14 FB42>{0EE2}PREAMBLE
+DE S0MCAL K
+\endverbatim
+
+Missing file block count size or Station ID (<SIZE or  <ID tags).
+
+\verbatim
+DE S0MCAL File : Fox.txt
+<MISSING 14 FB42>{0EE2}PREAMBLE
+DE S0MCAL K
+\endverbatim
+
+If there were no missing data, a report of receipt confirmation will be sent.
+For our example it would be of the form:
+
+\verbatim
+DE S0MCAL File : Fox.txt
+<MISSING 15 107D>{0EE2}CONFIRMED
+DE S0MCAL K
+\endverbatim
+
+The important word is "CONFIRMED." The "<MISSING" is the line descriptor.
+The "15" the length of the data block "{0EE2}CONFIRMED." The "107D" is the
+checksum associated with the data block, and the "0EE2" is the checksum
+of the file being processes (may be multiple files being reported). This
+is necessary to ensure that there are no false reports received.
+
+\image latex TxOnReport.png "Transmit on Report" width=1.3in
+\image html TxOnReport.png "Transmit on Report"
+
+Enable Tx on Report located in the Configuration panel allows the user to
+initiate transmit from FLAMP when mouse clicking on the "Report" button.
+When disabled transmit function must be initiated from FLDIGI's T/R button.
+
+\section sendMissing Sending Missing Blocks/Header Information
+
+For small files, another transmission of the complete file should suffice
+for fill-ins. In the case of a large file where only a few blocks are
+missing, FLAMP permits the sending station to just transmit the missing
+blocks.
+
+When the sender has received all of the block missing reports he or she
+then retrieves the reports from FLDIGI by pressing the Fetch button. FLAMP
+and FLDIGI communicate with each other using either FLDIGI's ARQ socket
+server or its XMLRPC socket server. These are two different processes
+with two different aims. The ARQ socket is used for sending and receiving
+the actual FLAMP messages. The XMLRPC socket is used for control processing
+and shared data exchange.
+
+FLAMP parses all of the received data from one or more reporting stations.
+It combines them, discards duplicates and sorts the missing blocks
+numerically. It then updates the "blocks" entry control with the
+requested blocks.   Missing header information assigns '0' to the
+missing block list, triggering a retransmission of the header information.
+
+The combined set of missing blocks will appear as shown below along
+with total file size and transmission time.
+
+\image latex BlockRxProgress.png "Blocks Received Progress" width=3.1in
+\image html BlockRxProgress.png "Blocks Received Progress"
+
+\section sAllowableFiles Allowable File Type Transfers
+
+FLAMP will send any file format. For example, ICS forms from FLMSG may be
+sent as well as spreadsheets in CSV format or even binary files such
+picture.jpg.
+
+In the case of binary files, a message will be displayed upon receipt as
+shown below.
+
+\image latex RxBinaryFile.png "Received binary" width=3.5in
+\image html RxBinaryFile.png "Received binary"
+
+\section sRelayData Relaying Data Between Stations (Digipeater)
+
+\image latex ReceivePanelRelayFetch.png "Relaying Data (Digipeater)" width=4.87in
+\image html ReceivePanelRelayFetch.png "Relaying Data (Digipeater)"
+
+Under less then stellar propagation conditions their exists the possibility
+of multiple stations being unable to receive the data completely. This
+feature allows a receiving station to retransmit verbatim copies of
+the data to other receiving stations in the attempt to fill missing
+header/data sections. As with transmitting fills from the TX queue the Relay
+function acts on the missing reports from other receiving stations. Pressing
+the relay fetch button will transfer a list of missing blocks associated
+with the selected received queue item into the relay blocks field. This field
+is user editable and can be entered directly without the need to press the
+fetch button. If the Blocks field contains no missing block numbers (empty)
+the received content of the file will be retransmitted. It is not necessary
+for the received file to contain 100% of the data. Only checksum verified data
+is available for retransmission.
+
+To enter missing block numbers manually, the following numerical
+values are used to indicate what part of the data is to be relayed. Missing
+preamble (header data) are represented by the number '0'. Block numbers
+1 to n (the maximum number of blocks for the given file) represents the
+<tt><DATA 34 2E43>{</tt>hash:<b>block number n</b><tt>}</tt>
+AMP-2 tagged data.
+
+Retransmission of the data format is limited to how it was received. The user
+has no control over the blocks size, compression, base conversion, etc.  In
+effect it's a manually initiated digipeater. Interval Timer can be
+enabled/disabled and time duration altered to the users requirements. Header
+Modem is not available for relay transmits. The modem used to transmit the
+data is the same as the one selected in the transmit panel.
+
+Once FLAMP has exited or the files removed from the receive queue the
+digipeat option for the those file(s) are lost.
+
+\image latex ReceiveQueueList.png "Receive Queue List" width=4.89in
+\image html ReceiveQueueList.png "Receive Queue List"
+
+When sending fills with "unassigned" file names it might be difficult
+to differentiate between them. In the second column of the receive
+queue list contains a hexadecimal number. This number is the hash value
+assigned to every file transmitted. By scrolling/searching in FLDIGI receive
+window for MISSING reports a match can be found. The hash value is the
+hexadecimal number enclosed in the curly brackets \"{}\" and displayed in
+<b>bold</b> text. See below.
+
+<b>Examples:</b>
+
+<tt><MISSING 12 8793>{<b>8F5D</b>}1 2 3<br>
+<SIZE 14 2F49>{<b>8F5D</b>},...<br>
+<DATA 56 B927>{<b>8F5D</b>:1},...<br>
+</tt>
+<br>
+
+\image latex RelayTransmitWarning.png "Relay Transmit Warning" width=4.2in
+\image html RelayTransmitWarning.png  "Relay Transmit Warning"
+
+Pressing the Relay button brings up a dialog box warning of an impending
+transmit. Pressing 'Yes' starts the transmit process.
+
+\image latex RelayCancel.png "Canceling relay Transmit" width=4.89in
+\image html RelayCancel.png  "Canceling relay Transmit"
+
+\image latex TerminateTransfer.png "Cancel Warning" width=4.2in
+\image html TerminateTransfer.png  "Cancel Warning"
+
+While FLDIGI is transmitting the "Relay" button changes to "Cancel".
+Pressing the "Cancel" button immediately terminates the transmission on
+validation via a Warning Dialog box.
+
+\section txQueue Transfer Receive Queue Item to the Transmit Queue.
+
+<ol>
+	<li> Select the receive queue item.
+	<li> Click on "To TxQ" button.
+</ol>
+
+The content of the file, file name, description, and block size will be
+transfered to the TxQ after the user is requested to save the file.
+Software will only allow 100 percent completed files to be transfered.
+Mouse clicking on the Transmit tab reveals the transfered queue item.
+Retransmission of the file in it's complete form must be conducted (no
+missing blocks fills).  Use of this option does not allow for
+digipeater functionality. For digipeat operations see \ref sRelayData
+
+
+\section evSched Event Scheduler
+
+\subsection timedevSched Timed Event Scheduler
+
+FLAMP can transmit the queued files on a specified interval, on a timed
+schedule or continuously. This is configured via the Events tab.
+
+\image latex EventTimedPanel.png "Event Panel" width=3.5in
+\image html EventTimedPanel.png "Event Panel"
+
+Timed Events can be scheduled to occur on specified minute / hour values
+via the "Retransmit interval" combo as shown:
+
+\image latex EventTimeSelection.png "Event Time Selection" width=0.75in
+\image html EventTimeSelection.png "Event Time Selection"
+
+When executing the "One time at" event schedule, the time entries in the Xmt
+time (HHMM) field are remove as each event time is executed. When all times
+are exhausted the Start/Stop Events button is disabled (Stopped).
+
+When "Repeated at" is selected then the event times are as delineated in
+the Xmt times (HHMM) control block. Other options include various repeat
+intervals (5, 15, 30 minutes; hourly, even hours, odd hours) and one
+time repeat at a specified time.
+
+"Continuous at" event transmits the content of the transmit queue within
+a given window of time. Entering the start time followed by a hyphen and the
+end time (0100-0200, no spaces between numbers and the hyphen). The end
+time is the last time the queue will be sent to FLDIGI, not the end of
+transmission. Transmit will continue until the buffer in FLDIGI as been
+processed.
+
+\anchor queue_list
+
+Selecting Auto Load TX Queue on "Continuous at" Event checkbox has two
+functions. First is to automatically load the transmit queue (at program
+execution) with the files listed in a load queue file.  The path information
+to the queue file can either be dragged from a desktop icon into the 'Path to
+Load Queue File List' text input box or typed in by hand.  The second is
+to load/reload the same files into to TX queue by replacement when a
+'Continuous at' event occurs. Thus keeping the queue updated in the event
+these file have changed.
+
+Pressing 'Load Queue' button will load the files listed in the queue list
+by replacement.
+
+Continuous repeat works exactly as you would expect. The timer is
+based on 1-second intervals, which will result in a ~1 second silent
+period between transmissions.
+
+<b>Note:</b> Software will prevent the reloading of the Transmit queue via the
+Event panel if FLDIGI/FLAMP is transmitting. It's possible to miss a
+later event if the previous data is still being transmitted.
+
+\subsection timeFormat Event Time Format
+
+\verbatim
+HHMM<space>HHMM<space>,... or HHMM<comma>HHMM<comma>,...
+\endverbatim
+
+Example:
+\verbatim
+1030 1230
+or
+1030,1230
+\endverbatim
+
+When using 'Continuous at' Event
+
+\verbatim
+HHMM-HHMM<space>HHMM-HHMM<space>,... or HHMM-HHMM<comma>HHMM-HHMM<comma>,...
+\endverbatim
+
+To the left of the hyphen is the start time, to the right is the end time. No
+spaces between the numbers and the hyphen.
+
+Example:
+\verbatim
+1030-1230 1245-1300
+or
+1030-1230,1245-1300
+\endverbatim
+
+\subsection config_que_Script Queue Load list
+
+See \ref scripting_page for full details.
+
+\subsection hamcastevSched Hamcast Multimode
+
+The primary purpose for hamcast resided in the fact that a particular modem
+may function better under the conditions at the receiving end. Another reason
+might be that the receiving station software/hardware may not support all of
+the available modems that FLDIGI supports. Selecting various modems increases
+the possibility of a successfully reception by as many stations as possible.
+
+\image latex EventHamcastPanel.png "Event Panel" width=3.5in
+\image html EventHamcastPanel.png "Event Panel"
+
+Hamcast activation facilitates the transmission of queued files using a
+rotating modems selected by the user.  To illustrate this effect a
+'Continuos at' is scheduled to occur between the hours of 0533 to
+0539 hrs UTC.  On the triggering of this event "Modem 1" (if enabled)
+will be selected and used to transmit the contents of the transmit queue. Once
+completed the second modem will then be selected to transmit the queue again.
+This cycling continues through all of the enabled modems until the event end
+is reached.
+
+On multiple single events each enabled modem is assigned to each event in
+sequence.
+
+Example:
+
+If you have multiple entries in the Xmt times text field. Such as, 1000 1010
+1035 1500 1510.
+
+The queue content will be transmitted using the modem listed in the below
+table in association to the event time. Assuming all 4 hamcast modems are
+enabled.
+
+<center>
+| Event time  | Modem Used      |
+| :---------: | :-------------: |
+| 1000        | Hamcast Modem 1 |
+| 1010        | Hamcast Modem 2 |
+| 1035        | Hamcast Modem 3 |
+| 1500        | Hamcast Modem 4 |
+| 1510        | Hamcast Modem 1 |
+</center>
+
+The time information to the right of the modems indicates the amount of time
+each modem takes to transmit the entire transmit queue. Total time indicates
+the amount of time it takes to transmit the entire queue times the number of
+selected modems. This information might be useful in setting up the timed
+events in the Events Timed panel.
+
+Times listed are the total transmit time for the selected modem(s) only.
+Overall times are effected by interval timer, header modem, RSID, video
+text, carrier, and CW ID's generated by FLDIGI and/or FLAMP.
+
+<b>Note 1:</b> Deselecting all modems automatically disables "Enable modem
+rotation". To Enable "Enable Modem rotation" one or more "Enable modem
+n" must be selected first.
+
+<b>Note 2:</b> Hamcast only operates from timed events. Manual transmission of
+the queue content defaults to the Transmit panel modem and/or selected header
+modem if enabled.
+
+<b>Note 3:</b> Interval timer and header modem are available with hamcast
+operations.
+
+\section debugLog Debug Log
+
+\image latex DebugLog.png "Debug Log" width=3.5in
+\image html DebugLog.png "Debug Log"
+
+A Debug Log has been added to FLAMP for debugging purposes. It will
+capture events such as failed headers, data blocks etc.   To access the
+Event Log, click Help – Events on the FLAMP screen.   The slider may be
+used to select 5 levels of event capture: Quiet, Error, Warning, Info
+(default) and Debug.    The log may be saved. The saved log will be
+placed in the FLAMP folder.
+
+\section time_table Command Line Time Table Switch
+
+<h1>FOR DEVELOPERS ONLY</h1>
+
+Command line switch <code>\-\-time-table</code> repurposing FLAMP for
+creating mode time tables in 'C/C++' languages formatted syntax.
+
+<b>Note 1:</b> In order to use this FLDIGI must have the XMLRPC command
+'main.get_char_timing' available.
+
+<b>Note 2:</b> Ensure RSID, CWID, TONE transmit, Video Text, etc. are disabled
+in FLDIGI, and Interval Timer, Header Modem are disabled in FLAMP. The
+waterfall in FLDIGI will be disabled to allow for high speed processing and
+will pause during the measurement process.
+
+Two primary functions are available.
+
+<ul>
+	<li>Selecting 'XMIT'<br> on the Transmit panel will
+	initiate a time table generation starting from the current selected mode
+	and continue to the end of the available modes. Selecting a file in the
+	transmit queue will be required for the operation to commence.</li>
+	<li>Selecting 'XMT ALL'<br> Initiates a table generation of all modes
+	available to FLAMP.</li>
+</ul>
+
+During the measurement process the software will print to the Debug Log
+the following information.
+
+\verbatim
+D: create_tx_table: Table Gen filename time_table-01.txt
+D: create_tx_table: Processing Modem PSK1000RC2
+D: create_tx_table: Mode PSK1000RC2 overhead=2.048000
+D: create_tx_table: Proc Char = 0, 0 :
+D: create_tx_table: Character '0 (0)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 1, 1 :
+D: create_tx_table: Character '1 (1)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 2, 2 :
+D: create_tx_table: Character '2 (2)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 3, 3 :
+D: create_tx_table: Character '3 (3)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 4, 4 :
+D: create_tx_table: Character '4 (4)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 5, 5 :
+D: create_tx_table: Character '5 (5)' Transmit time in seconds=0.011000
+D: create_tx_table: Proc Char = 6, 6 :
+D: create_tx_table: Character '6 (6)' Transmit time in seconds=0.011000
+,...
+\endverbatim
+
+The initial first_measurement and second_measurement measurements are
+necessary to determine the data segment from the preamble, postamble, and
+interleave transmit times.
+
+Each transmit encompasses:
+
+total_time = overhead + (character<sub>1</sub> time +
+   character<sub>2</sub> time + ,... + character<sub>n</sub> time)
+
+The process is time consuming, expect the complete mode table generation
+to take 1 or more hours.
+
+\subsection file_table_generation File/Table Generation
+
+Measurements are stored in a 'C/C++' data structure and saved in a text file.
+
+File names are internally created in a numbered sequence
+'time_table-[00-99].txt'.
+
+Example: time_table-01.txt
+
+and will be located in the current working directory.
+
+Stopping and starting the process creates another time table file to prevent
+the previous file from being over written. A maximum of 100 files are
+possible. If this number is exceeded deletion of these file(s) will be
+required.
+
+<b>File contents:</b>
+
+\verbatim
+
+typedef struct {
+    char *mode_name;
+    float scale;
+    float overhead;
+    float table[256];
+} MODE_TIME_TABLE;
+
+MODE_TIME_TABLE mode_time_table[] = {
+    {
+        (char *) "DOMX22", 1.0, 1.346757,
+        {
+            0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000,
+            0.000000, 0.000000, 0.139320, 0.139320, 0.139320, 0.092880, 0.139320, 0.139320,
+            0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320,
+            ,...
+            0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320,
+            0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.139320, 0.000000
+        }
+    },...
+};
+
+\endverbatim
+
+<b>'C/'C++' Structure are as follows:</b>
+
+<ul>
+	<li>char *mode_name;<br>The mode name for the table.</li>
+	<li>float scale;<br> used to adjust the overall table when calculating
+	transmit time. </li>
+	<li>float overhead;<br>This is the time the mode takes to transmit preamble
+	and postamble (in seconds).</li>
+	<li>float table[256];<br>The table of data used to calculate the
+	transmit time. 	Each entry is the amount of time it take to transmit
+	a single byte of information (in seconds)</li>
+</ul>
+
+After the table has been integrated into the time_table.cxx source code and
+recompiled. Re-executing FLAMP without \-\-time-table command line switch
+enables a transmit time indicator when the Debug Log window is set to 'Debug'
+level. Monitoring the transmit times can be used to determine the accuracy
+of the table.
+
+The following output should be seen after a transmit period:
+
+\verbatim
+D: ztimer: TX time [mm:ss]: 01:22 [m:82 c:82.591 r:0.992840] PSK1000RC2
+\endverbatim
+
+In the above example a file of 9460 bytes was send using modem PSK1000RC2. The
+first number [mm:ss] is based on the function time() (located in ztimer()
+function) which has a resolution of one second. Thus, an error of at least
+&plusmn;0.9 of a second are possible.
+
+<b>Time Measurement Values:</b>
+
+<ul>
+	<li>'m:'<br>Measured value in seconds representation of [mm:ss].</li>
+	<li>'c:'<br>Calculated value based on the table contents.</li>
+	<li>'r:'<br>The ratio assigned to 'float scale;' in the C/C++ structure
+	MODE_TIME_TABLE.</li>
+</ul>
+
+Note: Unless the value of 'm:' is significantly larger then 'c:' it's
+advised the value of 'float scale;' not be altered.  Since it does not scale
+well when transmitting shorter or longer character lengths. However, if you
+must because of the amount of error.  Selecting a file with a near 4 minute
+transmit period is preferred.  Because, the whole intent of this table is to
+ensure we don't excede the timeout period of Repeaters when
+\ref interval_timer "Interval timer" is used.
+
+\section arq_port_address Command Line ARQ/XML_IO Server/Port Switches
+
+User selectable ARQ/XML_IO Server/Port Command line switches.   In the event
+the user requires a second or more paired FLDIGI/FLAMP process for
+concurrent operation on another Transmitter/Receiver.  User will
+need to assign a common server address/port number between each
+paired FLDIGI/FLAMP programs.  It is recommend setting the PORT
+parameters only for each ARQ/XML_IO interprocess communication switch.
+
+\verbatim
+  --XMLRPC-server-address HOSTNAME
+    Set the XML-RPC server address
+    The default is: 127.0.0.1
+
+  --XMLRPC-server-port PORT
+    Set the XML-RPC server port
+    The default is: 7362
+
+  --arq-server-address HOSTNAME
+    Set the ARQ TCP server address
+    The default is: 127.0.0.1
+
+  --arq-server-port PORT
+    Set the ARQ TCP server port
+    The default is: 7322
+\endverbatim
+
+This bash script is an example to dedicate a FLDIGI/FLAMP pair for VHF
+work.  User will be required to set the Audio in/out ports in the FLDIGI
+configuration panel to the radio designated for VHF work.
+
+<b>
+For OS' supporting the BASH command line program.
+</b>
+
+\verbatim
+Cut and Paste then Modify (if needed)
+---------------- Start - Dont include this line
+#!/bin/bash
+
+CMDS="-title VHF --arq-server-address 127.0.0.1 --XMLRPC-server-port 7363"
+
+FLDIGI $CMDS &
+sleep 4
+FLAMP $CMDS &
+
+---------------- End - Dont include this line
+\endverbatim
+
+<b>Example</b>
+
+The text file used in the examples consists of 40 iterations of “The quick
+brown fox,...” as shown below:
+
+
+\verbatim
+ 1. The quick brown fox jumps over the lazy dog
+ 2. The quick brown fox jumps over the lazy dog
+    ,...
+40. The quick brown fox jumps over the lazy dog
+\endverbatim
+
+
+A copy of the FLDIGI receive panel with the information entered as shown in
+the screen captures is below.
+
+\verbatim
+N0BDY DE S0MCAL
+<PROG 18 E9CE>{0EE2}FLAMP x.x.x
+<FILE 28 13C7>{0EE2}20130323070339:Fox.txt
+<ID 41 EEBC>{0EE2}S0MCAL Tesla's Lab Colorado Springs
+<SIZE 14 2F49>{0EE2}221 5 48
+<DESC 15 856E>{0EE2}Lazy Dogs
+<DATA 56 B927>{0EE2:1}[b64:start]AUxaTUEAAAggXQAAAAQAEAxB/TEWllgk3J5mK
+<DATA 56 BAFA>{0EE2:2}pYEOyC+U2nmNwaGCVvFVmqBX/av7rhbtp4H4xoY39GsVdk5W
+<DATA 56 24A2>{0EE2:3}ZmH3Jm/CULrcdlB39rhWJUUCcE0jXPg1l3yWPIV2q4fQDgaz
+<DATA 56 87D0>{0EE2:4}FXD/IqYKt7x07GamZsVFZORzk/TLgX4vBXqTc86KGO7kCFhJ
+<DATA 37 8435>{0EE2:5}Wpmo3mbURumL0Xj8cIE[b64:end]
+<CNTL 10 8E8D>{0EE2:EOF}
+<CNTL 10 2E81>{0EE2:EOT}
+N0BDY DE S0MCAL K
+\endverbatim
+
+\section repeaters Repeaters
+
+The following guide lines should be employed to increase the likely hood of
+receiving data correctly over a repeater system.
+
+When transmitting data over a repeater one has to contend with a few
+issues that are not present in simplex communications.
+
+<ul>
+	<li> Repeater timeouts and resets.
+	<li> Transmit delay.
+	<li> Over deviation
+	<li> Other issues not related to repeaters
+	<li> Setting RsID sensitivity level.
+	<li> Using RsID
+	<li> Multi path signals.
+	<li> Permission of the repeater owner
+</ul>
+
+\subsection permission Permission from the owner and tone filtering
+
+<ol>
+	<li> The repeater may be for voice use only.
+	<li> The repeater might employ tone filtering to prevent DTMF and side
+		tone from passing to the transmitter.  Digital communications
+		works better if this is turned off.
+	<li> Owner may only allow certain times for digital use.
+	<li> Above all, be respectful of the owners wishes.
+</ol>
+
+\subsection timeouts Repeater timeouts and resets
+
+From the FLAMP configuration panel.
+
+<ol>
+	<li> Enable Interval Timer.
+	<li> Select a receive duration suitable for the repeater in use. There is a
+	   minimal amount of time the repeater takes to reset for transmission to
+	   reoccur. Listen to the repeater while voice communications are occurring
+	   and do some time measurements. Add 1 or 2 additional seconds as a
+	   buffer.
+	<li> Select a transmit duration that does not exceed the repeater timeout
+	   period.  Setting to one minute less is recommended due to the possible
+	   use of RSID, CWID, Video Text, and 'Pre-Signal Tone' overhead generated
+	   by FLDIGI.
+</ol>
+
+\subsection optional Optional
+
+Enable Header modem.
+
+\subsection txDelay Transmit delay
+
+From the FLDIGI configuration panel.
+
+Menu: Configure(menu)->IDs(menu)->ID(tab)->RsID(tab).
+
+Adjust the 'Pre-Signal Tone' to a duration long enough to over come the
+transmit delay of the repeater.  You will have to experiment until the
+right value is known.
+
+Not setting this correctly could cause the truncation of the beginning
+part of your transmission. Resulting in missed RSID's or data.
+
+\subsection rsidSense Setting RsID sensitivity level.
+
+From the FLDIGI configuration panel.
+
+Menu: Configure(menu)->IDs(menu)->ID(tab)->RsID(tab).
+
+Set the RxID 'Sensitivity' slider above 'Pre-Signal Tone' to the left until
+the value of '2' is displayed. See Using RsID.
+
+On 3.21.77 (or later) versions of FLDIGI the naming convention has been
+replaced from numerical values to low, medium, and high error rate
+settings. If this is the case, select medium or to a level the conditions
+dictate.
+
+\subsection rsidUse Using RsID
+
+FLDIGI's RsID decoder uses a probability model to allow detection of
+the RsID signal with varying degrees of sensitivity and false detections.
+The greater the sensitivity, the more probable that a code is decoded
+incorrectly.
+
+\subsection multiPath Multi path signals.
+
+Not a repeater issue but effects digital communications.
+
+Since the repeater is at a fixed location, some of the multi-path
+issues can be negated by using a directed element (Yagi, Quad, etc)
+over a ground plane.
+
+\subsection overDevi Over deviation
+
+Repeaters are notoriously finicky about the deviation of your FM signal.
+Monitor your audio output level.  See the owners manual for your radio on
+how to verify proper modulation level.
+
+
+
+*/

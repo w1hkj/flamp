@@ -6,16 +6,20 @@
 // 	Dave Freese, W1HKJ Copyright (C) 2010
 //	Robert Stiles, KK5VD Copyright (C) 2013
 //
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is
-// copyright under the GNU General Public License.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc.
-// 59 Temple Place, Suite 330
-// Boston, MA  02111-1307 USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // =====================================================================
 
@@ -29,21 +33,23 @@ using namespace std;
 struct status {
 	int		mainX;
 	int		mainY;
-	string my_call;
-	string my_info;
+	std::string my_call;
+	std::string my_info;
 
-	string socket_addr;
-	string socket_port;
-	string xmlrpc_addr;
-	string xmlrpc_port;
+	std::string socket_addr;
+	std::string socket_port;
+	std::string xmlrpc_addr;
+	std::string xmlrpc_port;
 
-	string user_socket_addr;
-	string user_socket_port;
-	string user_xmlrpc_addr;
-	string user_xmlrpc_port;
+	std::string user_socket_addr;
+	std::string user_socket_port;
+	std::string user_xmlrpc_addr;
+	std::string user_xmlrpc_port;
 
 	bool use_compression;
 	int  encoder;
+	std::string encoder_string;
+
 	int  selected_mode;
 
 	int blocksize;
@@ -71,8 +77,11 @@ struct status {
 
 	bool clear_tosend_on_tx_blocks;
 
+	bool enable_delete_warning;
+
 	bool enable_tx_unproto;
-	
+	bool enable_unproto_markers;
+
 	bool auto_load_queue;
 	bool load_from_tx_folder;
 	string auto_load_queue_path;

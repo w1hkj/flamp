@@ -3,6 +3,21 @@
 //
 // copyright 2012, W1HKJ
 //
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // xmlrpc interface to fldigi
 //
 // fetches current list of modem types from fldigi
@@ -45,7 +60,6 @@ static const char* modem_set_by_name	     = "modem.set_by_name";
 static const char* text_clear_tx		     = "text.clear_tx";
 static const char* text_add_tx			     = "text.add_tx";
 static const char* text_clear_rx		     = "text.clear_rx";
-static const char* text_get_rx			     = "rx.get_data";
 static const char* main_get_trx_state	     = "main.get_trx_state";
 static const char* main_tx				     = "main.tx";
 static const char* main_tune			     = "main.tune";
@@ -56,6 +70,9 @@ static const char* main_set_rsid             = "main.set_rsid";
 static const char* main_get_char_rates       = "main.get_char_rates";
 static const char* main_get_tx_timing        = "main.get_tx_timing";
 static const char* main_get_char_timing      = "main.get_char_timing";
+static const char* io_in_use                 = "io.in_use";
+static const char* io_enable_arq             = "io.enable_arq";
+static const char* io_enable_kiss            = "io.enable_kiss";
 
 static XmlRpc::XmlRpcClient* client;
 
@@ -142,13 +159,13 @@ void set_xmlrpc_timeout_default(void)
 // --------------------------------------------------------------------
 // send functions
 // --------------------------------------------------------------------
-extern std::string g_modem;
+//extern std::string g_modem;
 
 void send_new_modem(std::string modem)
 {
 	pthread_mutex_lock(&mutex_xmlrpc);
 
-	g_modem.assign(modem);
+	//g_modem.assign(modem);
 
 	try {
 		XmlRpcValue mode(modem), res;
@@ -300,7 +317,7 @@ std::string get_char_timing(int character)
 	string data;
 	data.assign(buff);
 
-    XmlRpcValue xmlData((void *) data.c_str(), data.size());
+	XmlRpcValue xmlData((void *) data.c_str(), data.size());
 
 	try {
 		execute(main_get_char_timing, xmlData, status);
@@ -316,9 +333,54 @@ std::string get_char_timing(int character)
 	return response;
 }
 
+void enable_arq(void)
+{
+	pthread_mutex_lock(&mutex_xmlrpc);
+	try {
+		XmlRpcValue res;
+		execute(io_enable_arq, 0, res);
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+	}
+	update_interval = XMLRPC_UPDATE_AFTER_WRITE;
+	pthread_mutex_unlock(&mutex_xmlrpc);
+}
+
+void enable_kiss(void)
+{
+	pthread_mutex_lock(&mutex_xmlrpc);
+	try {
+		XmlRpcValue res;
+		execute(io_enable_kiss, 0, res);
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+	}
+	update_interval = XMLRPC_UPDATE_AFTER_WRITE;
+	pthread_mutex_unlock(&mutex_xmlrpc);
+}
+
 // --------------------------------------------------------------------
 // receive functions
 // --------------------------------------------------------------------
+
+string get_io_mode(void)
+{
+	XmlRpcValue status;
+	XmlRpcValue query;
+	static string response;
+
+	pthread_mutex_lock(&mutex_xmlrpc);
+	try {
+		execute(io_in_use, query, status);
+		string resp = status;
+		response = resp;
+	} catch (const XmlRpc::XmlRpcException& e) {
+		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+	}
+	pthread_mutex_unlock(&mutex_xmlrpc);
+
+	return response;
+}
 
 static void set_combo(void *str)
 {
@@ -330,7 +392,7 @@ static void set_combo(void *str)
 		cbo_modes->value(s.c_str());
 		progStatus.selected_mode = cbo_modes->index();
 		g_modem.assign(cbo_modes->value());
-		estimate();
+		estimate(0, false);
 	}
 }
 
@@ -390,9 +452,6 @@ string get_char_rates()
 
 	return response;
 }
-
-
-
 
 static void get_fldigi_modem()
 {

@@ -643,15 +643,15 @@ int Fl_Text_Editor_mod::handle(int event) {
 			/* fall through */
 		case FL_DND_DRAG: // show a temporary insertion cursor
 			insert_position(xy_to_position(Fl::event_x(), Fl::event_y(), CURSOR_POS));
-			return 1;      
+			return 1;
 		case FL_DND_LEAVE: // restore original cursor
 			insert_position(dndCursorPos);
-			return 1;      
+			return 1;
 		case FL_DND_RELEASE: // keep insertion cursor and wait for the FL_PASTE event
 			buffer()->unselect(); // FL_PASTE must not destroy current selection!
 			return 1;
 	}
-	
+
 	return Fl_Text_Display_mod::handle(event);
 }
 

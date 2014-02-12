@@ -7,20 +7,21 @@
 // Copyright (C) 2008-2009
 //              Dave Freese, W1HKJ
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
-// fldigi is free software; you can redistribute it and/or modify
+// This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// fldigi is distributed in the hope that it will be useful,
+// This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // ----------------------------------------------------------------------------
 
 #include <config.h>
@@ -571,10 +572,10 @@ int FTextView::handle(int event)
 
 void FTextView::handle_context_menu(void)
 {
-	set_active(&menu[VIEW_MENU_COPY], tbuf->selected());
-	set_active(&menu[VIEW_MENU_CLEAR], tbuf->length());
-	set_active(&menu[VIEW_MENU_SELECT_ALL], tbuf->length());
-	set_active(&menu[VIEW_MENU_SAVE], tbuf->length());
+	::set_active(&menu[VIEW_MENU_COPY], tbuf->selected());
+	::set_active(&menu[VIEW_MENU_CLEAR], tbuf->length());
+	::set_active(&menu[VIEW_MENU_SELECT_ALL], tbuf->length());
+	::set_active(&menu[VIEW_MENU_SAVE], tbuf->length());
 	if (wrap)
 		menu[VIEW_MENU_WRAP].set();
 	else
@@ -846,9 +847,9 @@ int FTextEdit::handle_dnd_drop(void)
 void FTextEdit::handle_context_menu(void)
 {
 	bool selected = tbuf->selected();
-	set_active(&menu[EDIT_MENU_CUT], selected);
-	set_active(&menu[EDIT_MENU_COPY], selected);
-	set_active(&menu[EDIT_MENU_CLEAR], tbuf->length());
+	::set_active(&menu[EDIT_MENU_CUT], selected);
+	::set_active(&menu[EDIT_MENU_COPY], selected);
+	::set_active(&menu[EDIT_MENU_CLEAR], tbuf->length());
 
 	if (wrap)
 		menu[EDIT_MENU_WRAP].set();

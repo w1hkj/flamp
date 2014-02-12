@@ -467,13 +467,13 @@ int Fl_Text_Editor_mod::handle(int event) {
 			set_changed();
 			if (when()&FL_WHEN_CHANGED) do_callback();
 			return 1;
-			
+
 		case FL_ENTER:
 			// MRS: WIN32 only?  Need to test!
 			//    case FL_MOVE:
 			show_cursor(mCursorOn);
 			return 1;
-			
+
 		case FL_PUSH:
 			if (Fl::event_button() == 2) {
 				// don't let the text_display see this event
@@ -487,7 +487,7 @@ int Fl_Text_Editor_mod::handle(int event) {
 			}
 			break;
 	}
-	
+
 	return Fl_Text_Display_mod::handle(event);
 }
 

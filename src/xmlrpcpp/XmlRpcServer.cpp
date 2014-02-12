@@ -31,110 +31,110 @@ const std::string XmlRpcServer::FAULTSTRING = "faultString";
 
 XmlRpcServer::XmlRpcServer()
 {
-  _introspectionEnabled = false;
-  _listMethods = 0;
-  _methodHelp = 0;
+	_introspectionEnabled = false;
+	_listMethods = 0;
+	_methodHelp = 0;
 }
 
 
 XmlRpcServer::~XmlRpcServer()
 {
-  this->shutdown();
-  _methods.clear();
-  delete _listMethods;
-  delete _methodHelp;
+	this->shutdown();
+	_methods.clear();
+	delete _listMethods;
+	delete _methodHelp;
 }
 
 
 // Add a command to the RPC server
-void 
+void
 XmlRpcServer::addMethod(XmlRpcServerMethod* method)
 {
-  _methods[method->name()] = method;
+	_methods[method->name()] = method;
 }
 
 // Remove a command from the RPC server
-void 
+void
 XmlRpcServer::removeMethod(XmlRpcServerMethod* method)
 {
-  MethodMap::iterator i = _methods.find(method->name());
-  if (i != _methods.end())
-    _methods.erase(i);
+	MethodMap::iterator i = _methods.find(method->name());
+	if (i != _methods.end())
+		_methods.erase(i);
 }
 
 // Remove a command from the RPC server by name
-void 
+void
 XmlRpcServer::removeMethod(const std::string& methodName)
 {
-  MethodMap::iterator i = _methods.find(methodName);
-  if (i != _methods.end())
-    _methods.erase(i);
+	MethodMap::iterator i = _methods.find(methodName);
+	if (i != _methods.end())
+		_methods.erase(i);
 }
 
 
 // Look up a method by name
-XmlRpcServerMethod* 
+XmlRpcServerMethod*
 XmlRpcServer::findMethod(const std::string& name) const
 {
-  MethodMap::const_iterator i = _methods.find(name);
-  if (i == _methods.end())
-    return 0;
-  return i->second;
+	MethodMap::const_iterator i = _methods.find(name);
+	if (i == _methods.end())
+		return 0;
+	return i->second;
 }
 
 
 // Create a socket, bind to the specified port, and
 // set it in listen mode to make it available for clients.
-bool 
+bool
 XmlRpcServer::bindAndListen(int port, int backlog /*= 5*/)
 {
-  XmlRpcSocket::Socket fd = XmlRpcSocket::socket();
-  if (XmlRpcSocket::Invalid == fd)
-  {
-    XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not create socket (%s).", XmlRpcSocket::getErrorMsg().c_str());
-    return false;
-  }
+	XmlRpcSocket::Socket fd = XmlRpcSocket::socket();
+	if (XmlRpcSocket::Invalid == fd)
+	{
+		XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not create socket (%s).", XmlRpcSocket::getErrorMsg().c_str());
+		return false;
+	}
 
-  this->setfd(fd);
+	this->setfd(fd);
 
-  // Don't block on reads/writes
-  if ( ! XmlRpcSocket::setNonBlocking(fd))
-  {
-    this->close();
-    XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
-    return false;
-  }
+	// Don't block on reads/writes
+	if ( ! XmlRpcSocket::setNonBlocking(fd))
+	{
+		this->close();
+		XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
+		return false;
+	}
 
-  // Allow this port to be re-bound immediately so server re-starts are not delayed
-  if ( ! XmlRpcSocket::setReuseAddr(fd))
-  {
-    this->close();
-    XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set SO_REUSEADDR socket option (%s).", XmlRpcSocket::getErrorMsg().c_str());
-    return false;
-  }
+	// Allow this port to be re-bound immediately so server re-starts are not delayed
+	if ( ! XmlRpcSocket::setReuseAddr(fd))
+	{
+		this->close();
+		XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set SO_REUSEADDR socket option (%s).", XmlRpcSocket::getErrorMsg().c_str());
+		return false;
+	}
 
-  // Bind to the specified port on the default interface
-  if ( ! XmlRpcSocket::bind(fd, port))
-  {
-    this->close();
-    XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not bind to specified port (%s).", XmlRpcSocket::getErrorMsg().c_str());
-    return false;
-  }
+	// Bind to the specified port on the default interface
+	if ( ! XmlRpcSocket::bind(fd, port))
+	{
+		this->close();
+		XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not bind to specified port (%s).", XmlRpcSocket::getErrorMsg().c_str());
+		return false;
+	}
 
-  // Set in listening mode
-  if ( ! XmlRpcSocket::listen(fd, backlog))
-  {
-    this->close();
-    XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set socket in listening mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
-    return false;
-  }
+	// Set in listening mode
+	if ( ! XmlRpcSocket::listen(fd, backlog))
+	{
+		this->close();
+		XmlRpcUtil::error("XmlRpcServer::bindAndListen: Could not set socket in listening mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
+		return false;
+	}
 
-  XmlRpcUtil::log(2, "XmlRpcServer::bindAndListen: server listening on port %d fd %d", port, fd);
+	XmlRpcUtil::log(2, "XmlRpcServer::bindAndListen: server listening on port %d fd %d", port, fd);
 
-  // Notify the dispatcher to listen on this source when we are in work()
-  _disp.addSource(this, XmlRpcDispatch::ReadableEvent);
+	// Notify the dispatcher to listen on this source when we are in work()
+	_disp.addSource(this, XmlRpcDispatch::ReadableEvent);
 
-  return true;
+	return true;
 }
 
 
@@ -142,17 +142,17 @@ XmlRpcServer::bindAndListen(int port, int backlog /*= 5*/)
 int
 XmlRpcServer::getPort(void) const
 {
-  return XmlRpcSocket::getPort(getfd());
+	return XmlRpcSocket::getPort(getfd());
 }
 
 
 
 // Process client requests for the specified time (in seconds)
-void 
+void
 XmlRpcServer::work(double timeSeconds)
 {
-  XmlRpcUtil::log(2, "XmlRpcServer::work: waiting for a connection");
-  _disp.work(timeSeconds);
+	XmlRpcUtil::log(2, "XmlRpcServer::work: waiting for a connection");
+	_disp.work(timeSeconds);
 }
 
 
@@ -162,8 +162,8 @@ XmlRpcServer::work(double timeSeconds)
 unsigned
 XmlRpcServer::handleEvent(unsigned mask)
 {
-  acceptConnection();
-  return XmlRpcDispatch::ReadableEvent;		// Continue to monitor this fd
+	acceptConnection();
+	return XmlRpcDispatch::ReadableEvent;		// Continue to monitor this fd
 }
 
 
@@ -172,24 +172,24 @@ XmlRpcServer::handleEvent(unsigned mask)
 void
 XmlRpcServer::acceptConnection()
 {
-  XmlRpcSocket::Socket s = XmlRpcSocket::accept(this->getfd());
-  XmlRpcUtil::log(2, "XmlRpcServer::acceptConnection: socket %d", s);
-  if (XmlRpcSocket::Invalid == s)
-  {
-    //this->close();
-    XmlRpcUtil::error("XmlRpcServer::acceptConnection: Could not accept connection (%s).", XmlRpcSocket::getErrorMsg().c_str());
-  }
-  else if ( ! XmlRpcSocket::setNonBlocking(s))
-  {
-    XmlRpcSocket::close(s);
-    XmlRpcUtil::error("XmlRpcServer::acceptConnection: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
-  }
-  else  // Notify the dispatcher to listen for input on this source when we are in work()
-  {
-    XmlRpcUtil::log(2, "XmlRpcServer::acceptConnection: creating a connection");
-    XmlRpcServerConnection* c = this->createConnection(s);
-    if (c) this->dispatchConnection(c);
-  }
+	XmlRpcSocket::Socket s = XmlRpcSocket::accept(this->getfd());
+	XmlRpcUtil::log(2, "XmlRpcServer::acceptConnection: socket %d", s);
+	if (XmlRpcSocket::Invalid == s)
+	{
+		//this->close();
+		XmlRpcUtil::error("XmlRpcServer::acceptConnection: Could not accept connection (%s).", XmlRpcSocket::getErrorMsg().c_str());
+	}
+	else if ( ! XmlRpcSocket::setNonBlocking(s))
+	{
+		XmlRpcSocket::close(s);
+		XmlRpcUtil::error("XmlRpcServer::acceptConnection: Could not set socket to non-blocking input mode (%s).", XmlRpcSocket::getErrorMsg().c_str());
+	}
+	else  // Notify the dispatcher to listen for input on this source when we are in work()
+	{
+		XmlRpcUtil::log(2, "XmlRpcServer::acceptConnection: creating a connection");
+		XmlRpcServerConnection* c = this->createConnection(s);
+		if (c) this->dispatchConnection(c);
+	}
 }
 
 
@@ -197,8 +197,8 @@ XmlRpcServer::acceptConnection()
 XmlRpcServerConnection*
 XmlRpcServer::createConnection(XmlRpcSocket::Socket s)
 {
-  // Specify that the connection object be deleted when it is closed
-  return new XmlRpcServerConnection(s, this, true);
+	// Specify that the connection object be deleted when it is closed
+	return new XmlRpcServerConnection(s, this, true);
 }
 
 
@@ -206,32 +206,32 @@ XmlRpcServer::createConnection(XmlRpcSocket::Socket s)
 void
 XmlRpcServer::dispatchConnection(XmlRpcServerConnection* sc)
 {
-  _disp.addSource(sc, XmlRpcDispatch::ReadableEvent);
+	_disp.addSource(sc, XmlRpcDispatch::ReadableEvent);
 }
 
 
 // Remove a connection. Called by the connection when it closes down.
-void 
+void
 XmlRpcServer::removeConnection(XmlRpcServerConnection* sc)
 {
-  _disp.removeSource(sc);
+	_disp.removeSource(sc);
 }
 
 
 // Stop processing client requests
-void 
+void
 XmlRpcServer::exit()
 {
-  _disp.exit();
+	_disp.exit();
 }
 
 
 // Close the server socket file descriptor and stop monitoring connections
-void 
+void
 XmlRpcServer::shutdown()
 {
-  // This closes and destroys all connections as well as closing this socket
-  _disp.clear();
+	// This closes and destroys all connections as well as closing this socket
+	_disp.clear();
 }
 
 
@@ -245,14 +245,14 @@ static const std::string MULTICALL("system.multicall");
 class ListMethods : public XmlRpcServerMethod
 {
 public:
-  ListMethods(XmlRpcServer* s) : XmlRpcServerMethod(LIST_METHODS, s) {}
+	ListMethods(XmlRpcServer* s) : XmlRpcServerMethod(LIST_METHODS, s) {}
 
-  void execute(XmlRpcValue& params, XmlRpcValue& result)
-  {
-    _server->listMethods(result);
-  }
+	void execute(XmlRpcValue& params, XmlRpcValue& result)
+	{
+		_server->listMethods(result);
+	}
 
-  std::string help() { return std::string("List all methods available on a server as an array of strings"); }
+	std::string help() { return std::string("List all methods available on a server as an array of strings"); }
 };
 
 
@@ -260,62 +260,62 @@ public:
 class MethodHelp : public XmlRpcServerMethod
 {
 public:
-  MethodHelp(XmlRpcServer* s) : XmlRpcServerMethod(METHOD_HELP, s) {}
+	MethodHelp(XmlRpcServer* s) : XmlRpcServerMethod(METHOD_HELP, s) {}
 
-  void execute(XmlRpcValue& params, XmlRpcValue& result)
-  {
-    if (params[0].getType() != XmlRpcValue::TypeString)
-      throw XmlRpcException(METHOD_HELP + ": Invalid argument type");
+	void execute(XmlRpcValue& params, XmlRpcValue& result)
+	{
+		if (params[0].getType() != XmlRpcValue::TypeString)
+			throw XmlRpcException(METHOD_HELP + ": Invalid argument type");
 
-    XmlRpcServerMethod* m = _server->findMethod(params[0]);
-    if ( ! m)
-      throw XmlRpcException(METHOD_HELP + ": Unknown method name");
+		XmlRpcServerMethod* m = _server->findMethod(params[0]);
+		if ( ! m)
+			throw XmlRpcException(METHOD_HELP + ": Unknown method name");
 
-    result = m->help();
-  }
+		result = m->help();
+	}
 
-  std::string help() { return std::string("Retrieve the help string for a named method"); }
+	std::string help() { return std::string("Retrieve the help string for a named method"); }
 };
 
-    
+
 // Specify whether introspection is enabled or not. Default is enabled.
-void 
+void
 XmlRpcServer::enableIntrospection(bool enabled)
 {
-  if (_introspectionEnabled == enabled)
-    return;
+	if (_introspectionEnabled == enabled)
+		return;
 
-  _introspectionEnabled = enabled;
+	_introspectionEnabled = enabled;
 
-  if (enabled)
-  {
-    if ( ! _listMethods)
-    {
-      _listMethods = new ListMethods(this);
-      _methodHelp = new MethodHelp(this);
-    } else {
-      addMethod(_listMethods);
-      addMethod(_methodHelp);
-    }
-  }
-  else
-  {
-    removeMethod(LIST_METHODS);
-    removeMethod(METHOD_HELP);
-  }
+	if (enabled)
+	{
+		if ( ! _listMethods)
+		{
+			_listMethods = new ListMethods(this);
+			_methodHelp = new MethodHelp(this);
+		} else {
+			addMethod(_listMethods);
+			addMethod(_methodHelp);
+		}
+	}
+	else
+	{
+		removeMethod(LIST_METHODS);
+		removeMethod(METHOD_HELP);
+	}
 }
 
 
 void
 XmlRpcServer::listMethods(XmlRpcValue& result)
 {
-  int i = 0;
-  result.setSize(int(_methods.size())+1);
-  for (MethodMap::iterator it=_methods.begin(); it != _methods.end(); ++it)
-    result[i++] = it->first;
+	int i = 0;
+	result.setSize(int(_methods.size())+1);
+	for (MethodMap::iterator it=_methods.begin(); it != _methods.end(); ++it)
+		result[i++] = it->first;
 
-  // Multicall support is built into XmlRpcServer::executeRequest
-  result[i] = MULTICALL;
+	// Multicall support is built into XmlRpcServer::executeRequest
+	result[i] = MULTICALL;
 }
 
 
@@ -324,127 +324,127 @@ XmlRpcServer::listMethods(XmlRpcValue& result)
 std::string
 XmlRpcServer::executeRequest(std::string const& request)
 {
-  XmlRpcValue params, resultValue;
-  std::string methodName = parseRequest(request, params);
-  XmlRpcUtil::log(2, "XmlRpcServer::executeRequest: server calling method '%s'", 
-                    methodName.c_str());
+	XmlRpcValue params, resultValue;
+	std::string methodName = parseRequest(request, params);
+	XmlRpcUtil::log(2, "XmlRpcServer::executeRequest: server calling method '%s'",
+					methodName.c_str());
 
-  std::string response;
-  try {
+	std::string response;
+	try {
 
-    if ( ! executeMethod(methodName, params, resultValue) &&
-         ! executeMulticall(methodName, params, resultValue))
-      response = generateFaultResponse(methodName + ": unknown method name");
-    else
-      response = generateResponse(resultValue.toXml());
+		if ( ! executeMethod(methodName, params, resultValue) &&
+			! executeMulticall(methodName, params, resultValue))
+			response = generateFaultResponse(methodName + ": unknown method name");
+		else
+			response = generateResponse(resultValue.toXml());
 
-  } catch (const XmlRpcException& fault) {
-    XmlRpcUtil::log(2, "XmlRpcServer::executeRequest: fault %s.",
-                    fault.getMessage().c_str()); 
-    response = generateFaultResponse(fault.getMessage(), fault.getCode());
-  }
+	} catch (const XmlRpcException& fault) {
+		XmlRpcUtil::log(2, "XmlRpcServer::executeRequest: fault %s.",
+						fault.getMessage().c_str());
+		response = generateFaultResponse(fault.getMessage(), fault.getCode());
+	}
 
-  return response;
+	return response;
 }
 
 // Parse the method name and the argument values from the request.
 std::string
 XmlRpcServer::parseRequest(std::string const& request, XmlRpcValue& params)
 {
-  std::string methodName;
-  int offset = 0;   // Number of chars parsed from the request
-  bool emptyTag;
+	std::string methodName;
+	int offset = 0;   // Number of chars parsed from the request
+	bool emptyTag;
 
-  if (XmlRpcUtil::parseTag(METHODNAME_TAG, request, &offset, methodName) &&
-      XmlRpcUtil::findTag(PARAMS_TAG, request, &offset, &emptyTag) &&
-      ! emptyTag)
-  {
-    int nArgs = 0;
-    while (XmlRpcUtil::nextTagIs(PARAM_TAG, request, &offset, &emptyTag))
-    {
-      if (emptyTag)
-      {
-        params[nArgs++] = XmlRpcValue("");
-      }
-      else
-      {
-        params[nArgs++] = XmlRpcValue(request, &offset);
-        (void) XmlRpcUtil::nextTagIsEnd(PARAM_TAG, request, &offset);
-      }
-    }
+	if (XmlRpcUtil::parseTag(METHODNAME_TAG, request, &offset, methodName) &&
+		XmlRpcUtil::findTag(PARAMS_TAG, request, &offset, &emptyTag) &&
+		! emptyTag)
+	{
+		int nArgs = 0;
+		while (XmlRpcUtil::nextTagIs(PARAM_TAG, request, &offset, &emptyTag))
+		{
+			if (emptyTag)
+			{
+				params[nArgs++] = XmlRpcValue("");
+			}
+			else
+			{
+				params[nArgs++] = XmlRpcValue(request, &offset);
+				(void) XmlRpcUtil::nextTagIsEnd(PARAM_TAG, request, &offset);
+			}
+		}
 
-    (void) XmlRpcUtil::nextTagIsEnd(PARAMS_TAG, request, &offset);
-  }
+		(void) XmlRpcUtil::nextTagIsEnd(PARAMS_TAG, request, &offset);
+	}
 
-  return methodName;
+	return methodName;
 }
 
 // Execute a named method with the specified params.
 bool
-XmlRpcServer::executeMethod(const std::string& methodName, 
-                            XmlRpcValue& params, 
-                            XmlRpcValue& result)
+XmlRpcServer::executeMethod(const std::string& methodName,
+							XmlRpcValue& params,
+							XmlRpcValue& result)
 {
-  XmlRpcServerMethod* method = findMethod(methodName);
+	XmlRpcServerMethod* method = findMethod(methodName);
 
-  if ( ! method) return false;
+	if ( ! method) return false;
 
-  method->execute(params, result);
+	method->execute(params, result);
 
-  // Ensure a valid result value
-  if ( ! result.valid())
-      result = std::string();
+	// Ensure a valid result value
+	if ( ! result.valid())
+		result = std::string();
 
-  return true;
+	return true;
 }
 
 // Execute multiple calls and return the results in an array.
 bool
-XmlRpcServer::executeMulticall(const std::string& methodName, 
-                               XmlRpcValue& params, 
-                               XmlRpcValue& result)
+XmlRpcServer::executeMulticall(const std::string& methodName,
+							   XmlRpcValue& params,
+							   XmlRpcValue& result)
 {
-  if (methodName != MULTICALL) return false;
+	if (methodName != MULTICALL) return false;
 
-  // There ought to be 1 parameter, an array of structs
-  if (params.size() != 1 || params[0].getType() != XmlRpcValue::TypeArray)
-    throw XmlRpcException(MULTICALL + ": Invalid argument (expected an array)");
+	// There ought to be 1 parameter, an array of structs
+	if (params.size() != 1 || params[0].getType() != XmlRpcValue::TypeArray)
+		throw XmlRpcException(MULTICALL + ": Invalid argument (expected an array)");
 
-  int nc = params[0].size();
-  result.setSize(nc);
+	int nc = params[0].size();
+	result.setSize(nc);
 
-  for (int i=0; i<nc; ++i) {
+	for (int i=0; i<nc; ++i) {
 
-    if ( ! params[0][i].hasMember(METHODNAME) ||
-         ! params[0][i].hasMember(PARAMS)) {
-      result[i][FAULTCODE] = -1;
-      result[i][FAULTSTRING] = MULTICALL +
-              ": Invalid argument (expected a struct with members methodName and params)";
-      continue;
-    }
+		if ( ! params[0][i].hasMember(METHODNAME) ||
+			! params[0][i].hasMember(PARAMS)) {
+			result[i][FAULTCODE] = -1;
+			result[i][FAULTSTRING] = MULTICALL +
+			": Invalid argument (expected a struct with members methodName and params)";
+			continue;
+		}
 
-    const std::string& methodName = params[0][i][METHODNAME];
-    XmlRpcValue& methodParams = params[0][i][PARAMS];
+		const std::string& methodName = params[0][i][METHODNAME];
+		XmlRpcValue& methodParams = params[0][i][PARAMS];
 
-    XmlRpcValue resultValue;
-    resultValue.setSize(1);
-    try {
-      if ( ! executeMethod(methodName, methodParams, resultValue[0]) &&
-           ! executeMulticall(methodName, params, resultValue[0]))
-      {
-        result[i][FAULTCODE] = -1;
-        result[i][FAULTSTRING] = methodName + ": unknown method name";
-      }
-      else
-        result[i] = resultValue;
+		XmlRpcValue resultValue;
+		resultValue.setSize(1);
+		try {
+			if ( ! executeMethod(methodName, methodParams, resultValue[0]) &&
+				! executeMulticall(methodName, params, resultValue[0]))
+			{
+				result[i][FAULTCODE] = -1;
+				result[i][FAULTSTRING] = methodName + ": unknown method name";
+			}
+			else
+				result[i] = resultValue;
 
-    } catch (const XmlRpcException& fault) {
-        result[i][FAULTCODE] = fault.getCode();
-        result[i][FAULTSTRING] = fault.getMessage();
-    }
-  }
+		} catch (const XmlRpcException& fault) {
+			result[i][FAULTCODE] = fault.getCode();
+			result[i][FAULTSTRING] = fault.getMessage();
+		}
+	}
 
-  return true;
+	return true;
 }
 
 
@@ -452,18 +452,18 @@ XmlRpcServer::executeMulticall(const std::string& methodName,
 std::string
 XmlRpcServer::generateResponse(std::string const& resultXml)
 {
-  const char RESPONSE_1[] = 
-    "<?xml version=\"1.0\"?>\r\n"
-    "<methodResponse><params><param>\r\n\t";
-  const char RESPONSE_2[] =
-    "\r\n</param></params></methodResponse>\r\n";
+	const char RESPONSE_1[] =
+	"<?xml version=\"1.0\"?>\r\n"
+	"<methodResponse><params><param>\r\n\t";
+	const char RESPONSE_2[] =
+	"\r\n</param></params></methodResponse>\r\n";
 
-  std::string body = RESPONSE_1 + resultXml + RESPONSE_2;
-  std::string header = generateHeader(body);
-  std::string response = header + body;
+	std::string body = RESPONSE_1 + resultXml + RESPONSE_2;
+	std::string header = generateHeader(body);
+	std::string response = header + body;
 
-  XmlRpcUtil::log(5, "XmlRpcServer::generateResponse:\n%s\n", response.c_str());
-  return response;
+	XmlRpcUtil::log(5, "XmlRpcServer::generateResponse:\n%s\n", response.c_str());
+	return response;
 }
 
 
@@ -471,36 +471,36 @@ XmlRpcServer::generateResponse(std::string const& resultXml)
 std::string
 XmlRpcServer::generateHeader(std::string const& body)
 {
-  std::string header = 
-    "HTTP/1.1 200 OK\r\n"
-    "Server: ";
-  header += XMLRPC_VERSION;
-  header += "\r\n"
-    "Content-Type: text/xml\r\n"
-    "Content-length: ";
+	std::string header =
+	"HTTP/1.1 200 OK\r\n"
+	"Server: ";
+	header += XMLRPC_VERSION;
+	header += "\r\n"
+	"Content-Type: text/xml\r\n"
+	"Content-length: ";
 
-  char buffLen[40];
-  sprintf(buffLen,"%ld\r\n\r\n", (long) body.size());
+	char buffLen[40];
+	sprintf(buffLen,"%ld\r\n\r\n", (long) body.size());
 
-  return header + buffLen;
+	return header + buffLen;
 }
 
 
 std::string
 XmlRpcServer::generateFaultResponse(std::string const& errorMsg, int errorCode)
 {
-  const char RESPONSE_1[] = 
-    "<?xml version=\"1.0\"?>\r\n"
-    "<methodResponse><fault>\r\n\t";
-  const char RESPONSE_2[] =
-    "\r\n</fault></methodResponse>\r\n";
+	const char RESPONSE_1[] =
+	"<?xml version=\"1.0\"?>\r\n"
+	"<methodResponse><fault>\r\n\t";
+	const char RESPONSE_2[] =
+	"\r\n</fault></methodResponse>\r\n";
 
-  XmlRpcValue faultStruct;
-  faultStruct[FAULTCODE] = errorCode;
-  faultStruct[FAULTSTRING] = errorMsg;
-  std::string body = RESPONSE_1 + faultStruct.toXml() + RESPONSE_2;
-  std::string header = generateHeader(body);
+	XmlRpcValue faultStruct;
+	faultStruct[FAULTCODE] = errorCode;
+	faultStruct[FAULTSTRING] = errorMsg;
+	std::string body = RESPONSE_1 + faultStruct.toXml() + RESPONSE_2;
+	std::string header = generateHeader(body);
 
-  return header + body;
+	return header + body;
 }
 

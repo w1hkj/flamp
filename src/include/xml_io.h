@@ -1,3 +1,26 @@
+// =====================================================================
+//
+// xml_io.h
+//
+// Author: Dave Freese, W1HKJ
+// Copyright: 2010 to 2014
+//
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+
 #ifndef XML_IO_H
 #define XML_IO_H
 
@@ -23,6 +46,9 @@ extern void send_rsid(void);
 extern void send_abort(void);
 extern void send_tune(void);
 extern void set_rsid(void);
+extern void enable_kiss(void);
+extern void enable_arq(void);
+extern std::string get_io_mode(void);
 
 extern void *xmlrpc_loop(void *d);
 

@@ -46,11 +46,11 @@ extern "C" {
 
 #if SNPRINTF_RETURNS_BOGUS
 #define snprintf git_snprintf
-extern int git_snprintf(char *str, size_t maxsize,
-			const char *format, ...);
+	extern int git_snprintf(char *str, size_t maxsize,
+							const char *format, ...);
 #define vsnprintf git_vsnprintf
-extern int git_vsnprintf(char *str, size_t maxsize,
-			 const char *format, va_list ap);
+	extern int git_vsnprintf(char *str, size_t maxsize,
+							 const char *format, va_list ap);
 #endif
 
 #ifdef __cplusplus

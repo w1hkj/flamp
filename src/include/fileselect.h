@@ -3,19 +3,18 @@
 
 #include <config.h>
 
-//#ifdef __WIN32__
-//#  define FSEL_THREAD 1
-//#endif
-//#define FSEL_THREAD 0
-
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3
-	class Fl_Native_File_Chooser;
+#ifdef __APPLE__
+#undef NATIVE_CHOOSER
 #else
-	#ifdef __WIN_32
-		class Fl_Native_File_Chooser;
-	#else
-		#include <FL/Fl_Native_File_Chooser.H>
-	#endif
+#define NATIVE_CHOOSER 1
+#endif
+
+#ifdef NATIVE_CHOOSER
+class Fl_Native_File_Chooser;
+#include <FL/Fl_Native_File_Chooser.H>
+#else
+class Fl_File_Chooser;
+#include <FL/Fl_File_Chooser.H>
 #endif
 
 namespace FSEL {

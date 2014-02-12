@@ -6,16 +6,20 @@
 //	Dave Freese, W1HKJ Copyright (C) 2010
 //  Robert Stiles, KK5VD Copyright (C) 2013
 //
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is
-// copyright under the GNU General Public License.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc.
-// 59 Temple Place, Suite 330
-// Boston, MA  02111-1307 USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // =====================================================================
 
@@ -51,6 +55,7 @@ status progStatus = {
 
 	true,			// use_compression
 	BASE256,		// encoder
+	"base256",      // encoder string name
 	1,				// selected_mode
 	64,				// blocksize
 	1,				// repeatNN
@@ -77,7 +82,10 @@ status progStatus = {
 
 	false,			// bool clear_tosend_on_tx_blocks;
 
+	false,          // bool enable_delete_warning;
+
 	false,          // bool enable_tx_unproto
+	false,          // bool enable_unproto_markers
 
 	false,          // bool auto_load_queue
 
@@ -100,6 +108,8 @@ status progStatus = {
 	1,              // int hamcast_mode_selection_4
 
 };
+
+extern std::string selected_encoder_string;
 
 void status::saveLastState()
 {
@@ -131,6 +141,7 @@ void status::saveLastState()
 	FLAMPpref.set("selected_mode", selected_mode);
 	FLAMPpref.set("compression", use_compression);
 	FLAMPpref.set("encoder", encoder);
+	FLAMPpref.set("encoder_string", encoder_string.c_str());
 	FLAMPpref.set("sync_mode_flamp_fldigi", sync_mode_flamp_fldigi);
 	FLAMPpref.set("sync_mode_fldigi_flamp", sync_mode_fldigi_flamp);
 	FLAMPpref.set("fldigi_xmt_mode_change", fldigi_xmt_mode_change);
@@ -153,7 +164,10 @@ void status::saveLastState()
 
 	FLAMPpref.set("clear_tosend_on_tx_blocks", clear_tosend_on_tx_blocks);
 
+	FLAMPpref.set("enable_delete_warning", enable_delete_warning);
+
 	FLAMPpref.set("enable_tx_unproto", enable_tx_unproto);
+	FLAMPpref.set("enable_unproto_markers", enable_unproto_markers);
 
 	FLAMPpref.set("auto_load_queue", auto_load_queue);
 	FLAMPpref.set("load_from_tx_folder", load_from_tx_folder);
@@ -223,6 +237,8 @@ void status::loadLastState()
 		fldigi_xmt_mode_change = i;
 
 		FLAMPpref.get("encoder", encoder, encoder);
+		FLAMPpref.get("encoder_string", defbuffer, encoder_string.c_str());
+		encoder_string = defbuffer; free(defbuffer);
 
 		FLAMPpref.get("repeat_every", repeat_every, repeat_every);
 		FLAMPpref.get("repeat_at_times", i, repeat_at_times);
@@ -258,8 +274,14 @@ void status::loadLastState()
 		FLAMPpref.get("clear_tosend_on_tx_blocks", i, clear_tosend_on_tx_blocks);
 		clear_tosend_on_tx_blocks = (bool) i;
 
+		FLAMPpref.get("enable_delete_warning", i, enable_delete_warning);
+		enable_delete_warning = (bool) i;
+
 		FLAMPpref.get("enable_tx_unproto", i, enable_tx_unproto);
 		enable_tx_unproto = (bool) i;
+
+		FLAMPpref.get("enable_unproto_markers", i, enable_unproto_markers);
+		enable_unproto_markers = (bool) i;
 
 		FLAMPpref.get("auto_load_queue", i, auto_load_queue);
 		auto_load_queue = (bool) i;
@@ -303,7 +325,6 @@ void status::loadLastState()
 			auto_load_queue = false;
 		
 		if(enable_tx_unproto) {
-			use_txrx_interval = false;
 			use_header_modem = false;
 		}
 	}

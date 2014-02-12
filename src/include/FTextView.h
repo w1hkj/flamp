@@ -4,20 +4,21 @@
 // Copyright (C) 2007-2009
 //              Stelios Bounanos, M0GLD
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
-// fldigi is free software; you can redistribute it and/or modify
+// This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// fldigi is distributed in the hope that it will be useful,
+// This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // ----------------------------------------------------------------------------
 
 #ifndef FTextView_H_
@@ -42,8 +43,8 @@ public:
 	// CLICK_START: same as first clickable style
 	// NATTR: number of styles (last style + 1)
 	enum TEXT_ATTR { RECV, XMIT, CTRL, SKIP, ALTR,
-			 CLICK_START, QSY = CLICK_START, /* FOO, BAR, ..., */
-			 NATTR };
+		CLICK_START, QSY = CLICK_START, /* FOO, BAR, ..., */
+		NATTR };
 
 	FTextBase(int x, int y, int w, int h, const char *l = 0);
 	virtual ~FTextBase() { delete tbuf; delete sbuf; }
@@ -76,7 +77,7 @@ public:
 
 protected:
 	void	set_style(int attr, Fl_Font f, int s, Fl_Color c,
-			  int set = SET_FONT | SET_SIZE | SET_COLOR);
+					  int set = SET_FONT | SET_SIZE | SET_COLOR);
 	int		readFile(const char* fn = 0);
 	void	saveFile(void);
 	char*	get_word(int x, int y, const char* nwchars = "", bool ontext = true);
@@ -105,7 +106,7 @@ protected:
 	int					max_lines;
 	bool					scroll_hint;
 	bool	restore_wrap;
-//	bool	wrap_restore;
+	//	bool	wrap_restore;
 
 private:
 	int					oldw, oldh, olds;
@@ -119,7 +120,7 @@ class FTextView : public FTextBase
 {
 public:
 	FTextView(int x, int y, int w, int h, const char *l = 0);
-        ~FTextView() { }
+	~FTextView() { }
 
 	virtual int	handle(int event);
 
@@ -132,7 +133,7 @@ protected:
 	virtual void	handle_context_menu(void);
 	virtual void	menu_cb(size_t item);
 	static void	changed_cb(int pos, int nins, int ndel, int nsty,
-				   const char *dtext, void *arg);
+						   const char *dtext, void *arg);
 	void		change_keybindings(void);
 
 private:
@@ -167,7 +168,7 @@ protected:
 	virtual void	handle_context_menu(void);
 	virtual void	menu_cb(size_t item);
 	static void	changed_cb(int pos, int nins, int ndel, int nsty,
-				   const char *dtext, void *arg);
+						   const char *dtext, void *arg);
 
 private:
 	FTextEdit();

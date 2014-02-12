@@ -4,20 +4,21 @@
 // Copyright (C) 2008, 2012
 //			  Stelios Bounanos, M0GLD; Dave Freese, W1HKJ
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
-// fldigi is free software; you can redistribute it and/or modify
+// This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// fldigi is distributed in the hope that it will be useful,
+// This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // ----------------------------------------------------------------------------
 
 #ifndef _DEBUG_H_
@@ -35,9 +36,9 @@ public:
 	static void start(const char* filename);
 	static void stop(void);
 	static void log(level_e level, const char* func, const char* srcf, int line,
-			const char* format, ...) format__(printf, 5, 6);
+					const char* format, ...) format__(printf, 5, 6);
 	static void slog(level_e level, const char* func, const char* srcf, int line,
-			const char* format, ...) format__(printf, 5, 6);
+					 const char* format, ...) format__(printf, 5, 6);
 
 	static void elog(const char* func, const char* srcf, int line, const char* text);
 	static void show(void);
@@ -54,10 +55,10 @@ private:
 };
 
 #define LOG(level__, source__, ...)							\
-	do {										\
-		if (level__ <= debug::level && source__ & debug::mask)			\
-			debug::log(level__, __func__, __FILE__, __LINE__, __VA_ARGS__); \
-	} while (0)
+do {										\
+if (level__ <= debug::level && source__ & debug::mask)			\
+debug::log(level__, __func__, __FILE__, __LINE__, __VA_ARGS__); \
+} while (0)
 
 #define LOG_DEBUG(...) LOG(debug::DEBUG_LEVEL, log_source_, __VA_ARGS__)
 #define LOG_INFO(...) LOG(debug::INFO_LEVEL, log_source_, __VA_ARGS__)
@@ -66,10 +67,10 @@ private:
 #define LOG_QUIET(...) LOG(debug::QUIET_LEVEL, log_source_, __VA_ARGS__)
 
 #define SLOG(level__, source__, ...)							\
-	do {										\
-		if (level__ <= debug::level && source__ & debug::mask)			\
-			debug::slog(level__, __func__, __FILE__, __LINE__, __VA_ARGS__); \
-	} while (0)
+do {										\
+if (level__ <= debug::level && source__ & debug::mask)			\
+debug::slog(level__, __func__, __FILE__, __LINE__, __VA_ARGS__); \
+} while (0)
 
 #define SLOG_DEBUG(...) SLOG(debug::DEBUG_LEVEL, log_source_, __VA_ARGS__)
 #define SLOG_INFO(...) SLOG(debug::INFO_LEVEL, log_source_, __VA_ARGS__)
@@ -78,16 +79,16 @@ private:
 #define SLOG_QUIET(...) SLOG(debug::QUIET_LEVEL, log_source_, __VA_ARGS__)
 
 #define LOG_PERROR(msg__)								\
-	do {										\
-		if (debug::ERROR_LEVEL <= debug::level && log_source_ & debug::mask)	\
-			debug::elog(__func__, __FILE__, __LINE__, msg__);		\
-	} while (0)
+do {										\
+if (debug::ERROR_LEVEL <= debug::level && log_source_ & debug::mask)	\
+debug::elog(__func__, __FILE__, __LINE__, msg__);		\
+} while (0)
 
 unused__ static uint32_t log_source_ = debug::LOG_OTHER;
 #if defined(__GNUC__) && (__GNUC__ >= 3)
 #  define LOG_FILE_SOURCE(source__)						\
-	__attribute__((constructor))						\
-	static void log_set_source_(void) { log_source_ = source__; }
+__attribute__((constructor))						\
+static void log_set_source_(void) { log_source_ = source__; }
 #else
 #  define LOG_FILE_SOURCE(source__)
 #endif

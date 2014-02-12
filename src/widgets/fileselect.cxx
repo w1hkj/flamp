@@ -5,20 +5,21 @@
 // Copyright (C) 2008-2009
 //		Stelios Bounanos, M0GLD
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
-// Fldigi is free software: you can redistribute it and/or modify
+// This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
+// the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// Fldigi is distributed in the hope that it will be useful,
+// This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // ----------------------------------------------------------------------------
 
 #include <config.h>
@@ -27,12 +28,12 @@
 #include <cstdlib>
 #include <libgen.h>
 
-#include "fileselect.h"
+
 #include "icons.h"
 #include "debug.h"
 
 #include <FL/fl_ask.H>
-#include <FL/Fl_Native_File_Chooser.H>
+#include "fileselect.h"
 
 /**
  \class Fl_Native_File_Chooser
@@ -107,7 +108,28 @@
 
 using namespace std;
 
+#ifdef __WIN32__
+#define PATH_SEPERATOR "\\"
+#define PATH_CHAR_SEPERATOR '\\'
+#else
+#define PATH_SEPERATOR "/"
+#define PATH_CHAR_SEPERATOR '/'
+#endif
+
+#ifndef NATIVE_CHOOSER
+extern std::string NBEMS_dir;
+extern std::string flampHomeDir;
+extern std::string flamp_rcv_dir;
+extern std::string flamp_xmt_dir;
+extern std::string flamp_script_dir;
+extern std::string flamp_script_default_dir;
+#endif
+
 namespace FSEL {
+
+// MacOSX 10.9.5 Change the behaviour of the native browser. Resorting to the FLTK version.
+
+#ifdef NATIVE_CHOOSER
 
 	string filename;
 
@@ -215,8 +237,147 @@ namespace FSEL {
 				}
 				break;
 		}
-		
+
 		return filename.c_str();
 	}
+#else
+
+	static char sfilename[FL_PATH_MAX + 1];
+	static char sdef[FL_PATH_MAX + 1];
+	static char sfilter[FL_PATH_MAX + 1];
+	static char stitle[FL_PATH_MAX + 1];
+
+	void clear_defs(void) {
+		memset(stitle,    0, sizeof(stitle));
+		memset(sfilter,   0, sizeof(sfilter));
+		memset(sfilename, 0, sizeof(sfilename));
+		memset(sdef,      0, sizeof(sdef));
+	}
+
+	void create(void) {	clear_defs(); };
+	void destroy(void) {};
+
+	const char* select(const char* title, const char* filter, const char* def)
+	{
+		char *retstr = (char *)0;
+		strncpy(stitle,  "Open File", sizeof(stitle) - 1);
+
+		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
+		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
+		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
+
+		if(strnlen(sfilter, FL_PATH_MAX) < 1)
+			strncpy(sfilter,  "*.*", sizeof(sfilter) - 1);
+
+		if(strnlen(sdef, FL_PATH_MAX) < 1) {
+			strncpy(sdef,  flampHomeDir.c_str(), sizeof(sdef) - 1);
+			int len = strnlen(sdef, FL_PATH_MAX);
+
+			if(len > 0) {
+				len--;
+				if(sdef[len] == PATH_CHAR_SEPERATOR);
+				else strncat(sdef, PATH_SEPERATOR, FL_PATH_MAX);
+			} else {
+				return "";
+			}
+		}
+
+		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef,  sfilter, Fl_File_Chooser::SINGLE, stitle);
+		if(!fc) return (char *) "";
+
+		fc->show();
+
+		while(fc->shown()) {
+			Fl::wait();
+		}
+
+		if(fc->count()) {
+			memset(sdef,  0, sizeof(sdef));
+			strncpy(sdef, fc->value(1), FL_PATH_MAX);
+			strncpy(sfilename, sdef, FL_PATH_MAX);
+			retstr = sfilename;
+		}
+
+		if(fc)
+			delete fc;
+
+		return retstr;
+	}
+
+	const char* saveas(const char* title, const char* filter, const char* def)
+	{
+		char *retstr = (char *)0;
+		strncpy(stitle, "Save As", sizeof(stitle) - 1);
+
+		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
+		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
+		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
+
+		if(strnlen(sfilter, FL_PATH_MAX) < 1)
+			strncpy(sfilter,  "All\t*.*\n", sizeof(sfilter) - 1);
+
+		if(strnlen(sdef, FL_PATH_MAX) < 1)
+			strncpy(sdef,  flampHomeDir.c_str(), sizeof(sdef) - 1);
+
+		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef, sfilter, Fl_File_Chooser::CREATE, stitle);
+		if(!fc) return (char *) "";
+
+		fc->ok_label(fc->save_label);
+
+		fc->show();
+		while(fc->shown()) {
+			Fl::wait();
+		}
+
+		if(fc->count()) {
+			memset(sdef,  0, sizeof(sdef));
+			strncpy(sdef, fc->value(1), FL_PATH_MAX);
+			strncpy(sfilename, sdef, FL_PATH_MAX);
+			retstr = sfilename;
+		}
+
+		if(fc)
+			delete fc;
+
+		return retstr;
+	}
+
+	const char* dir_select(const char* title, const char* filter, const char* def)
+	{
+		char *retstr = (char *)0;
+		strncpy(stitle,  "Select Directory", sizeof(stitle) - 1);
+
+		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
+		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
+		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
+
+		if(strnlen(sfilter, FL_PATH_MAX) < 1)
+			strncpy(sfilter, "All\t*.*\n", sizeof(sfilter) - 1);
+		
+		if(strnlen(sdef, FL_PATH_MAX) < 1)
+			strncpy(sdef, flampHomeDir.c_str(), sizeof(sdef) - 1);
+		
+		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef, sfilter, Fl_File_Chooser::DIRECTORY, stitle);
+		
+		if(!fc) return (char *) "";
+		
+		fc->show();
+		while(fc->shown()) {
+			Fl::wait();
+		}
+		
+		if(fc->count()) {
+			memset(sdef,  0, sizeof(sdef));
+			strncpy(sdef, fc->value(1), FL_PATH_MAX);
+			strncpy(sfilename, sdef, FL_PATH_MAX);
+			retstr = sfilename;
+		}
+		
+		if(fc)
+			delete fc;
+		
+		return retstr;
+	}
+#endif
 
 } // FSEL

@@ -4,20 +4,21 @@
 // Copyright (C) 2009-2010
 //		Stelios Bounanos, M0GLD
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
-// Fldigi is free software: you can redistribute it and/or modify
+// This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
+// the Free Software Foundation; either version 3 of the License, or
 // (at your option) any later version.
 //
-// Fldigi is distributed in the hope that it will be useful,
+// This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 // ----------------------------------------------------------------------------
 
 #ifndef fl_misc_h_
@@ -39,7 +40,7 @@ unsigned quick_choice(const char* title, unsigned sel, ...);
 
 Fl_Color adjust_color(Fl_Color fg, Fl_Color bg);
 void adjust_color_inv(unsigned char& bg1r, unsigned char& bg1g, unsigned char& bg1b,
-		      Fl_Color bg2, Fl_Color def);
+					  Fl_Color bg2, Fl_Color def);
 
 #if !defined(__APPLE__) && !defined(__WOE32__)
 #  include <FL/x.H>

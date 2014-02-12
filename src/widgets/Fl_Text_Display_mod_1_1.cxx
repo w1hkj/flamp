@@ -3068,7 +3068,7 @@ void fl_text_drag_me(int pos, Fl_Text_Display_mod* d) {
 }
 
 // This timer event scrolls the text view proportionally to
-// how far the mouse pointer has left the text area. This 
+// how far the mouse pointer has left the text area. This
 // allows for smooth scrolling without "wiggeling" the mouse.
 void Fl_Text_Display_mod::scroll_timer_cb(void *user_data) {
 	Fl_Text_Display_mod *w = (Fl_Text_Display_mod*)user_data;
@@ -3107,7 +3107,7 @@ int Fl_Text_Display_mod::handle(int event) {
 		event != FL_KEYBOARD && event != FL_KEYUP) {
 		return Fl_Group::handle(event);
 	}
-	
+
 	switch (event) {
 		case FL_ENTER:
 		case FL_MOVE:
@@ -3119,24 +3119,24 @@ int Fl_Text_Display_mod::handle(int event) {
 			} else {
 				return 0;
 			}
-			
+
 		case FL_LEAVE:
 		case FL_HIDE:
 			if (active_r() && window()) {
 				window()->cursor(FL_CURSOR_DEFAULT);
-				
+
 				return 1;
 			} else {
 				return 0;
 			}
-			
+
 		case FL_PUSH: {
 			if (active_r() && window()) {
 				if (Fl::event_inside(text_area.x, text_area.y, text_area.w,
 									 text_area.h)) window()->cursor(FL_CURSOR_INSERT);
 				else window()->cursor(FL_CURSOR_DEFAULT);
 			}
-			
+
 			if (Fl::focus() != this) {
 				Fl::focus(this);
 				handle(FL_FOCUS);
@@ -3153,7 +3153,7 @@ int Fl_Text_Display_mod::handle(int event) {
 				buffer()->select(word_start(pos), word_end(pos));
 			else if (dragType == DRAG_LINE)
 				buffer()->select(buffer()->line_start(pos), buffer()->line_end(pos)+1);
-			
+
 			if (buffer()->primary_selection()->selected())
 				insert_position(buffer()->primary_selection()->end());
 			else
@@ -3161,7 +3161,7 @@ int Fl_Text_Display_mod::handle(int event) {
 			show_insert_position();
 			return 1;
 		}
-			
+
 		case FL_DRAG: {
 			if (dragType < 0) return 1;
 			int X = Fl::event_x(), Y = Fl::event_y(), pos;
@@ -3205,38 +3205,38 @@ int Fl_Text_Display_mod::handle(int event) {
 			}
 			return 1;
 		}
-			
+
 		case FL_RELEASE: {
 			dragging = 0;
 			if (scroll_direction) {
 				Fl::remove_timeout(scroll_timer_cb, this);
 				scroll_direction = 0;
 			}
-			
+
 			// convert from WORD or LINE selection to CHAR
 			if (insert_position() >= dragPos)
 				dragPos = buffer()->primary_selection()->start();
 			else
 				dragPos = buffer()->primary_selection()->end();
 			dragType = DRAG_CHAR;
-			
+
 			const char* copy = buffer()->selection_text();
 			if (*copy) Fl::copy(copy, strlen(copy), 0);
 			free((void*)copy);
 			return 1;
 		}
-			
+
 		case FL_MOUSEWHEEL:
 			if (Fl::event_dy()) return mVScrollBar->handle(event);
 			else return mHScrollBar->handle(event);
-			
+
 		case FL_UNFOCUS:
 			if (active_r() && window()) window()->cursor(FL_CURSOR_DEFAULT);
 		case FL_FOCUS:
 			if (buffer()->selected()) redraw();
-			
+
 			return 1;
-			
+
 		case FL_KEYBOARD:
 			// Copy?
 			if ((Fl::event_state()&(FL_CTRL|FL_COMMAND)) && Fl::event_key()=='c') {
@@ -3246,7 +3246,7 @@ int Fl_Text_Display_mod::handle(int event) {
 				free((void*)copy);
 				return 1;
 			}
-			
+
 			// Select all ?
 			if ((Fl::event_state()&(FL_CTRL|FL_COMMAND)) && Fl::event_key()=='a') {
 				buffer()->select(0,buffer()->length());

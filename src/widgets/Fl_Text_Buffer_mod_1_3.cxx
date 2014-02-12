@@ -740,7 +740,7 @@ void Fl_Text_Buffer_mod::add_predelete_callback(Fl_Text_Predelete_Cb bufPreDelet
 		newPreDeleteProcs[i + 1] = mPredeleteProcs[i];
 		newCBArgs[i + 1] = mPredeleteCbArgs[i];
 	}
-	if (!mNPredeleteProcs != 0) {
+	if (mNPredeleteProcs != 0) {
 		delete[]mPredeleteProcs;
 		delete[]mPredeleteCbArgs;
 	}

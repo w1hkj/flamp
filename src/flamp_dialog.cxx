@@ -3,21 +3,23 @@
 // flamp_dialog.cxx
 //
 // Author(s):
-//	Dave Freese, W1HKJ
-//  Robert Stiles, KK5VD
+//	Dave Freese, W1HKJ, Copyright (C) 2010, 2011, 2012, 2013
+//  Robert Stiles, KK5VD, Copyright (C) 2013, 2014
 //
-//	Copyright: 2010, 2013
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
 //
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is
-// copyright under the GNU General Public License.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc.
-// 59 Temple Place, Suite 330
-// Boston, MA  02111-1307 USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // =====================================================================
 
@@ -34,13 +36,19 @@
 #include "xml_io.h"
 #include "file_io.h"
 #include "amp.h"
+#include "ztimer.h"
+#include "time_table.h"
+
+#include "hamcast_group.h"
 
 //======================================================================
 
 Fl_Double_Window *main_window = 0;
 Fl_Double_Window *wCmdLine = 0;
 
-Fl_Tabs*   tabs = 0;
+Fl_Tabs  * tabs = 0;
+Fl_Group * Config_tab = 0;
+
 Fl_Output* txt_rx_filename = 0;
 Fl_Output* txt_rx_datetime = 0;
 Fl_Output* txt_rx_descrip = 0;
@@ -84,6 +92,11 @@ Fl_Button* btn_tx_remove_file = 0;
 Fl_Button* btn_send_file = 0;
 Fl_Button* btn_send_queue = 0;
 
+Fl_Button *btn_send_relay = 0;
+Fl_Button *btn_parse_relay_blocks = 0;
+Fl_Input2 *txt_relay_selected_blocks = 0;
+
+
 // Configuraton panel
 
 Fl_Check_Button* btn_sync_mode_flamp_fldigi = 0;
@@ -102,6 +115,10 @@ Fl_Simple_Counter* cnt_rx_internval_secs = 0;
 Fl_Check_Button* btn_enable_tx_on_report = 0;
 
 Fl_Check_Button* btn_clear_tosend_on_tx_blocks = 0;
+
+Fl_Check_Button* btn_enable_delete_warning = 0;
+
+Fl_Check_Button* btn_enable_unproto_markers = 0;
 
 // end Configuration panel.
 
@@ -153,78 +170,106 @@ Fl_Output * txt_hamcast_select_total_time = 0;
 
 Fl_Input2*  txt_tx_selected_blocks = 0;
 
+extern void show_selected_xmt(int n);
+
 //----------------------------------------------------------------------
-// Mode, CPS (avg), Latency (in seconds)
-struct st_modes s_basic_modes[] = {
-	{"DOMX22",          7.9,  0.0}, {"DOMX44",       16.3, 0.0},  {"DOMX88",       17.9, 0.0},
-
-	{"MFSK16",          5.8,  0.0}, {"MFSK22",        8.0, 0.0},  {"MFSK31",        5.5, 0.0},
-	{"MFSK32",         12.0,  0.0}, {"MFSK64",       24.0, 0.0},  {"MFSK128",      48.0, 0.0},
-	{"MFSK64L",        24.0,  6.5}, {"MFSK128L",     48.0, 6.5},
-
-	{"MT63-500S",       5.0,  6.4}, {"MT63-1KS",     10.0, 3.2},  {"MT63-2KS",     20.0, 3.2},
-	{"MT63-500L",       5.0, 12.8}, {"MT63-1KL",     10.0, 6.4},  {"MT63-2KL",     20.0, 1.6},
-
-	{"BPSK125",        12.0,  0.0}, {"BPSK250",      24.0, 0.0},
-	{"BPSK500",        48.0,  0.0}, {"BPSK1000",     96.0, 0.0},
-
-	{"PSK63RC4",       15.0,  0.0}, {"PSK63RC5",     19.0, 0.0},  {"PSK63RC10",    38.0, 0.0},
-	{"PSK63RC20",      74.0,  0.0}, {"PSK63RC32",   120.0, 0.0},
-
-	{"PSK125C12",     144.0,  0.0},
-
-	{"PSK125R",         7.0,  0.0}, {"PSK125RC4",    28.0, 0.0},  {"PSK125RC5",    35.0, 0.0},
-	{"PSK125RC10",     70.0,  0.0}, {"PSK125RC12",   85.0, 0.0},  {"PSK125RC16",  112.0, 0.0},
-
-	{"PSK250C6",      144.0,  0.0},
-	
-	{"PSK250R",        15.0,  0.0}, {"PSK250RC2",    30.0, 0.0},  {"PSK250RC3",    45.0, 0.0},
-	{"PSK250RC5",      75.0,  0.0}, {"PSK250RC6",    90.0, 0.0},  {"PSK250RC7",   105.0, 0.0},
-
-	{"PSK500C2",       96.0,  0.0}, {"PSK500C4",     92.0, 0.0},
-	{"PSK500R",        29.0,  0.0}, {"PSK500RC2",    58.0, 0.0},  {"PSK500RC3",    85.8, 0.0},
-	{"PSK500RC4",     114.4,  0.0},
-
-	{"PSK800C2",      153.6,  0.0}, {"PSK800RC2",    92.8, 0.0},
-
-	{"PSK1000C2",     192.0,  0.0}, {"PSK1000R",     60.0, 0.0},  {"PSK1000RC2",  120.0,  0.0},
-
-	{"Olivia-4-250",    3.0,  0.0}, {"Olivia-8-250",  1.5, 0.0},  {"Olivia-4-500",  6.0,  0.0 },
-	{"Olivia-8-500",    3.0,  0.0}, {"Olivia-16-500", 1.5, 0.0},  {"Olivia-8-1K",   6.0,  0.0 },
-	{"Olivia-16-1K",    4.0,  0.0}, {"Olivia-32-1K",  2.0, 0.0},  {"Olivia-64-2K",  2.0,  0.0 },
-
-	{"THOR16",         3.25,  0.0}, {"THOR22",        4.46, 0.0},
-	{"THOR25x4",       5.03,  0.0}, {"THOR50x1",     10.06, 0.0}, {"THOR50x2",     10.06, 0.0},
-	{"THOR100",       20.13,  0.0}, {"",              0.0,  0.0}
+const char *s_basic_modes[] = {
+	(char *) "8PSK250",
+	(char *) "8PSK500",
+	(char *) "8PSK1000",
+	(char *) "8PSK1200",
+	(char *) "8PSK1333",
+	(char *) "BPSK31",
+	(char *) "BPSK63",
+	(char *) "BPSK63F",
+	(char *) "BPSK125",
+	(char *) "BPSK250",
+	(char *) "BPSK500",
+	(char *) "BPSK1000",
+	(char *) "DOMX22",
+	(char *) "DOMX44",
+	(char *) "DOMX88",
+	(char *) "MFSK16",
+	(char *) "MFSK22",
+	(char *) "MFSK31",
+	(char *) "MFSK32",
+	(char *) "MFSK64",
+	(char *) "MFSK64L",
+	(char *) "MFSK128",
+	(char *) "MFSK128L",
+	(char *) "MT63-500L",
+	(char *) "MT63-500S",
+	(char *) "MT63-1KL",
+	(char *) "MT63-1KS",
+	(char *) "MT63-2KL",
+	(char *) "MT63-2KS",
+	(char *) "Olivia-4-250",
+	(char *) "Olivia-4-500",
+	(char *) "Olivia-8-250",
+	(char *) "Olivia-8-500",
+	(char *) "Olivia-8-1K",
+	(char *) "Olivia-16-500",
+	(char *) "Olivia-16-1K",
+	(char *) "Olivia-32-1K",
+	(char *) "Olivia-64-2K",
+	(char *) "PSK63RC4",
+	(char *) "PSK63RC5",
+	(char *) "PSK63RC10",
+	(char *) "PSK63RC20",
+	(char *) "PSK63RC32",
+	(char *) "PSK125R",
+	(char *) "PSK125RC4",
+	(char *) "PSK125RC5",
+	(char *) "PSK125C12",
+	(char *) "PSK125RC10",
+	(char *) "PSK125RC12",
+	(char *) "PSK125RC16",
+	(char *) "PSK250R",
+	(char *) "PSK250C6",
+	(char *) "PSK250RC2",
+	(char *) "PSK250RC3",
+	(char *) "PSK250RC5",
+	(char *) "PSK250RC6",
+	(char *) "PSK250RC7",
+	(char *) "PSK500R",
+	(char *) "PSK500C2",
+	(char *) "PSK500C4",
+	(char *) "PSK500RC2",
+	(char *) "PSK500RC3",
+	(char *) "PSK500RC4",
+	(char *) "PSK800C2",
+	(char *) "PSK800RC2",
+	(char *) "PSK1000C2",
+	(char *) "PSK1000R",
+	(char *) "PSK1000RC2",
+	(char *) "QPSK31",
+	(char *) "QPSK63",
+	(char *) "QPSK125",
+	(char *) "QPSK250",
+	(char *) "QPSK500",
+	(char *) "THOR16",
+	(char *) "THOR22",
+	(char *) "THOR25x4",
+	(char *) "THOR50x1",
+	(char *) "THOR50x2",
+	(char *) "THOR100",
+	(char *) 0
 };
 
-// reported by get_modes
-/*
- NULL|CW|
- CTSTIA|DOMEX4|DOMEX5|DOMEX8|DOMX11|DOMX16|DOMX22|DOMX44|DOMX88|
- FELDHELL|SLOWHELL|HELLX5|HELLX9|FSKHELL|FSKH105|HELL80|
- MFSK8|MFSK16|MFSK32|MFSK4|MFSK11|MFSK22|MFSK31|MFSK64|MFSK128||MFSK64L|MFSK128L|
- WEFAX576|WEFAX288|NAVTEX|SITORB|
- MT63-500S|MT63-1KS|MT63-2KS|
- MT63-500L|MT63-1KL|MT63-2KL|
- BPSK31|BPSK63|BPSK63F|BPSK125|BPSK250|BPSK500|
- QPSK31|QPSK63|QPSK125|QPSK250|QPSK500|
- PSK125R|PSK250R|PSK500R|BPSK1000|PSK1000R|
- OLIVIA|Olivia-4-250|Olivia-8-250|Olivia-4-500|Olivia-8-500|
- Olivia-16-500|Olivia-8-1K|Olivia-16-1K|Olivia-32-1K|Olivia-64-2K|
- RTTY|
- THOR4|THOR5|THOR8|THOR11|THOR16|THOR22|THOR25X4|THOR50X1|THOR50X2|THOR100|
- THROB1|THROB2|THROB4|THRBX1|THRBX2|THRBX4|
- PSK63RC4|PSK63RC5|PSK63RC10|PSK63RC20|PSK63RC32|
- PSK125RC4|PSK125RC5|PSK125RC10|PSK125C12|PSK125RC12|PSK125RC16|
- PSK250C6|PSK250RC2|PSK250RC3|PSK250RC5|PSK250RC6|PSK250RC7|
- PSK500C2|PSK500C4|PSK500RC2|PSK500RC3|PSK500RC4|
- PSK800C2|PSK800RC2|
- PSK1000C2|PSK1000RC2|
- SSB|WWV|ANALYSIS|
- */
+char *s_modes[sizeof(s_basic_modes)/sizeof(char *)];
 
-st_modes s_modes[100];
+const char *event_types[] = {
+	(char *) "5 min",
+	(char *) "15 min",
+	(char *) "30 min",
+	(char *) "Hourly",
+	(char *) "Even hours",
+	(char *) "Odd hours",
+	(char *) "Repeated at",
+	(char *) "One time at",
+	(char *) "Continuous at",
+	(char *) 0
+};
 
 std::string valid_modes;
 
@@ -235,24 +280,28 @@ bool valid_mode_check(std::string &md)
 
 void update_cbo_modes(std::string &fldigi_modes)
 {
-	for (int n = 0; n < 100; n++) { s_modes[n].s_mode = ""; s_modes[n].f_cps = 0; }
+	memset(s_modes, 0, sizeof(s_modes));
 
 	valid_modes.clear();
 	cbo_modes->clear();
 	cbo_header_modes->clear();
 	cbo_hamcast_mode_selection_1->clear();
+	cbo_hamcast_mode_selection_2->clear();
+	cbo_hamcast_mode_selection_3->clear();
+	cbo_hamcast_mode_selection_4->clear();
 
 	int i = 0, j = 0;
-	while (s_basic_modes[i].f_cps != 0) {
-		if (fldigi_modes.find(s_basic_modes[i].s_mode) != string::npos) {
-			s_modes[j] = s_basic_modes[i];
-			cbo_modes->add(s_modes[j].s_mode.c_str());
-			cbo_header_modes->add(s_modes[j].s_mode.c_str());
-			cbo_hamcast_mode_selection_1->add(s_modes[j].s_mode.c_str());
-			cbo_hamcast_mode_selection_2->add(s_modes[j].s_mode.c_str());
-			cbo_hamcast_mode_selection_3->add(s_modes[j].s_mode.c_str());
-			cbo_hamcast_mode_selection_4->add(s_modes[j].s_mode.c_str());
-			valid_modes.append(s_modes[j].s_mode).append("|");
+
+	while (s_basic_modes[i] != (char *)0) {
+		if (fldigi_modes.find(s_basic_modes[i]) != string::npos) {
+			s_modes[j] = (char *) s_basic_modes[i];
+			cbo_modes->add(s_modes[j]);
+			cbo_header_modes->add(s_modes[j]);
+			cbo_hamcast_mode_selection_1->add(s_modes[j]);
+			cbo_hamcast_mode_selection_2->add(s_modes[j]);
+			cbo_hamcast_mode_selection_3->add(s_modes[j]);
+			cbo_hamcast_mode_selection_4->add(s_modes[j]);
+			valid_modes.append(s_modes[j]).append("|");
 			j++;
 		}
 		i++;
@@ -272,27 +321,24 @@ void update_cbo_modes(std::string &fldigi_modes)
 void init_cbo_modes()
 {
 	string min_modes;
-	min_modes.assign("DOMX22|MFSK16|MFSK22|MFSK31|");
+	min_modes.assign("DOMX22|MFSK16|MFSK22|MFSK31|MFSK32|");
 	min_modes.append("MT63-500S|MT63-1KS|MT63-2KS|");
 	min_modes.append("MT63-500L|MT63-1KL|MT63-2KL|");
 	min_modes.append("BPSK125|BPSK250|BPSK500|");
 	min_modes.append("PSK125R|PSK250R|PSK500R|");
-	min_modes.append("OL 4-250|OL 8-250|OL 4-500|OL 8-500|OL 16-500|OL 8-1K|OL 16-1K|");
+	min_modes.append("Olivia-4-250|Olivia-4-500|Olivia-8-250|Olivia-8-500|Olivia-8-1K|Olivia-16-500|Olivia-16-1K|");
 	min_modes.append("THOR16|THOR22");
 	update_cbo_modes(min_modes);
 }
 
 void init_cbo_events()
 {
-	cbo_repeat_every->add("5 min");
-	cbo_repeat_every->add("15 min");
-	cbo_repeat_every->add("30 min");
-	cbo_repeat_every->add("Hourly");
-	cbo_repeat_every->add("Even hours");
-	cbo_repeat_every->add("Odd hours");
-	cbo_repeat_every->add("Repeated at");
-	cbo_repeat_every->add("One time at");
-	cbo_repeat_every->add("Continuous at");
+	int index = 0;
+
+	while(event_types[index]) {
+		cbo_repeat_every->add(event_types[index]);
+		index++;
+	}
 	cbo_repeat_every->index(progStatus.repeat_every);
 }
 
@@ -300,9 +346,11 @@ void cb_cbo_modes()
 {
 	progStatus.selected_mode = cbo_modes->index();
 	g_modem.assign(cbo_modes->value());
-	estimate();
+	update_cAmp_changes(0);
+	amp_mark_all_for_update();
 	if (progStatus.sync_mode_flamp_fldigi)
 		send_new_modem(cbo_modes->value());
+	show_selected_xmt(0);
 }
 
 //----------------------------------------------------------------------
@@ -322,6 +370,20 @@ static void cb_mnuOnLineHelp(Fl_Menu_*, void*) {
 
 static void cb_mnu_folders(Fl_Menu_*, void*) {
 	cb_folders();
+}
+
+extern void cb_scripts_in_main_thread(void *);
+
+static void cb_mnu_scripts(Fl_Menu_*, void*) {
+	static bool value = false;
+	//Fl::awake(cb_scripts_in_main_thread, (void *)&value);
+	cb_scripts(false);
+}
+
+static void cb_mnu_scripts_default(Fl_Menu_*, void*) {
+	static bool value = true;
+	//Fl::awake(cb_scripts_in_main_thread, (void *)&value);
+	cb_scripts(true);
 }
 
 void cb_mnuAbout(void *, void *)
@@ -356,34 +418,49 @@ Fl_Menu_Item menu_[] = {
 	{_("&Folders"), 0, (Fl_Callback*)cb_mnu_folders, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("E&xit"), 0x40078,  (Fl_Callback*)cb_mnuExit, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
 	{0,0,0,0,0,0,0,0,0},
+	{_("&Script"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+	{_("&Execute Script"), 0, (Fl_Callback*)cb_mnu_scripts, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
+	{_("Execute &Script (FLAMP Dir)"), 0, (Fl_Callback*)cb_mnu_scripts_default, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+	{0,0,0,0,0,0,0,0,0},
 	{_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("&Debug log"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("On Line help"), 0,  (Fl_Callback*)cb_mnuOnLineHelp, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("Command line parameters"), 0, (Fl_Callback*)cb_mnuCmdLineParams, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("About"), 0, (Fl_Callback*)cb_mnuAbout, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
 	{0,0,0,0,0,0,0,0,0},
-
 	{0,0,0,0,0,0,0,0,0}
 };
 
 static void cb_tx_mycall(Fl_Input2*, void*)
 {
 	progStatus.my_call = txt_tx_mycall->value();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_tx_myinfo(Fl_Input2*, void*)
 {
 	progStatus.my_info = txt_tx_myinfo->value();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
+}
+
+static void cb_tx_send_to(Fl_Input2*, void*)
+{
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_tx_descrip(Fl_Input2*, void*)
 {
-	update_selected_xmt();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_selected_blocks(Fl_Input2*, void*)
 {
-	update_selected_xmt();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_btn_save_file(Fl_Button*, void*) {
@@ -395,7 +472,7 @@ static void cb_btn_transfer_file_txQ(Fl_Button*, void*) {
 }
 
 static void cb_btn_rx_remove(Fl_Button*, void*) {
-	receive_remove_from_queue();
+	receive_remove_from_queue(false);
 }
 
 static void cb_btn_open_file(Fl_Button*, void*) {
@@ -403,7 +480,7 @@ static void cb_btn_open_file(Fl_Button*, void*) {
 }
 
 static void cb_btn_tx_remove_file(Fl_Button*, void*) {
-	tx_removefile();
+	tx_removefile(false);
 }
 
 static void cb_btn_copy_missing(Fl_Button*, void*) {
@@ -417,15 +494,8 @@ static void cb_btn_parse_blocks(Fl_Button*, void*)
 
 static void cb_tx_queue(Fl_Hold_Browser *hb, void*)
 {
-	if (tx_queue->value() == 0) {
-		txt_tx_filename->value("");
-		txt_tx_descrip->value("");
-		txt_tx_selected_blocks->value("");
-		txt_tx_numblocks->value("");
-		txt_transfer_size_time->value("");
-		return;
-	}
-	estimate();
+	int value = tx_queue->value();
+	show_selected_xmt(value);
 }
 
 static void cb_rx_queue(Fl_Hold_Browser *hb, void*)
@@ -436,7 +506,15 @@ static void cb_rx_queue(Fl_Hold_Browser *hb, void*)
 
 static void cb_btn_send_file(Fl_Button*, void*) {
 	if(transmitting) {
-		abort_request();
+		if (do_events_flag == 1) {
+			do_events_flag = 0;
+			do_events->value(0);
+			stop_events();
+			do_events->label("Start Events");
+			do_events->redraw_label();
+		} else {
+			abort_request();
+		}
 		return;
 	}
 
@@ -462,38 +540,42 @@ static void cb_btn_send_queue(Fl_Button*, void*) {
 
 static void cb_cnt_blocksize(Fl_Button*, void*) {
 	progStatus.blocksize = (int)cnt_blocksize->value();
+	update_cAmp_changes(0);
+	amp_mark_all_for_update();
 	txt_tx_selected_blocks->value("");
-	update_selected_xmt();
-	estimate();
-	estimate_bc();
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 	progStatus.repeatNN = (int)cnt_repeat_nbr->value();
-	estimate();
-	estimate_bc();
+	txt_tx_selected_blocks->value("");
+	update_cAmp_changes(0);
+	amp_mark_all_for_update();
+	show_selected_xmt(tx_queue->value());
 }
 
 static void cb_repeat_header(Fl_Button*, void*) {
 	progStatus.repeat_header = (int)cnt_repeat_header->value();
-	estimate();
-	estimate_bc();
+	txt_tx_selected_blocks->value("");
+	update_cAmp_changes(0);
+	amp_mark_all_for_update();
+	show_selected_xmt(tx_queue->value());
 }
 
 void cb_use_compression()
 {
 	progStatus.use_compression = btn_use_compression->value();
 	txt_tx_selected_blocks->value("");
-	update_selected_xmt();
-	estimate();
-	estimate_bc();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 void cb_use_encoder()
 {
 	progStatus.encoder = encoders->index()+1;
-	update_selected_xmt();
-	estimate();
+	progStatus.encoder_string.assign(encoders->value());
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
 void init_encoders()
@@ -503,16 +585,17 @@ void init_encoders()
 	encoders->add("base128");
 	encoders->add("base256");
 	encoders->index(progStatus.encoder-1);
+	progStatus.encoder_string.assign(encoders->value());
 }
 
 void cb_sync_mode_flamp_fldigi(Fl_Check_Button *b, void *)
 {
-	progStatus.sync_mode_flamp_fldigi = b->value();
+	progStatus.sync_mode_flamp_fldigi = btn_sync_mode_flamp_fldigi->value();
 }
 
 void cb_sync_mode_fldigi_flamp(Fl_Check_Button *b, void *)
 {
-	progStatus.sync_mode_fldigi_flamp = b->value();
+	progStatus.sync_mode_fldigi_flamp = btn_sync_mode_fldigi_flamp->value();
 }
 
 void cb_fldigi_xmt_mode_change(Fl_Check_Button *b, void *)
@@ -521,7 +604,7 @@ void cb_fldigi_xmt_mode_change(Fl_Check_Button *b, void *)
 		progStatus.fldigi_xmt_mode_change = true;
 		btn_fldigi_xmt_mode_change->value(progStatus.fldigi_xmt_mode_change);
 	} else {
-		progStatus.fldigi_xmt_mode_change = b->value();
+		progStatus.fldigi_xmt_mode_change = btn_fldigi_xmt_mode_change->value();
 	}
 }
 
@@ -555,13 +638,11 @@ void cb_load_from_tx_folder(Fl_Check_Button *b, void *)
 	progStatus.load_from_tx_folder = btn_load_from_tx_folder->value();
 }
 
+extern void cb_load_tx_queue(void);
+
 void cb_manual_load_que(Fl_Button *b, void *)
 {
-	int old = progStatus.auto_load_queue;
-
-	progStatus.auto_load_queue = true;
-	auto_load_tx_queue();
-	progStatus.auto_load_queue = old;
+	cb_load_tx_queue();
 }
 
 void cb_auto_load_queue_path(Fl_Input2 *b, void *)
@@ -596,9 +677,12 @@ void cb_do_events(Fl_Light_Button *b, void*)
 {
 	if(generate_time_table) do_events->value(0);
 
-	if (do_events->value() == 1) {
+	do_events_flag = do_events->value();
+
+	if (do_events_flag) {
 		do_events->label("Stop Events");
 	} else {
+		stop_events();
 		do_events->label("Start Events");
 	}
 	do_events->redraw_label();
@@ -611,10 +695,8 @@ void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 	if(progStatus.use_txrx_interval == true) {
 		progStatus.fldigi_xmt_mode_change = true;
 		btn_fldigi_xmt_mode_change->value(progStatus.fldigi_xmt_mode_change);
-		progStatus.enable_tx_unproto = false;
-		btn_enable_tx_unproto->value(false);
-		estimate_bc();
 	}
+	show_selected_xmt(tx_queue->value());
 }
 
 void cb_tx_interval_mins(Fl_Simple_Counter *a, void *b)
@@ -630,12 +712,6 @@ void cb_rx_interval_secs(Fl_Simple_Counter *a, void *b)
 void cb_enable_header_modem(Fl_Check_Button *a, void *b)
 {
 	progStatus.use_header_modem = btn_enable_header_modem->value();
-
-	if(progStatus.use_header_modem) {
-		progStatus.enable_tx_unproto = false;
-		btn_enable_tx_unproto->value(false);
-		estimate_bc();
-	}
 }
 
 void cb_header_modes(Fl_ComboBox *a, void *b)
@@ -659,38 +735,45 @@ void cb_clear_tosend_on_tx_blocks(Fl_Check_Button *a, void *b)
 	progStatus.clear_tosend_on_tx_blocks = btn_clear_tosend_on_tx_blocks->value();
 }
 
+void cb_enable_unproto_markers(Fl_Check_Button *a, void *b)
+{
+	progStatus.enable_unproto_markers = btn_enable_unproto_markers->value();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
+}
+
 void cb_enable_tx_unproto(Fl_Check_Button *a, void *b)
 {
 	progStatus.enable_tx_unproto = btn_enable_tx_unproto->value();
 
 	if(progStatus.enable_tx_unproto) {
-		btn_enable_txrx_interval->value(false);
-		btn_enable_header_modem->value(false);
-		progStatus.use_txrx_interval = false;
-		progStatus.use_header_modem = false;
+		btn_use_compression->value(0);
+		progStatus.use_compression = 0;
 	}
 
-	unproto_widgets();
-	estimate();
-	estimate_bc();
+	update_cAmp_changes(0);
+	show_selected_xmt(tx_queue->value());
 }
 
-void unproto_widgets(void)
+void unproto_widgets(cAmp *amp)
 {
+	if(amp)
+		progStatus.enable_tx_unproto = amp->unproto();
+
 	if(progStatus.enable_tx_unproto) {
-		cnt_blocksize->deactivate();
-		cnt_repeat_nbr->deactivate();
+		if(!progStatus.use_txrx_interval)
+			cnt_blocksize->deactivate();
 		cnt_repeat_header->deactivate();
 		btn_use_compression->deactivate();
 		encoders->deactivate();
 		txt_tx_numblocks->deactivate();
 	} else {
 		cnt_blocksize->activate();
-		cnt_repeat_nbr->activate();
 		cnt_repeat_header->activate();
 		btn_use_compression->activate();
 		encoders->activate();
 		txt_tx_numblocks->activate();
+		cnt_repeat_nbr->activate();
 	}
 }
 
@@ -784,9 +867,36 @@ void cb_hamcast_mode_selection_4(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+void cb_enable_delete_warning(Fl_Check_Button *a, void *b)
+{
+	progStatus.enable_delete_warning = btn_enable_delete_warning->value();
+}
+
+void cb_btn_send_relay(Fl_Check_Button *a, void *b)
+{
+	if(transmitting) {
+		abort_request();
+		return;
+	}
+	send_relay_data();
+}
+
+void cb_btn_parse_relay_blocks(Fl_Check_Button *a, void *b)
+{
+	relay_missing_report();
+}
+
+void cb_relay_selected_blocks(Fl_Check_Button *a, void *b)
+{
+	update_rx_missing_blocks();
+}
+
+
 Fl_Double_Window* flamp_dialog() {
-	int W = 500, H = 444;
+
+	int W = 500, H = 496;
 	int X = 2, Y = 26;
+	int tmp = 0;
 
 	Fl_Double_Window* w = new Fl_Double_Window(W, H, "");;
 	w->begin();
@@ -795,7 +905,7 @@ Fl_Double_Window* flamp_dialog() {
 	mb->menu(menu_);
 	int y = Y;
 
-	tabs = new Fl_Tabs(X, y = Y, W-4, H-Y-2, "");
+	tabs = new Fl_Tabs(X, y, W-4, H-Y-2, "");
 	tabs->labelcolor(FL_BLACK);
 	tabs->selection_color(fl_rgb_color(245, 255, 250)); // mint cream
 
@@ -861,8 +971,26 @@ Fl_Double_Window* flamp_dialog() {
 	txt_rx_output->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 	txt_rx_output->tooltip(_("Ascii Text\nData type message"));
 
-	static const int cols[] = {60, 0};
-	y += 102;
+	static const int cols[] = {60, 60, 0};
+	y += 88;
+
+	tmp = 10;
+	btn_send_relay = new Fl_Button(tmp, y, 70, 22, _("Relay"));
+	btn_send_relay->callback((Fl_Callback*)cb_btn_send_relay);
+	btn_send_relay->tooltip(_("Relay missing blocks"));
+
+	tmp += 75;
+	btn_parse_relay_blocks = new Fl_Button(tmp, y, 70, 22, _("Fetch"));
+	btn_parse_relay_blocks->callback((Fl_Callback*)cb_btn_parse_relay_blocks);
+	btn_parse_relay_blocks->tooltip(_("Fetch & parse fldigi block reports"));
+
+	tmp += 120;
+	txt_relay_selected_blocks = new Fl_Input2(tmp, y, W-(10+tmp), 20, _("blocks"));
+	txt_relay_selected_blocks->box(FL_DOWN_BOX);
+	txt_relay_selected_blocks->tooltip(_("Clear for all\nComma separated block #s"));
+	txt_relay_selected_blocks->callback((Fl_Callback*)cb_relay_selected_blocks);
+
+	y += 42;
 	rx_queue = new Fl_Hold_Browser(8, y, W-16, H-y-6, _("Receive Queue"));
 	rx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 	rx_queue->column_widths(cols);
@@ -885,6 +1013,7 @@ Fl_Double_Window* flamp_dialog() {
 	txt_tx_send_to->box(FL_DOWN_BOX);
 	txt_tx_send_to->tooltip(_("QST (or blank) / Enumerated callsigns"));
 	txt_tx_send_to->value("QST");
+	txt_tx_send_to->callback((Fl_Callback*)cb_tx_send_to);
 
 	txt_tx_filename = new Fl_Output(70, y+=26, W - 78, 20, _("File"));
 	txt_tx_filename->box(FL_DOWN_BOX);
@@ -927,23 +1056,9 @@ Fl_Double_Window* flamp_dialog() {
 	txt_tx_numblocks->tooltip(_("Transfer size in blocks"));
 	txt_tx_numblocks->value("");
 
-	txt_tx_selected_blocks = new Fl_Input2(X+70, y+=26, W - X - 162, 20, _("blocks"));
-	txt_tx_selected_blocks->box(FL_DOWN_BOX);
-	txt_tx_selected_blocks->tooltip(_("Clear for all\nComma separated block #s"));
-	txt_tx_selected_blocks->callback((Fl_Callback*)cb_selected_blocks);
+	y+=26;
 
-	btn_parse_blocks = new Fl_Button(W - 88, y, 80, 20, _("Fetch"));
-	btn_parse_blocks->callback((Fl_Callback*)cb_btn_parse_blocks);
-	btn_parse_blocks->tooltip(_("Fetch & parse fldigi block reports"));
-
-	btn_use_compression = new Fl_Check_Button(55, y+=26, 30, 20, _("Comp"));
-	btn_use_compression->tooltip(_("Data will be sent compressed"));
-	btn_use_compression->align(FL_ALIGN_LEFT);
-	btn_use_compression->down_box(FL_DOWN_BOX);
-	btn_use_compression->callback((Fl_Callback*)cb_use_compression);
-	btn_use_compression->value(progStatus.use_compression);
-
-	encoders = new Fl_ComboBox(80, y, 100, 20, "");
+	encoders = new Fl_ComboBox(X+70, y, 100, 20, "");
 	encoders->begin();
 	encoders->when(FL_WHEN_RELEASE);
 	encoders->tooltip(_("Encode after compression"));
@@ -969,6 +1084,34 @@ Fl_Double_Window* flamp_dialog() {
 	txt_transfer_size_time->tooltip(_("Transfer size / time"));
 	txt_transfer_size_time->value("");
 
+	y+=24;
+
+	btn_use_compression = new Fl_Check_Button(X+70, y, 20, 20, _("Comp"));
+	btn_use_compression->tooltip(_("Data will be sent compressed"));
+	btn_use_compression->align(FL_ALIGN_RIGHT);
+	btn_use_compression->down_box(FL_DOWN_BOX);
+	btn_use_compression->callback((Fl_Callback*)cb_use_compression);
+	btn_use_compression->value(progStatus.use_compression);
+
+	btn_enable_tx_unproto = new Fl_Check_Button(X+170, y, 20, 20,
+												_("Transmit unproto (plain text, 7bit ASCII)"));
+	btn_enable_tx_unproto->tooltip("");
+	btn_enable_tx_unproto->align(FL_ALIGN_RIGHT);
+	btn_enable_tx_unproto->down_box(FL_DOWN_BOX);
+	btn_enable_tx_unproto->callback((Fl_Callback*)cb_enable_tx_unproto);
+	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
+
+	y+=24;
+
+	txt_tx_selected_blocks = new Fl_Input2(X+70, y, W - X - 162, 20, _("blocks"));
+	txt_tx_selected_blocks->box(FL_DOWN_BOX);
+	txt_tx_selected_blocks->tooltip(_("Clear for all\nComma separated block #s"));
+	txt_tx_selected_blocks->callback((Fl_Callback*)cb_selected_blocks);
+
+	btn_parse_blocks = new Fl_Button(W - 88, y, 80, 20, _("Fetch"));
+	btn_parse_blocks->callback((Fl_Callback*)cb_btn_parse_blocks);
+	btn_parse_blocks->tooltip(_("Fetch & parse fldigi block reports"));
+
 	btn_send_file = new Fl_Button(W - 370, y+=25, 70, 22, _(XMT_LABEL));
 	btn_send_file->callback((Fl_Callback*)cb_btn_send_file);
 	btn_send_file->tooltip(_("Transmit this file"));
@@ -986,7 +1129,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_open_file->tooltip(_("Select file to add to queue"));
 
 	drop_file = new Fl_Input(W - 370 + 4*76, y - 2, 50, 24);
-	drop_file->box(FL_OVAL_BOX);
+	drop_file->box(FL_BORDER_BOX);
 	drop_file->textcolor(fl_rgb_color( 200, 0, 0) );
 	drop_file->value("  DnD");
 	drop_file->color(fl_rgb_color(244, 255, 255));
@@ -1012,7 +1155,6 @@ Fl_Double_Window* flamp_dialog() {
 
 	// Timed Even Tab
 
-	//Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y=Y+26, W-2*(X+2), H-y-2, _("Events"));
 	y = Y+26;
 
 	Fl_Group *Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Events"));
@@ -1021,38 +1163,35 @@ Fl_Double_Window* flamp_dialog() {
 	event_tabs->labelcolor(FL_BLACK);
 	event_tabs->selection_color(fl_rgb_color(245, 255, 250)); // mint cream
 
-
-	//y += 16;
 	y = Y + 52;
 	Fl_Group *Timed_Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Timed"));
 	y += 8;
 
 	Fl_Multiline_Output* explain_events = new Fl_Multiline_Output(
-																  X+4, y, W - X - 8, 84, "");
+																  X+4, y, W - X - 8, 92, "");
 	explain_events->tooltip("");
 	explain_events->color(fl_rgb_color(255, 250, 205));
 
 	explain_events->value("\tTimed / Continuous events :\n" \
-						  "\tEach transmission is identical to a 'Xmt All', that is the\n" \
-						  "\tentire queue is transmitted.  The unproto 'QST (calls) de URCALL'\n" \
+						  "\tEach transmission is identical to a 'Xmt All' (The entire\n" \
+						  "\tqueue is transmitted).  The unproto 'QST (calls) de URCALL'\n" \
 						  "\tand the program identifier '<PROG 11 8E48>FLAMP 2.x.x' are\n" \
 						  "\tincluded." \
 						  );
 
-	//Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=126, W-2*(X+4), 146, _("Timed Events")); //120
-	Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=100, W-2*(X+4), 146, _("Timed Events")); //120
+	Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=116, W-2*(X+4), 142, _("Timed Events")); //120
 	Timed_Repeat_grp->box(FL_ENGRAVED_BOX);
 	Timed_Repeat_grp->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 
 	btn_repeat_at_times = new Fl_Check_Button(X+10, y+=8, 20, 20,
-											  _("Scheduled times of transmission"));
+											  _("Scheduled times of TX"));
 	btn_repeat_at_times->tooltip("");
 	btn_repeat_at_times->align(FL_ALIGN_RIGHT);
 	btn_repeat_at_times->down_box(FL_DOWN_BOX);
 	btn_repeat_at_times->callback((Fl_Callback*)cb_repeat_at_times);
 	btn_repeat_at_times->value(progStatus.repeat_at_times);
 
-	cbo_repeat_every = new Fl_ComboBox(X + 250, y, 140, 20, "TX interval"); //20
+	cbo_repeat_every = new Fl_ComboBox(X + 250, y, 140, 20, "Interval"); //20
 	cbo_repeat_every->begin();
 	cbo_repeat_every->align(FL_ALIGN_RIGHT);
 	cbo_repeat_every->when(FL_WHEN_RELEASE);
@@ -1076,16 +1215,16 @@ Fl_Double_Window* flamp_dialog() {
 	btn_auto_load_queue->value(progStatus.auto_load_queue);
 
 	btn_load_from_tx_folder = new Fl_Check_Button(X+200, y, 20, 20,
-												  _("Load from TX directory"));
+												  _("Load from TX Dir."));
 	btn_load_from_tx_folder->tooltip("");
 	btn_load_from_tx_folder->align(FL_ALIGN_RIGHT);
 	btn_load_from_tx_folder->down_box(FL_DOWN_BOX);
 	btn_load_from_tx_folder->callback((Fl_Callback*)cb_load_from_tx_folder);
 	btn_load_from_tx_folder->value(progStatus.load_from_tx_folder);
 
-	btn_manual_load_queue = new Fl_Button(W - 116, y+12, 90, 22, _("Load Queue"));
+	btn_manual_load_queue = new Fl_Button(W - 106, y+12, 96, 22, _("Load Queue"));
 	btn_manual_load_queue->callback((Fl_Callback*)cb_manual_load_que);
-	btn_manual_load_queue->tooltip(_("Transmit this file"));
+	btn_manual_load_queue->tooltip(_("Load queue with a file list"));
 
 	txt_auto_load_queue_path = new Fl_Input2(X+10, y+=42, W -X -20, 20, "Path to Load Queue File List");
 	txt_auto_load_queue_path->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
@@ -1123,11 +1262,13 @@ Fl_Double_Window* flamp_dialog() {
 	// Timed Even Tab End
 	// Timed Events Tab End
 	y = Y + 52;
-	Fl_Group *Hamcast_Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Hamcast"));
+	Fl_Group *Hamcast_Events_tab = (Fl_Group *) new Hamcast_Group(X+2, y, W-2*(X+2), H-y-2, _("Hamcast"));
+	//Fl_Group *Hamcast_Events_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Hamcast"));
 	y += 8;
 
 	y += 16;
 	int lx = X+12;
+	int lx_sep = 150;
 
 	Fl_Group *Hamcast_mode_group = new Fl_Group(X+4, y+=8, W-2*(X+4), 146, _("Hamcast modem rotation / Queue Transmit Time (on Timed Events)")); //120
 	Hamcast_mode_group->box(FL_ENGRAVED_BOX);
@@ -1152,7 +1293,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_hamcast_mode_enable_1->callback((Fl_Callback*)cb_hamcast_mode_enable_1);
 	btn_hamcast_mode_enable_1->value(progStatus.hamcast_mode_enable_1);
 
-	cbo_hamcast_mode_selection_1 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_1 = new Fl_ComboBox(lx+lx_sep, y, 118, 20, "");
 	cbo_hamcast_mode_selection_1->begin();
 	cbo_hamcast_mode_selection_1->align(FL_ALIGN_RIGHT);
 	cbo_hamcast_mode_selection_1->when(FL_WHEN_RELEASE);
@@ -1178,7 +1319,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_hamcast_mode_enable_2->callback((Fl_Callback*)cb_hamcast_mode_enable_2);
 	btn_hamcast_mode_enable_2->value(progStatus.hamcast_mode_enable_2);
 
-	cbo_hamcast_mode_selection_2 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_2 = new Fl_ComboBox(lx+lx_sep, y, 118, 20, "");
 	cbo_hamcast_mode_selection_2->begin();
 	cbo_hamcast_mode_selection_2->align(FL_ALIGN_RIGHT);
 	cbo_hamcast_mode_selection_2->when(FL_WHEN_RELEASE);
@@ -1204,7 +1345,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_hamcast_mode_enable_3->callback((Fl_Callback*)cb_hamcast_mode_enable_3);
 	btn_hamcast_mode_enable_3->value(progStatus.hamcast_mode_enable_3);
 
-	cbo_hamcast_mode_selection_3 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_3 = new Fl_ComboBox(lx+lx_sep, y, 118, 20, "");
 	cbo_hamcast_mode_selection_3->begin();
 	cbo_hamcast_mode_selection_3->align(FL_ALIGN_RIGHT);
 	cbo_hamcast_mode_selection_3->when(FL_WHEN_RELEASE);
@@ -1230,7 +1371,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_hamcast_mode_enable_4->callback((Fl_Callback*)cb_hamcast_mode_enable_4);
 	btn_hamcast_mode_enable_4->value(progStatus.hamcast_mode_enable_4);
 
-	cbo_hamcast_mode_selection_4 = new Fl_ComboBox(lx+140, y, 118, 20, "");
+	cbo_hamcast_mode_selection_4 = new Fl_ComboBox(lx+lx_sep, y, 118, 20, "");
 	cbo_hamcast_mode_selection_4->begin();
 	cbo_hamcast_mode_selection_4->align(FL_ALIGN_RIGHT);
 	cbo_hamcast_mode_selection_4->when(FL_WHEN_RELEASE);
@@ -1260,7 +1401,7 @@ Fl_Double_Window* flamp_dialog() {
 
 	// Configuration Tab
 	y = Y + 26;
-	Fl_Group *Config_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Configure"));
+	Config_tab = new Fl_Group(X+2, y, W-2*(X+2), H-y-2, _("Configure"));
 
 	y += 10;
 
@@ -1307,13 +1448,14 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_tx_on_report->callback((Fl_Callback*)cb_enable_tx_on_report);
 	btn_enable_tx_on_report->value(progStatus.use_tx_on_report);
 
-	btn_enable_tx_unproto = new Fl_Check_Button(X+70, y+=26, 20, 20,
-												_("Transmit unproto (plain text, 7bit ASCII)"));
-	btn_enable_tx_unproto->tooltip("");
-	btn_enable_tx_unproto->align(FL_ALIGN_RIGHT);
-	btn_enable_tx_unproto->down_box(FL_DOWN_BOX);
-	btn_enable_tx_unproto->callback((Fl_Callback*)cb_enable_tx_unproto);
-	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
+
+	btn_enable_delete_warning = new Fl_Check_Button(X+70, y+=26, 20, 20,
+													_("Warn User when removing files from Queue"));
+	btn_enable_delete_warning->tooltip("");
+	btn_enable_delete_warning->align(FL_ALIGN_RIGHT);
+	btn_enable_delete_warning->down_box(FL_DOWN_BOX);
+	btn_enable_delete_warning->callback((Fl_Callback*)cb_enable_delete_warning);
+	btn_enable_delete_warning->value(progStatus.enable_delete_warning);
 
 	btn_clear_tosend_on_tx_blocks = new Fl_Check_Button(X+70, y+=26, 20, 20,
 														_("Clear Missing Blocks on Non-Canceled Transmit(s)"));
@@ -1324,13 +1466,21 @@ Fl_Double_Window* flamp_dialog() {
 	btn_clear_tosend_on_tx_blocks->value(progStatus.clear_tosend_on_tx_blocks);
 
 
-	btn_disable_header_modem_on_block_fills= new Fl_Check_Button(X+70, y+=26, 20, 20,
-																 _("Inhibit header modem on block fills"));
+	btn_disable_header_modem_on_block_fills = new Fl_Check_Button(X+70, y+=26, 20, 20,
+																  _("Inhibit header modem on block fills"));
 	btn_disable_header_modem_on_block_fills->tooltip("");
 	btn_disable_header_modem_on_block_fills->align(FL_ALIGN_RIGHT);
 	btn_disable_header_modem_on_block_fills->down_box(FL_DOWN_BOX);
 	btn_disable_header_modem_on_block_fills->callback((Fl_Callback*)cb_disable_header_modem_on_block_fills);
 	btn_disable_header_modem_on_block_fills->value(progStatus.disable_header_modem_on_block_fills);
+
+	btn_enable_unproto_markers = new Fl_Check_Button(X+70, y+=26, 20, 20,
+													 _("Mark start/end of unproto data"));
+	btn_enable_unproto_markers->tooltip("");
+	btn_enable_unproto_markers->align(FL_ALIGN_RIGHT);
+	btn_enable_unproto_markers->down_box(FL_DOWN_BOX);
+	btn_enable_unproto_markers->callback((Fl_Callback*)cb_enable_unproto_markers);
+	btn_enable_unproto_markers->value(progStatus.enable_unproto_markers);
 
 	btn_enable_header_modem = new Fl_Check_Button(X+70, y+=26, 20, 20,
 												  _("Enable header modem (Sync flamp to fldigi ignored)"));
@@ -1362,7 +1512,7 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_txrx_interval->down_box(FL_DOWN_BOX);
 	btn_enable_txrx_interval->callback((Fl_Callback*)cb_enable_txrx_interval);
 	btn_enable_txrx_interval->value(progStatus.use_txrx_interval);
-	
+
 	cnt_tx_internval_mins = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Tx Duration Mins"));
 	cnt_tx_internval_mins->step(1);
 	cnt_tx_internval_mins->value(progStatus.tx_interval_minutes);
@@ -1371,33 +1521,32 @@ Fl_Double_Window* flamp_dialog() {
 	cnt_tx_internval_mins->align(FL_ALIGN_RIGHT);
 	cnt_tx_internval_mins->callback((Fl_Callback*)cb_tx_interval_mins);
 	cnt_tx_internval_mins->tooltip(_("Transmit Duration in Minutes"));
-	
+
 	cnt_rx_internval_secs = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Rx Duration Secs"));
 	cnt_rx_internval_secs->step(1);
 	cnt_rx_internval_secs->value(progStatus.rx_interval_seconds);
-	cnt_rx_internval_secs->minimum(1);
+	cnt_rx_internval_secs->minimum(MIN_INTERAL_TIME);
 	cnt_rx_internval_secs->maximum(120);
 	cnt_rx_internval_secs->align(FL_ALIGN_RIGHT);
 	cnt_rx_internval_secs->callback((Fl_Callback*)cb_rx_interval_secs);
 	cnt_rx_internval_secs->tooltip(_("Receive Duration in Seconds"));
-	
-	
+
 	Config_tab->end();
-	
+
 	// Configuration Tab End
-	
+
 	tabs->add(Rx_tab);
 	tabs->add(Tx_tab);
 	tabs->add(Events_tab);
 	tabs->add(Config_tab);
-	
+
 	tabs->end();
 	w->end();
-	
+
 	init_encoders();
 	init_cbo_modes();
 	init_cbo_events();
-	
+
 	return w;
 }
 

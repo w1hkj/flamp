@@ -15,66 +15,66 @@
 namespace XmlRpc {
 
 
-  // The server waits for client connections and provides support for executing methods
-  class XmlRpcServer;
-  class XmlRpcServerMethod;
+	// The server waits for client connections and provides support for executing methods
+	class XmlRpcServer;
+	class XmlRpcServerMethod;
 
-  //! A class to handle XML RPC requests from a particular client
-  class XmlRpcServerConnection : public XmlRpcSource {
-  public:
+	//! A class to handle XML RPC requests from a particular client
+	class XmlRpcServerConnection : public XmlRpcSource {
+	public:
 
-    //! Constructor
-    XmlRpcServerConnection(XmlRpcSocket::Socket fd, XmlRpcServer* server, bool deleteOnClose = false);
-    //! Destructor
-    virtual ~XmlRpcServerConnection();
+		//! Constructor
+		XmlRpcServerConnection(XmlRpcSocket::Socket fd, XmlRpcServer* server, bool deleteOnClose = false);
+		//! Destructor
+		virtual ~XmlRpcServerConnection();
 
-    // XmlRpcSource interface implementation
-    //! Handle IO on the client connection socket.
-    //!   @param eventType Type of IO event that occurred. @see XmlRpcDispatch::EventType.
-    virtual unsigned handleEvent(unsigned eventType);
+		// XmlRpcSource interface implementation
+		//! Handle IO on the client connection socket.
+		//!   @param eventType Type of IO event that occurred. @see XmlRpcDispatch::EventType.
+		virtual unsigned handleEvent(unsigned eventType);
 
-  protected:
+	protected:
 
-    //! Reads the http header
-    bool readHeader();
+		//! Reads the http header
+		bool readHeader();
 
-    //! Reads the request (based on the content-length header value)
-    bool readRequest();
+		//! Reads the request (based on the content-length header value)
+		bool readRequest();
 
-    //! Executes the request and writes the resulting response
-    bool writeResponse();
-
-
-    //! Helper method to execute the client request
-    virtual void executeRequest();
+		//! Executes the request and writes the resulting response
+		bool writeResponse();
 
 
-    //! The XmlRpc server that accepted this connection
-    XmlRpcServer* _server;
+		//! Helper method to execute the client request
+		virtual void executeRequest();
 
-    //! Possible IO states for the connection
-    enum ServerConnectionState { READ_HEADER, READ_REQUEST, WRITE_RESPONSE };
-    //! Current IO state for the connection
-    ServerConnectionState _connectionState;
 
-    //! Request headers
-    std::string _header;
+		//! The XmlRpc server that accepted this connection
+		XmlRpcServer* _server;
 
-    //! Number of bytes expected in the request body (parsed from header)
-    int _contentLength;
+		//! Possible IO states for the connection
+		enum ServerConnectionState { READ_HEADER, READ_REQUEST, WRITE_RESPONSE };
+		//! Current IO state for the connection
+		ServerConnectionState _connectionState;
 
-    //! Request body
-    std::string _request;
+		//! Request headers
+		std::string _header;
 
-    //! Response
-    std::string _response;
+		//! Number of bytes expected in the request body (parsed from header)
+		int _contentLength;
 
-    //! Number of bytes of the response written so far
-    int _bytesWritten;
+		//! Request body
+		std::string _request;
 
-    //! Whether to keep the current client connection open for further requests
-    bool _keepAlive;
-  };
+		//! Response
+		std::string _response;
+
+		//! Number of bytes of the response written so far
+		int _bytesWritten;
+
+		//! Whether to keep the current client connection open for further requests
+		bool _keepAlive;
+	};
 } // namespace XmlRpc
 
 #endif // _XMLRPCSERVERCONNECTION_H_

@@ -304,7 +304,7 @@ void Fl_Text_Display_mod::resize(int X, int Y, int W, int H) {
 #endif // DEBUG
 	const int oldWidth = w();
 #ifdef DEBUG
-	printf("    oldWidth=%d, mContinuousWrap=%d, mWrapMargin=%d\n", oldWidth, mContinuousWrap, mWrapMargin);
+	printf("    oldWidth=%d, mContinuousWrap=%d, mWrapMargin=%d\n", oldWidth, mContinuousWrap, mWrapMarginPix);
 #endif // DEBUG
 	Fl_Widget::resize(X,Y,W,H);
 	if (!buffer()) return;
@@ -3577,24 +3577,24 @@ int Fl_Text_Display_mod::handle(int event) {
 			} else {
 				return 0;
 			}
-			
+
 		case FL_LEAVE:
 		case FL_HIDE:
 			if (active_r() && window()) {
 				window()->cursor(FL_CURSOR_DEFAULT);
-				
+
 				return 1;
 			} else {
 				return 0;
 			}
-			
+
 		case FL_PUSH: {
 			if (active_r() && window()) {
 				if (Fl::event_inside(text_area.x, text_area.y, text_area.w,
 									 text_area.h)) window()->cursor(FL_CURSOR_INSERT);
 				else window()->cursor(FL_CURSOR_DEFAULT);
 			}
-			
+
 			if (Fl::focus() != this) {
 				Fl::focus(this);
 				handle(FL_FOCUS);
@@ -3617,7 +3617,7 @@ int Fl_Text_Display_mod::handle(int event) {
 				buffer()->select(word_start(pos), word_end(pos));
 				dragPos = word_start(pos);
 			}
-			
+
 			if (buffer()->primary_selection()->selected())
 				insert_position(buffer()->primary_selection()->end());
 			else
@@ -3625,7 +3625,7 @@ int Fl_Text_Display_mod::handle(int event) {
 			show_insert_position();
 			return 1;
 		}
-			
+
 		case FL_DRAG: {
 			if (dragType==DRAG_NONE)
 				return 1;
@@ -3679,9 +3679,9 @@ int Fl_Text_Display_mod::handle(int event) {
 			fl_text_drag_me(pos, this);
 			return 1;
 		}
-			
+
 		case FL_RELEASE: {
-			if (Fl::event_is_click() && (! Fl::event_clicks()) && 
+			if (Fl::event_is_click() && (! Fl::event_clicks()) &&
 				buffer()->primary_selection()->includes(dragPos) && !(Fl::event_state()&FL_SHIFT) ) {
 				buffer()->unselect(); // clicking in the selection: unselect and move cursor
 				insert_position(dragPos);
@@ -3696,7 +3696,7 @@ int Fl_Text_Display_mod::handle(int event) {
 					Fl::remove_timeout(scroll_timer_cb, this);
 					scroll_direction = 0;
 				}
-				
+
 				// convert from WORD or LINE selection to CHAR
 				/*if (insert_position() >= dragPos)
 				 dragPos = buffer()->primary_selection()->start();
@@ -3704,17 +3704,17 @@ int Fl_Text_Display_mod::handle(int event) {
 				 dragPos = buffer()->primary_selection()->end();*/
 				dragType = DRAG_CHAR;
 			}
-			
+
 			const char* copy = buffer()->selection_text();
 			if (*copy) Fl::copy(copy, strlen(copy), 0);
 			free((void*)copy);
 			return 1;
 		}
-			
+
 		case FL_MOUSEWHEEL:
 			if (Fl::event_dy()) return mVScrollBar->handle(event);
 			else return mHScrollBar->handle(event);
-			
+
 		case FL_UNFOCUS:
 			if (active_r() && window()) window()->cursor(FL_CURSOR_DEFAULT);
 		case FL_FOCUS:
@@ -3734,7 +3734,7 @@ int Fl_Text_Display_mod::handle(int event) {
 					redisplay_range(start, end);
 			}
 			return 1;
-			
+
 		case FL_KEYBOARD:
 			// Copy?
 			if ((Fl::event_state()&(FL_CTRL|FL_COMMAND)) && Fl::event_key()=='c') {
@@ -3744,7 +3744,7 @@ int Fl_Text_Display_mod::handle(int event) {
 				free((void*)copy);
 				return 1;
 			}
-			
+
 			// Select all ?
 			if ((Fl::event_state()&(FL_CTRL|FL_COMMAND)) && Fl::event_key()=='a') {
 				buffer()->select(0,buffer()->length());
@@ -3753,12 +3753,12 @@ int Fl_Text_Display_mod::handle(int event) {
 				free((void*)copy);
 				return 1;
 			}
-			
+
 			if (mVScrollBar->handle(event)) return 1;
 			if (mHScrollBar->handle(event)) return 1;
-			
+
 			break;
-			
+
 		case FL_SHORTCUT:
 			if (!(shortcut() ? Fl::test_shortcut(shortcut()) : test_shortcut()))
 				return 0;
@@ -3767,9 +3767,9 @@ int Fl_Text_Display_mod::handle(int event) {
 				return 1;
 			}
 			break;
-			
+
 	}
-	
+
 	return 0;
 }
 

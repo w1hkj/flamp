@@ -1,0 +1,586 @@
+/******************************************************************************
+ * Copyright (C) 2014 Robert Stiles, KK5VD.
+ *
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation under the terms of the GNU General Public License is hereby
+ * granted. No representations are made about the suitability of this software
+ * for any purpose. It is provided "as is" without express or implied warranty.
+ * See the GNU General Public License for more details.
+ *
+ * Documents produced by Doxygen are derivative works derived from the
+ * input used in their production; they are not affected by this license.
+ *
+ * Requires Doxygen for HTML output
+ * plus LiveTeX (LaTeX) for PDF output
+ *
+ */
+
+/*!
+
+\page scripting_page Configure and Queue File Scripting
+
+\tableofcontents
+
+\section s_list_of_commands List of commands
+
+<ul>
+	<li> \ref ss_auto_load_queue "AUTO LOAD QUEUE" </li>
+	<li> \ref ss_base_encoding "BASE" &Dagger; </li>
+	<li> \ref ss_block_size "BLOCKS" </li>
+	<li> \ref ss_call_from "CALLFROM" </li>
+	<li> \ref ss_call_to "CALLTO" &Dagger; </li>
+	<li> \ref ss_clear_missing "CLEAR MISSING" </li>
+	<li> \ref ss_clear_tx_queue "CLEAR TXQ" &dagger; </li>
+	<li> \ref ss_compression_on_off "COMP" &Dagger; </li>
+	<li> \ref ss_event_forever "EVENT FOREVER" </li>
+	<li> \ref ss_event_on_off "EVENT" </li>
+	<li> \ref ss_event_timed "EVENT TIMED" </li>
+	<li> \ref ss_event_times "EVENT TIMES" </li>
+	<li> \ref ss_event_types "EVENT TYPE" </li>
+	<li> \ref ss_file_desc "FILE" &dagger; </li>
+	<li> \ref ss_file_id "FLAMP_CONFIG" &dagger; </li>
+	<li> \ref ss_hamcast_modem "HAMCAST MODEM" </li>
+	<li> \ref ss_hamcast_on_off "HAMCAST" </li>
+	<li> \ref ss_hdr_repeat "HDR REPEAT" </li>
+	<li> \ref ss_header_modem "HEADER MODEM" </li>
+	<li> \ref ss_info_field "INFO" </li>
+	<li> \ref ss_inhibit_header "INHIBIT HEADER" </li>
+	<li> \ref ss_interval_on_off "INTERVAL" </li>
+	<li> \ref ss_load_txdir "LOAD TXDIR" </li>
+	<li> \ref ss_modem_type "MODEM" </li>
+	<li> \ref ss_path_directory "PATH" &dagger; </li>
+	<li> \ref ss_pound_sign "#" &dagger; </li>
+	<li> \ref ss_proto_unproto "PROTO" &Dagger; </li>
+	<li> \ref ss_queue_filepath "QUEUE FILEPATH" &dagger; </li>
+	<li> \ref ss_reset_env "RESET" </li>
+	<li> \ref ss_rx_interval "RX INTERVAL" </li>
+	<li> \ref ss_sync_with "SYNC WITH" </li>
+	<li> \ref ss_tx_interval "TX INTERVAL" </li>
+	<li> \ref ss_tx_report "TX REPORT" </li>
+	<li> \ref ss_unproto_markers "UNPROTO MARKERS" </li>
+	<li> \ref ss_warn_user "WARN USER" </li>
+	<li> \ref ss_xmit_repeat "XMIT REPEAT" </li>
+</ul>
+
+\par NOTE
+	All commands listed above are available to Program Level Scripts (PLS).
+	&dagger; and &Dagger; referenced commands are used for Queue Level
+	Scripts (QLS).
+
+\section script_commands Script Command Format
+
+COMMAND:<br>
+COMMAND:<parameter><br>
+COMMAND:<parameter>,<parameter><br>
+
+The command and parameters are separated by a colon ':'.
+
+Parameters are single or multiple word(s). If multiple words are used and
+contain spaces or commas the text must be enclosed in quotes. Each parameter
+is delimited by a comma.
+
+\par Example:
+
+This tag is used to identify the file as a FLAMP script file. This must be
+located on the first line. If this is not present, the script will not
+execute.<br>
+<tt>\ref ss_file_id "FLAMP_CONFIG"</tt><br>
+<br>
+
+A command without parameters <br>
+<tt>\ref ss_clear_tx_queue "CLEAR TXQ":</tt><br>
+<br>
+
+This command has spaces in it's parameter list, requiring quotes.<br>
+<tt>\ref ss_path_directory "PATH":"/directory path"</tt><br>
+<br>
+
+This command has both commas and spaces in it's parameter list,
+requiring quotes.<br>
+<tt>\ref ss_file_desc "FILE":"weather_report.txt", "Report, Weekly Weather"</tt><br>
+<br>
+
+All parameter can be enclosed in quotes.<br>
+<tt>\ref ss_call_to "CALLTO":"WX"</tt><br>
+<tt>\ref ss_file_desc "FILE":"weather_report.txt", "Weekly Weather Report"</tt><br>
+<br>
+
+\section script_class_types Script Class Types
+
+There are two classes of script files, 'Program Level Script (PLS)' and the
+'Queue Level Script (QLS)'. The 'Program' and 'Queue' level scripts can be
+executed from the 'Script'->'Execute Config Script' menu item.
+'Program Level' scripts are responsible for configuring parameters of
+the program. All commands are available, See \ref s_list_of_commands.
+
+\image latex menu_script_execution.png "Executing PL Scripts" width=2.63in
+\image html menu_script_execution.png "Executing PL Scripts"
+
+The 'Queue Level Scripts (QLS)' uses a subset of commands listed here
+\(\ref s_list_of_commands\) and marked with &dagger; or &Dagger; Notes. This
+file is placed and executed in the event->timed panel.
+
+\image latex event_queue_path_script.png "Executing QL Scripts" width=4.85in
+\image html event_queue_path_script.png "Executing QL Scripts"
+
+Both class files can be executed in either location. However, if a PL script
+is executed in the event timed panel, warnings/errors will be issued
+in the debug log.
+
+Some commands are used to modify the attributes of a queued file. In order to
+set these attribues the commands noted with &Dagger; should be called prior
+to issuing the \ref ss_file_desc "FILE" command. See \ref s_list_of_commands.
+
+Script files are expected to have the .txt file extension.
+
+\section s_os_differences Operating System Script Differences
+
+The following commands have specific parameter difference for each of the
+three operations systems.
+<br>
+
+\ref ss_path_directory "PATH", \ref ss_file_desc "FILE", and
+\ref ss_queue_filepath "QUEUE FILEPATH".
+
+\ref ss_path_directory "PATH" Parameter:
+<ul>
+	<li><b>Linux</b>:<br> The path structure for accessing directories
+	are<br>
+	/Root_Drive/Directory/Directory/,...</li>
+	<li><b>Macintosh</b>:<br> Has a case insensitive file system (unless the
+	disk drive is formated for a case sensitive access).  The path
+	structure for accessing directories are<br>
+	/Root_Drive/Directory/Directory/,...</li>
+	<li><b>Windows</b>: The primary difference is the use of a disk drive
+	letter and a backslash path separator in place of a fore-slash.<br>
+	Example: C:\\Directory\\Directory\\,...<br>
+	However, the Win32 Cross Compiler used to create the executable
+	performs translations if the fore-slash is used.<br>
+	Example: C:/Directory/Directory/,...<br>
+	Produces the same results.</li>
+</ul>
+
+<br>
+\ref ss_file_desc "FILE" Parameter:
+
+The file name must contain filename.ext format with no
+\ref ss_path_directory "PATH" data. Depending on OS case sensitivity might
+apply. By having the \ref ss_path_directory "PATH" as a separate entry.
+Porting scripts to the other OS's is easier to maintain.
+
+\ref ss_queue_filepath "QUEUE FILEPATH" Parameter:
+
+Since this is a single entry the path and filename are combined into one
+parameter. The format rules are specified above.
+<br>
+<br>
+
+\section s_script_execution Script Execution
+
+To execute a configure script. Select 'Script'->'Execute Script' menu
+item. This is bring up a open file dialog box allowing for navigating to the
+desired script file. Select the file in question and press the open button.
+This executes the script file. See \ref s_error_reporting "Error Reporting"
+in the event of errors.
+
+'Script'->'Execute Script (FLAMP Dir)' menu item reset the initial directory
+path back to the default starting location.
+
+\image latex menu_script_execution.png "Executing PL Scripts" width=2.63in
+\image html menu_script_execution.png "Executing PL Scripts"
+
+\section script_desc Script Command Descriptions
+
+Available list of command and description of their use:
+
+\subsection ss_file_id FLAMP_CONFIG File ID Tag
+	Required file identifier. Must be located on the first line of the
+	configuration and queue load list.
+
+\subsection ss_pound_sign '#' Pound sign.
+	Any text to the right of the '#' (pound sign) is
+	considered a remark statement.
+
+\subsection ss_auto_load_queue Auto load Queue
+	During triggered events reload the queue with the contents specified in
+	either the source queue list file or from FLAMP's 'tx' directory.
+<br>
+<br>
+	<b>Format:</b> <tt>AUTO LOAD QUEUE:\<ON|OFF\></tt>
+
+\subsection ss_base_encoding Base Encoding
+	Used to transmit data using a method to keep the data values in a specific
+	range. File Attribute Command.
+<br>
+<br>
+	<b>Format:</b> <tt>BASE:\<64|128|256\></tt><br></tt>
+
+\subsection ss_block_size Transmit block size.
+	Used to adjust the transmit block size. Normally adjust to the conditions
+	of the band. Poor conditions requires smaller values.  The value range is
+	between 16 and 2048 in increments of 16 (16,32,48,...,2048).
+<br>
+<br>
+	<b>Format:</b> <tt>BLOCKS:\<value\><br></tt>
+
+\subsection ss_call_from Callsign of the transmitting station
+	Assign the callfrom call. Any text are allowed. Follow local rules on
+	it's use (<callfrom> de <callto>).
+<br>
+<br>
+	<b>Format:</b> <tt>CALLFROM:\<callsign\></tt>
+
+\subsection ss_call_to Callsign of the receiving stations
+	Assign the callto call. Any text are allowed. Follow local rules on
+	it's use (<callfrom> de <callto>). File Attribute Command.
+<br>
+<br>
+	<b>Format:</b> <tt>CALLTO:\<callsign\></tt>
+
+\subsection ss_clear_missing Clear Missing
+	After a uninterrupted transmit fill. The contents of the missing blocks
+	list is cleared.
+<br>
+<br>
+	<b>Format:</b> <tt>CLEAR MISSING:\<ON|OFF\></tt>
+
+\subsection ss_clear_tx_queue Clear the transmit queue
+	Clears the transmit queue of all files. No parameters used.
+	<b>Caution:</b> No warning issued.
+<br>
+<br>
+	<b>Format:</b> <tt>CLEAR TXQ:</tt>
+
+\subsection ss_compression_on_off Compression
+	Enables/Disables Compression use on a file by file basis. Compression
+	may or may not be employed. The file size of before and after compression
+	determines if it's used or not.
+<br>
+<br>
+	<b>Format:</b> <tt>COMP:\<ON|OFF\></tt>
+
+\subsection ss_event_forever Events, Forever
+	Enables/Disables events to occur without the restriction of time. Requires
+	EVENTS to be enable. File Attribute Command.
+<br>
+<br>
+	<b>Format:</b> <tt>EVENT FOREVER:\<ON|OFF\></tt>
+
+\subsection ss_event_times Events Times
+	Events will occur at time HHMM or between HHMM-HHMM. HHMM-HHMM requires
+	Event type "Continuous at".
+<br>
+<br>
+	<b>Format:</b> <tt>EVENT TIMES:\<HHMM|HHMM-HHMM\></tt>
+
+\subsection ss_event_types Events Types
+	Event types are listed below. The event type requires enclosed \"\".
+<br>
+<br>
+	<b>Format:</b> <tt>EVENT TYPE:\"\<event_type\>\"</tt>
+<br>
+<br>
+Event Type List:
+<ul>
+	<li>\"5 min\"<br>Transmit every 5 minutes</li>
+	<li>\"15 min\"<br>Transmit every 15 minutes</li>
+	<li>\"30 min\"<br>Transmit every 30 minutes</li>
+	<li>\"Hourly\"<br>Transmit every hour</li>
+	<li>\"Even hours\"<br>Transmit every even hour</li>
+	<li>\"Odd hours\"<br>Transmit every odd hour</li>
+	<li>\"Repeated at\"<br>Transmit at specific time intervals repeatedly</li>
+	<li>\"One time at\"<br>Transmit at specific time intervals once</li>
+	<li>\"Continuous at\"<br>Transmit between specific time intervals repeatedly</li>
+</ul>
+
+\subsection ss_event_timed Enable/Disable Timed Events
+	Enable/Disable Timed Events.
+<br>
+<br>
+	<b>Format:</b> <tt>EVENT TIMED:\<ON|OFF\></tt>
+
+\subsection ss_event_on_off Enable/Disable Events
+	Enable/Disable all event types. When enabled, data is sent to FLDIGI
+	for transmission when the event condition is reached. Sets the
+	Start/Stop event button in the event panel.
+<br>
+<br>
+	<b>Format:</b> <tt>EVENT:\<ON|OFF\></tt>
+
+\subsection ss_file_desc Add file to TX Queue
+	Add a file to the transmit queue list. This is the filename.txt only. Use
+	the \ref ss_path_directory "PATH" command to indicated the directory
+	location of the file(s). The second parameter is a description of the
+	file and fills the AMP protocol	DESC tag field. Enclosed \"\" are
+	required if the description contains either a comma or space(s).
+	See \ref ss_path_directory and \ref s_os_differences for formatting/use.
+<br>
+<br>
+	<b>Format:</b> <tt>FILE:\<filename.txt\>,\<\"description of the file\"\></tt>
+
+\subsection ss_hamcast_modem Setting/Enabling/Disabling Hamcast Modems
+	Enable/Disable specific <pos> hamcast modem and/or set the modem type for
+	that position.
+<br>
+<br>
+	<b>Format:</b> <tt>HAMCAST MODEM:\<pos\>,\<ON|OFF|MODEM_ID_STRING\></tt>
+
+\subsection ss_hamcast_on_off Enable/Disable Hamcast Events
+	Enable/Disable hamcast modem rotation events.
+<br>
+<br>
+	<b>Format:</b> <tt>HAMCAST:\<ON|OFF\></tt>
+
+\subsection ss_hdr_repeat Header Transmit Repeat
+	The number of time the header section of the AMP protocol is repeatedly
+	transmitted. Repeat <count> times.
+<br>
+<br>
+	<b>Format:</b> <tt>HDR REPEAT:\<count\></tt>
+
+\subsection ss_header_modem Header Modem
+	The ID string used to set the modem type when modem header is enabled.
+<br>
+<br>
+	<b>Format:</b> <tt>HEADER MODEM:\<modem_id_string\></tt>
+
+\subsection ss_header_modem_on_off Header Modem Enable/Disable
+	When enabled (on) transmit the header data using the head modem.
+<br>
+<br>
+	<b>Format:</b> <tt>HEADER MODEM:\<ON|OFF\></tt>
+
+\subsection ss_info_field Information Field
+	Use to set the AMP protocol tag INFO. Can contain any data (text).
+	\"\" must be used if the text contains either commas or spaces. Normally
+	set to the transmitters QTH and locator.
+<br>
+<br>
+	<b>Format:</b> <tt>INFO:\<\"City, State AA00aa\"\></tt>
+
+\subsection ss_inhibit_header Inhibit header modem on fills
+	Enable/Disable Inhibit header modem on fills.
+<br>
+<br>
+	<b>Format:</b> <tt>INHIBIT HEADER:\<ON|OFF\></tt>
+
+\subsection ss_interval_on_off Interval Timer
+	Enable/Disable Interval Timer.
+<br>
+<br>
+	<b>Format:</b> <tt>INTERVAL:\<ON|OFF\></tt>
+
+\subsection ss_load_txdir Load from TX directory
+	When auto load queue on event is enable. Setting this option to on
+	cause the files to be loaded from FLAMP's tx directory. When disable
+	the file are loaded the queue list.
+<br>
+<br>
+	<b>Format:</b> <tt>LOAD TXDIR:\<ON|OFF\></tt>
+
+\subsection ss_modem_type  Modem
+Sets the primary modem for non-header/hamcast transmit's
+<br>
+<br>
+	<b>Format:</b> <tt>MODEM:\<modem_id_string\></tt>
+
+\subsection ss_path_directory  Path
+	Set the path to all file loads. See \ref ss_file_desc "FILE" and
+	\ref s_os_differences for formatting.
+<br>
+<br>
+	<b>Format:</b> <tt>PATH:\<directory_path\></tt>
+
+\subsection ss_proto_unproto  Enable/Disable AMP protocol
+	Enabling proto (on) transmits the file using AMP-2 specification.
+	Disabling allows the data to be transmitted in plain text (7 bit ASCII).
+	File Attribute Command.
+<br>
+<br>
+	<b>Format:</b> <tt>PROTO:\<ON|OFF\></tt>
+
+\subsection ss_queue_filepath  Load Queue List
+	Sets the file name and path of the load queue list.
+	See \ref s_os_differences for formatting.
+<br>
+<br>
+	<b>Format:</b> <tt>QUEUE FILEPATH:\</directory_path/filename.ext\></tt>
+
+\subsection ss_reset_env  Reset/Clear Configure settings.
+	Resets/Clears configuration items.
+<br>
+<br>
+	<b>Format:</b> <tt>RESET:\<ALL|PARTIAL\></tt>
+<ul>
+<li>\"ALL\"<br>Clears all attributes</li>
+<li>\"PARTIAL\"<br>Clears all attributes with the exception of
+CALLFROM and INFO fields</li>
+</ul>
+
+\subsection ss_rx_interval Receive interval time (seconds).
+	Designed for repeater use. This is the time the transmitter is turned off
+allowing the repeater to reset. See \ref ss_interval_on_off "INTERVAL" and
+\ref ss_tx_interval "TX INTERVAL". Allowable range 1-120.
+<br>
+<br>
+	<b>Format:</b> <tt>RX INTERVAL:\<time_in_seconds\></tt>
+
+\subsection ss_sync_with FLDIGI and FLAMP modem sync
+	Used to synchronize the modem selected between FLDIGI and FLAMP.
+<br>
+	<b>Format:</b> <tt>SYNC WITH:\<direction\>,\<ON|OFF\></tt>
+<br>
+<br>
+Sync List:
+<ul>
+<li>\"FLAMP\"<br>Sync FLDIGI's modem to FLAMP's</li>
+<li>\"FLDIGI\"<br>Sync FLAMP's modem to FLDIGI's</li>
+<li>\"PRIOR\"<br>Set FLDIGI's modem to FLAMP's just prior to sending
+transmit data.</li>
+
+\subsection ss_tx_interval Transmit interval time (minutes).
+	Designed for repeater use. This is the time the transmitter is turned on.
+	See \ref ss_interval_on_off "INTERVAL" and
+	\ref ss_rx_interval "RX INTERVAL". Value range 1-8.
+<br>
+<br>
+	<b>Format:</b> <tt>TX INTERVAL:\<time_in_minutes\></tt>
+
+\subsection ss_tx_report Transmit on Report
+	Directly enable transmission when Missing Block reports are sent to FLDIGI.
+<br>
+<br>
+	<b>Format:</b> <tt>TX REPORT:\<ON|OFF\></tt>
+
+\subsection ss_unproto_markers Unprotocol (plain text) Markers
+	Add \-\-\- start \-\-\- to the beginning and \-\-\- end \-\-\- to the end
+	of plain text transmissions.  Allows for easy determinations of content
+	over the airwaves.
+<br>
+<br>
+	<b>Format:</b> <tt>UNPROTO MARKERS:\<ON|OFF\></tt>
+
+\subsection ss_warn_user File Delete Warning
+	Enable/Disable Warning message when deleting transmit queue items from the
+	transmit panel.  Note available when using \ref ss_clear_tx_queue "CLEAR TXQ"
+	script command.
+<br>
+<br>
+	<b>Format:</b> <tt>WARN USER:\<ON|OFF\></tt>
+
+\subsection ss_xmit_repeat Data Transmit Repeat
+	The number of time the data section of the AMP protocol is repeatedly
+	transmitted. Repeat <count> times.
+<br>
+<br>
+	<b>Format:</b> <tt>XMIT REPEAT:\<count\></tt>
+
+\section s_error_reporting Script Error Reporting
+
+If errors are found at the completion of script parsing. This dialog box
+will be displayed.
+
+\image latex script_error_dialog_box.png "Script Error Dialog Box" width=4.2in
+\image html script_error_dialog_box.png "Script Error Dialog Box"
+
+For a detailed review, open the debug log under the 'Help' menu.  This example
+indicates the path to the files was not found. This
+\ref ss_path_directory "PATH" error is responsible for the
+\ref ss_file_desc "FILE" errors.
+
+\image latex script_errors_debug_log.png "Debug Log Script Error(s)" width=5.5in
+\image html script_errors_debug_log.png "Debug Log Script Error(s)"
+
+The information in the debug log provides a line number of where the error
+occurred. Take note of this when making corrections to the script file.
+
+\par NOTE:
+	Although errors have occurred, all commands that are syntax correct have
+	been processed and the appropriate settings applied.
+
+\section s_example Example Program Level Script (PLS)
+
+Using this example requires editing to properly execute on your system.
+See \ref s_os_differences.  Not all commands are used in this example.
+<br>
+
+\verbatim
+FLAMP_CONFIG  # Required file identifier. Must be located on the first line.
+# Remark lines start with the character ‘#'.
+RESET:ALL                          # Disable all Event and Configuration panel settings.
+UNPROTO MARKERS:ON                 # Enable unprotocol markers (pain text separators)
+EVENT TIMES:1425-1431              # The time the event(s) are triggered settings.
+LOAD TXDIR:ON					   # Enable/Disable file loads from the 'tx' directory on events
+QUEUE FILEPATH:"/directory_path/queue_load_list.txt"  # Path to the QLS File List
+BLOCKS:80                          # Set the size of the transmit blocks
+MODEM:BPSK63                       # Set the the transmit mode to x
+CALLFROM:KK5VD                     # Assign the callfrom call.
+INFO:"Madison, AL EM64or"          # Set the information field in the configuration panel
+SYNC WITH:PRIOR,ON                 # Sync FLDIGI's modem to FLAMP's
+CLEAR TXQ:                         # Clear the transmit queue
+PATH:"/Root_drive/directory_path/" # Directory path to the pending FILE load commands
+PROTO:OFF                          # Set the protocol use to the pending FILE commands
+CALLTO:"WX"                        # Set the CALLTO field to the pending FILE commands.
+FILE:"wx_report.txt", "Weekly Weather Report" # Load a file into the transmit queue
+PROTO:ON                           # Set the protocol use to the pending FILE commands
+BASE:64                            # Set the base conversion to the pending FILE commands
+CALLTO:"SPACE WX"                  # Set the CALLTO field to the pending FILE commands.
+FILE:"space_wx.txt", "Weekly Space Weather Report" # Load a file into the transmit queue
+AUTO LOAD QUEUE:ON                 # During events reload queue with the contents specified in either
+MODEM:BPSK31                       # Transmitting modem.
+COMP:ON                            # Enable/Disable Compression.
+BASE:64                            # Set Conversion base.
+BLOCKS:64                          # Block size.
+PROTO:ON                           # Enable/Disable Protocol use.
+XMIT REPEAT:2                      # Number of times to repeat data content.
+HDR REPEAT:3                       # Number of times to repeat header content.
+EVENT TYPE:"Continuous at"         # Example: 'Continuous at'.
+EVENT:ON                           # Enable/Disable Events.
+EVENT TIMES:1425-1431              # The time the event(s) are triggered.
+AUTO LOAD QUEUE:ON                 # During events reload queue with the contents specified.
+INTERVAL:ON                        # Enable/Disable Interval Timer.
+TX INTERVAL:8                      # Interval transmit time in minutes
+RX INTERVAL:5                      # Interval receive time in seconds.
+HEADER MODEM:ON                    # Enable/Disable Header modem use.
+HEADER MODEM:BPSK63                # Modem used for Header Modem.
+HAMCAST MODEM:1,ON                 # Enable/disable Modem 1 use for Hamcast
+HAMCAST MODEM:1,BPSK63             # Modem used for Hamcast in position 1
+HAMCAST MODEM:2,ON                 # Enable/disable Modem 2 use for Hamcast
+HAMCAST MODEM:2,THOR100            # Modem used for Hamcast in position 2
+HAMCAST MODEM:3,ON                 # Enable/disable Modem 3 use for Hamcast
+HAMCAST MODEM:3,THOR50             # Modem used for Hamcast in position 3
+HAMCAST MODEM:4,ON                 # Enable/disable Modem 4 use for Hamcast
+HAMCAST MODEM:4,BPSK31             # Modem used for Hamcast in position 4
+HAMCAST:ON                         # Enable/Disable Hamcast.
+TX REPORT:ON                       # Enable/Disable Transmit on report.
+WARN USER:ON                       # Enable/Disable User warning on transmit queue file removal.
+CLEAR MISSING:ON                   # Enable/Disable Clear missing of fills
+INHIBIT HEADER:ON                  # Enable/Disable Inhibit header modem on fills
+EVENT FOREVER:ON                   # Enable events until disabled.
+\endverbatim
+
+\section s_queue_example Example Queue Level Script (QLS)
+Using this example requires editing to properly execute on your system.
+See \ref s_os_differences.
+<br>
+
+\verbatim
+FLAMP_CONFIG
+CLEAR TXQ:
+PATH:"C:/directory_path/"
+PROTO:OFF
+CALLTO:"WX"
+FILE:"weather_report.txt", "Weekly Weather Report"
+PROTO:ON
+BASE:64
+COMP:ON
+CALLTO:"SPACE WX"
+FILE:"space_weather_report.txt", "Weekly Space Weather Report"
+PROTO:ON
+COMP:OFF
+CALLTO:"ARRL/FCC"
+FILE:"arrl_fcc_ruling.txt", "Ruling on Encryption Use"
+\endverbatim
+
+
+*/

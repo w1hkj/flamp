@@ -1,3 +1,7 @@
+/** ********************************************************
+ *
+ ***********************************************************/
+
 #include "config.h"
 
 const char *copyright[] = {
@@ -5,28 +9,31 @@ const char *copyright[] = {
 	"",
 	" FLAMP "  VERSION, // flamp.cxx
 	"",
-	"  Author(s):",
-	"    Robert Stiles, KK5VD, Copyright (C) 2013",
+	" Author(s):",
+	"    Robert Stiles, KK5VD, Copyright (C) 2013, 2014",
 	"    Dave Freese, W1HKJ, Copyright (C) 2012, 2013",
+	"",
+	" This is free software; you can redistribute it and/or modify",
+	" it under the terms of the GNU General Public License as published by",
+	" the Free Software Foundation; either version 3 of the License, or",
+	" (at your option) any later version.",
 	"",
 	" This software is distributed in the hope that it will be useful,",
 	" but WITHOUT ANY WARRANTY; without even the implied warranty of",
-	" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is",
-	" copyright under the GNU General Public License.",
+	" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the",
+	" GNU General Public License for more details.",
 	"",
 	" You should have received a copy of the GNU General Public License",
-	" along with the program; if not, write to:",
-	"",
-	" Free Software Foundation, Inc.",
-	" 59 Temple Place, Suite 330",
-	" Boston, MA  02111-1307 USA",
+	" along with this program.  If not, see <http://www.gnu.org/licenses/>.",
 	"",
 	" =====================================================================",
 	0
 };
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -35,8 +42,6 @@ const char *copyright[] = {
 #include <vector>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdio.h>
-#include <errno.h>
 #include <time.h>
 #include <pthread.h>
 #include <libgen.h>
@@ -73,6 +78,10 @@ const char *copyright[] = {
 #include "xml_io.h"
 #include "tagSearch.h"
 #include "time_table.h"
+#include "ztimer.h"
+#include "script_parsing.h"
+#include "global_amp.h"
+#include "transmit_camp.h"
 
 #ifdef WIN32
 #  include "flamprc.h"
@@ -87,58 +96,50 @@ const char *copyright[] = {
 
 using namespace std;
 
-string rx_buffer;
-string tx_buffer;
-string tmp_buffer;
+std::string rx_buffer;
+std::string tx_buffer;
+std::string tmp_buffer;
 
 const char *sz_flmsg = "<flmsg>";
 const char *sz_cmd = "<cmd>";
 const char *sz_flamp = "}FLAMP";
 
-static TagSearch *cQue;
+TagSearch *cQue;
 
 
-string testfname = "Bulletin1.txt";
+std::string testfname = "Bulletin1.txt";
 
 bool testing = true;
 bool transmitting = false;
-bool transmit_queue = false;
+
 bool transmit_stop = false;
 bool generate_time_table = false;
-
-static char szoutTimeValue[] = "12:30:00";
-static char sztime[] = "123000";
-static int  ztime;
-static time_t ztime_current;
-static time_t ztime_end;
-
-static bool continuous_exception = false;
-static bool event_timer_on = false;
-
-bool loading_from_queue_file = false;
+bool event_bail_flag = false;
+bool do_events_flag = false;
 
 void auto_load_tx_queue(void);
 
 int blocksize = 64;
 int repeatNN = 1;
 
+
 unsigned int modem_rotation_index = 0;
 vector<std::string> bc_modems;
 std::string g_modem;
 std::string g_header_modem;
 
-
 int g_event_driven = 0;
 
+//! @brief Command line help string initialization
 const char *options[] = {
 	"Flamp Unique Options",
 	"",
 	"  --help",
 	"  --version",
 	"  --time-table",
-	"    Used to generate timing tables for the various modes. Disabling "
-	"    requires program restart."
-	"  --flamp-dir folder-path-name (including drive letter on Windows)",
+	"    Used to generate timing tables for the various modes. Disabling ",
+	"    requires program restart.",
+	"  --confg-dir folder-path-name (including drive letter on Windows)",
 	"      Windows: C:/Documents and Settings/<username>/folder-name",
 	"               C:/Users/<username/folder-name",
 	"               H:/hamstuff/folder-name",
@@ -202,108 +203,51 @@ const char *options[] = {
 	0
 };
 
+//! @brief Thread management global variables.
 pthread_t *xmlrpc_thread = 0;
 pthread_mutex_t mutex_xmlrpc  = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_file_io = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex_tx_data = PTHREAD_MUTEX_INITIALIZER;
+
 
 int xmlrpc_errno = 0;
 int file_io_errno = 0;
-bool active_data_io = false;
-float tx_time_g = 0;
 
-string title = "";
-string BaseDir = "";
-string flampHomeDir = "";
-string flamp_rcv_dir = "";
-string flamp_xmt_dir = "";
-string buffer = "";
 
-string cmd_fname = "";
+std::string NBEMS_dir = "";
+std::string title = "";
+std::string BaseDir = "";
+std::string flampHomeDir = "";
+std::string flamp_rcv_dir = "";
+std::string flamp_xmt_dir = "";
+std::string flamp_script_dir = "";
+std::string flamp_script_default_dir = "";
+std::string buffer = "";
 
-string xmt_fname = "";
-string rx_fname = "";
+std::string cmd_fname = "";
 
-std::vector<cAmp *> tx_array;
-std::vector<cAmp *> rx_array;
+std::string xmt_fname = "";
+std::string rx_fname = "";
 
 void * create_tx_table(void *);
 double measure_tx_time(char character_to_send, unsigned int no_of_characters, double time_out_duration);
-double time_f(void);
+
 char *copyTo(char *src, char *dest, int *limit, int stop_character);
+void * transmit_serial_relay(void *ptr);
+void * transmit_relay_interval(void *ptr);
+void check_io_mode(void *);
+void check_call_and_id(void *v);
 
-class cAmpGlobal amp;
+double time_f(void);
 
-cAmpGlobal::cAmpGlobal()
-{
-	rx_amp = 0;
-	tx_amp = 0;
-
-	pthread_mutex_init(&mutex_txAmp, NULL);
-	pthread_mutex_init(&mutex_rxAmp, NULL);
-}
-
-cAmpGlobal::~cAmpGlobal()
-{
-	pthread_mutex_destroy(&mutex_txAmp);
-	pthread_mutex_destroy(&mutex_rxAmp);
-}
-
-cAmp * cAmpGlobal::tx_cAmp(void)
-{
-	pthread_mutex_lock(&mutex_txAmp);
-	cAmp *ret = tx_amp;
-	pthread_mutex_unlock(&mutex_txAmp);
-	return ret;
-}
-
-bool cAmpGlobal::tx_cAmp(cAmp *amp)
-{
-	pthread_mutex_lock(&mutex_txAmp);
-
-	bool ret = true;
-
-	tx_amp = amp;
-
-	if(!tx_amp) {
-		ret = false;
-	}
-
-	pthread_mutex_unlock(&mutex_txAmp);
-
-	return ret;
-}
-
-cAmp * cAmpGlobal::rx_cAmp(void)
-{
-
-	pthread_mutex_lock(&mutex_rxAmp);
-	cAmp *ret = rx_amp;
-	pthread_mutex_unlock(&mutex_rxAmp);
-
-	return ret;
-}
-
-bool cAmpGlobal::rx_cAmp(cAmp *amp)
-{
-	pthread_mutex_lock(&mutex_rxAmp);
-
-	bool ret = true;
-
-	rx_amp = amp;
-
-	if(!tx_amp) {
-		ret = false;
-	}
-
-	pthread_mutex_unlock(&mutex_rxAmp);
-
-	return ret;
-}
+class cAmpGlobal tx_amp;
+class cAmpGlobal rx_amp;
 
 // utility functions
 
 bool rx_complete = false;
+/** ********************************************************
+ *
+ ***********************************************************/
 bool isbinary(string s)
 {
 	for (size_t n = 0; n < s.length(); n++)
@@ -316,6 +260,9 @@ Pixmap  flamp_icon_pixmap;
 
 #define KNAME "flamp"
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void make_pixmap(Pixmap *xpm, const char **data)
 {
 	Fl_Window w(0,0, KNAME);
@@ -334,98 +281,336 @@ void make_pixmap(Pixmap *xpm, const char **data)
 
 #endif
 
-bool parse_repeat_times(bool delete_flag)
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void update_cAmp_changes(cAmp *amp)
 {
-	char ttime[10];
-	char etime[10];
-	bool local_flag = false;
-	int time_end = 0;
-
-	snprintf(ttime, sizeof(ttime), "%06d", ztime);
-
-	ttime[4] = '-';
-	ttime[5] = 0;
-
-	size_t s = progStatus.repeat_times.length();
-	size_t p = progStatus.repeat_times.find(ttime);
-
-	if(p != std::string::npos) {
-		if(progStatus.repeat_every != 8) return false;
-		delete_flag = false;
-		continuous_exception = true;
-		local_flag = true;
-	} else {
-		ttime[4] = 0;
-		p = progStatus.repeat_times.find(ttime);
-		if(p == std::string::npos) return false;
-		if(p > 0)
-			if(progStatus.repeat_times[p - 1] == '-')
-				return false;
-		local_flag = false;
+	if(!amp) {
+		int n = tx_queue->value();
+		if(n < 1) return;
+		amp = tx_amp.index2amp(n);
+		if(!amp) return;
 	}
 
-	int len = 4;
-	while (((p + len) < s) &&
-		   !isdigit(progStatus.repeat_times[p + len])) len++;
+	bool compression  = progStatus.use_compression;
+	bool unproto      = progStatus.enable_tx_unproto;
+	int block_size    = progStatus.blocksize;
+	int encoder_index = progStatus.encoder;
+	int repeat        = progStatus.repeat_header;
+	int repeat_header = progStatus.repeatNN;
 
-	int count = 0;
+	std::string callto;
+	std::string blocks;
+	std::string descrip;
+	std::string encoder_string;
+	std::string my_call;
+	std::string my_info;
+	std::string tosend;
 
-	if(continuous_exception && local_flag) {
+	callto.assign(txt_tx_send_to->value());
+	blocks.assign(txt_tx_selected_blocks->value());
+	descrip.assign(txt_tx_descrip->value());
+	encoder_string.assign(progStatus.encoder_string);
+	my_call.assign(progStatus.my_call);
+	my_info.assign(progStatus.my_info);
 
-		while (((p + len) < s) &&
-			   isdigit(progStatus.repeat_times[p + len])) {
-			etime[count++] = progStatus.repeat_times[p + len];
-			if(count > 4) break;
-			if((p + len) < s) len++;
-		}
-
-		etime[4] = 0;
-
-		if(count == 4) {
-			time_end = atoi(etime);
-		} else return false;
-
-		if(time_end > 2400) time_end = 2400;
-		if(time_end < 0) time_end = 0;
-
-		{
-			int current_time = ztime / 100;
-			int current_total_minutes = ((current_time / 100) * 60) + (current_time % 100);
-			int end_total_minutes = ((time_end / 100) * 60) + (time_end % 100);
-			int diff_time_minutes = 0;
-
-			if(current_time > time_end) {
-				diff_time_minutes = ((24 * 60) - current_total_minutes);
-				diff_time_minutes += end_total_minutes;
-			} else {
-				diff_time_minutes = abs(current_total_minutes - end_total_minutes);
-			}
-
-			ztime_end = time(0) + (time_t) (diff_time_minutes * 60);
-
-		}
-	}
-
-	if(delete_flag) {
-		if((p + len) > s) {
-			len = s - p;
-			if(len < 0) len = 0;
-		}
-
-		if(len)
-			progStatus.repeat_times.erase(p, len);
-
-		txt_repeat_times->value(progStatus.repeat_times.c_str());
-	}
-
-	if (progStatus.repeat_times.empty()) {
-		do_events->value(0);
-		cb_do_events((Fl_Light_Button *)0, (void*)0);
-	}
-
-	return true;
+	amp->callto(callto);
+	amp->compress(compression);
+	amp->my_call(my_call);
+	amp->my_info(my_info);
+	amp->tx_base_conv_index(encoder_index);
+	amp->tx_base_conv_str(encoder_string);
+	amp->unproto(unproto);
+	amp->unproto_markers(progStatus.enable_unproto_markers);
+	amp->xmt_blocksize(block_size);
+	amp->xmt_descrip(descrip);
+	amp->xmt_tosend(blocks);
+	amp->repeat(repeat);
+	amp->header_repeat(repeat_header);
+	amp->xmt_modem(g_modem);
+	amp->update_required(true);
+	amp->amp_update();
+	amp->file_hash();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
+void amp_mark_all_for_update(void)
+{
+	int index = 0;
+	int count = 0;
+	cAmp *amp = (cAmp *)0;
+
+	count = tx_amp.size();
+
+	for(index = 0; index < count; index++) {
+		amp = tx_amp.index2amp(index + 1);
+		if(amp)
+			amp->update_required(true);
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void amp_update_all(void)
+{
+	int index = 0;
+	int count = 0;
+	cAmp *amp = (cAmp *)0;
+
+	int block_size    = progStatus.blocksize;
+	int repeat_header = progStatus.repeat_header;
+	int repeatNN      = progStatus.repeatNN;
+
+	std::string my_call;
+	std::string my_info;
+
+	my_call.assign(progStatus.my_call);
+	my_info.assign(progStatus.my_info);
+
+	count = tx_amp.size();
+
+	for(index = 0; index < count; index++) {
+		amp = tx_amp.index2amp(index + 1);
+		if(amp) {
+			amp->my_call(my_call);
+			amp->my_info(my_info);
+			amp->xmt_blocksize(block_size);
+			amp->repeat(repeatNN);
+			amp->header_repeat(repeat_header);
+			amp->xmt_modem(g_modem);
+			amp->update_required(true);
+			amp->amp_update();
+		} else break;
+	}
+}
+
+#if 0
+/** ********************************************************
+ *
+ ***********************************************************/
+void amp_update(cAmp *amp)
+{
+	std::string temp;
+
+	if(amp->update_required()) {
+		temp.clear();
+		temp.assign(amp->xmt_buffer());
+
+		if(!amp->unproto()) {
+			compress_maybe(temp, amp->tx_base_conv_index(), (amp->compress() | amp->forced_compress()));
+			amp->xmt_data(temp);
+		}
+		tx_buffer = amp->xmt_data();
+		amp->file_hash();
+		estimate(amp, true);
+		amp->update_required(false);
+	}
+}
+#endif // 0
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void clear_tx_panel(void)
+{
+	txt_tx_send_to->value("QST");
+	txt_tx_filename->value("");
+	txt_tx_filename->value("");
+	txt_tx_descrip->value("");
+	txt_tx_selected_blocks->value("");
+	txt_tx_numblocks->value("");
+	txt_transfer_size_time->value("");
+	btn_enable_tx_unproto->value(false);
+	unproto_widgets(0);
+}
+
+#if 0
+/** ********************************************************
+ *
+ ***********************************************************/
+void update_tx_panel(cAmp *amp)
+{
+	if(!amp) {
+		int n = tx_queue->value();
+		if(n < 1) return;
+		amp = tx_amp.index2amp(n);
+		if(!amp) return;
+	}
+
+	amp->my_call(progStatus.my_call);
+	amp->my_info(progStatus.my_info);
+	amp->xmt_blocksize(progStatus.blocksize);
+
+	string fn = amp->xmt_fname();
+	string ds = amp->xmt_descrip();
+	string ns = amp->xmt_numblocks();
+	string ts = amp->xmt_tosend();
+	string ct = amp->callto();
+
+	txt_tx_filename->value(fn.c_str());
+	txt_tx_descrip->value(ds.c_str());
+	txt_tx_selected_blocks->value(ts.c_str());
+	txt_tx_send_to->value(ct.c_str());
+
+	progStatus.enable_tx_unproto = amp->unproto();
+	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
+
+	progStatus.use_compression = amp->compress();
+	btn_use_compression->value(progStatus.use_compression);
+
+	progStatus.encoder = amp->tx_base_conv_index();
+	encoders->index(progStatus.encoder - 1);
+
+	std::string temp;
+
+	if(amp->update_required()) {
+		temp.clear();
+		temp.assign(amp->xmt_buffer());
+
+		if(progStatus.enable_tx_unproto == false) {
+			compress_maybe(temp, amp->tx_base_conv_index(), (amp->compress() | amp->forced_compress()));
+			amp->xmt_data(temp);
+		} else {
+			amp->unproto_markers(progStatus.enable_unproto_markers);
+		}
+
+		tx_buffer = amp->xmt_data();
+		amp->file_hash();
+	}
+
+	estimate(amp, true);
+	unproto_widgets(amp);
+
+	if(progStatus.enable_tx_unproto == true) {
+		txt_tx_numblocks->value("1");
+	} else {
+		txt_tx_numblocks->value(amp->xmt_numblocks().c_str());
+	}
+}
+#endif // 0
+void update_tx_panel(cAmp *amp)
+{
+	if(!amp) {
+		int n = tx_queue->value();
+		if(n < 1) return;
+		amp = tx_amp.index2amp(n);
+		if(!amp) return;
+	}
+
+	amp->my_call(progStatus.my_call);
+	amp->my_info(progStatus.my_info);
+	amp->xmt_blocksize(progStatus.blocksize);
+	amp->repeat(progStatus.repeatNN);
+	amp->header_repeat(progStatus.repeat_header);
+	amp->xmt_modem(g_modem);
+
+	progStatus.enable_tx_unproto = amp->unproto();
+	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
+
+	progStatus.use_compression = amp->compress();
+	btn_use_compression->value(progStatus.use_compression);
+
+	progStatus.encoder = amp->tx_base_conv_index();
+	encoders->index(progStatus.encoder - 1);
+
+	amp->amp_update();
+
+	estimate(amp, true);
+
+	string fn = amp->xmt_fname();
+	string ds = amp->xmt_descrip();
+	string ns = amp->xmt_numblocks();
+	string ts = amp->xmt_tosend();
+	string ct = amp->callto();
+
+	txt_tx_filename->value(fn.c_str());
+	txt_tx_descrip->value(ds.c_str());
+	txt_tx_selected_blocks->value(ts.c_str());
+	txt_tx_send_to->value(ct.c_str());
+
+	if(progStatus.enable_tx_unproto == true) {
+		txt_tx_numblocks->value("1");
+	} else {
+		txt_tx_numblocks->value(amp->xmt_numblocks().c_str());
+	}
+
+	unproto_widgets(amp);
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void show_selected_xmt(cAmp *amp)
+{
+	int index = 0;
+	int count = tx_queue->size();
+	cAmp *tmp = (cAmp *)0;
+
+	for(index = 0; index < count; index++) {
+		tmp = tx_amp.index2amp(index + 1);
+		if(tmp == amp) {
+			show_selected_xmt(index);
+			break;
+		}
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void show_selected_xmt(int n)
+{
+	cAmp * amp = (cAmp *)0;
+
+	if (!n) {
+		n = tx_queue->value();
+		if(n == 0)
+			n = tx_queue->size();
+	}
+
+	if(n > tx_queue->size())
+		return;
+
+	if(n < 1) {
+		amp = (cAmp *)0;
+		clear_tx_panel();
+	} else {
+		amp = tx_amp.index2amp(n);
+		tx_queue->select(n);
+		update_tx_panel(amp);
+		tx_amp.set(amp);
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void show_current_selected_file(void *ptr)
+{
+	int index = 0;
+
+	if(ptr) {
+		index = *(int *)ptr;
+		index++;
+	}
+
+	if(index < 1)
+		return ;
+
+	if(index > tx_queue->size())
+		return ;
+
+	show_selected_xmt(index);
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
 bool assign_bc_modem_list(void)
 {
 	int count = 0;
@@ -459,141 +644,10 @@ bool assign_bc_modem_list(void)
 	return false;
 }
 
-void ztimer(void* first_call)
-{
-	struct timeval tv;
-	static bool tx_toggle = false;
-	static time_t tx_start = 0;
-	static time_t tx_time_seconds = 0;
-	static time_t tx_time_minutes = 0;
-	static std::string tx_state;
-	static std::string tx_duration;
-
-	gettimeofday(&tv, NULL);
-
-	if (first_call) {
-		double st = 1.0 - tv.tv_usec / 1e6;
-		Fl::repeat_timeout(st, ztimer);
-	} else
-		Fl::repeat_timeout(1.0, ztimer);
-
-	if(generate_time_table) return; // No Events Allow in Time Table Generation Mode.
-
-	struct tm tm;
-	time_t t_temp;
-
-	t_temp=(time_t)tv.tv_sec;
-	gmtime_r(&t_temp, &tm);
-
-	if (!strftime(sztime, sizeof(sztime), "%H%M%S", &tm))
-		strcpy(sztime, "000000");
-
-	ztime = atoi(sztime);
-
-	if (!strftime(szoutTimeValue, sizeof(szoutTimeValue), "%H:%M:%S", &tm))
-		memset(szoutTimeValue, 0, sizeof(szoutTimeValue));
-
-	tx_state = get_trx_state();
-
-	if((tx_state == "TX") && tx_toggle == false)  {
-		tx_start = time(0);
-		tx_toggle = true;
-	}
-
-	if((tx_state == "RX") && tx_toggle == true) {
-		tx_time_seconds = time(0) - tx_start;
-		tx_start = tx_time_seconds;
-		tx_time_minutes = tx_time_seconds / 60.0;
-		tx_time_seconds -= (tx_time_minutes * 60);
-		tx_toggle = false;
-		if(tx_time_g <= 0.0) tx_time_g = 1;
-
-		LOG_DEBUG("TX time [mm:ss]: %02ld:%02ld [m:%ld c:%1.3f r:%1.6f] %s", \
-		   tx_time_minutes, tx_time_seconds, tx_start, tx_time_g, \
-		   tx_start/tx_time_g, g_modem.c_str());
-	}
-
-	outTimeValue->value(szoutTimeValue);
-
-	event_timer_on = do_events->value();
-
-	if (event_timer_on) {
-
-		if (progStatus.repeat_at_times && (ztime % 100 == 0) && (progStatus.repeat_every != 8)) {
-			switch (progStatus.repeat_every) {
-				case 0 : // every 5 minutes
-					if (ztime % 500 == 0) 	Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 1 : // every 15 minutes
-					if (ztime % 1500 == 0) Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 2 : // every 30 minutes
-					if (ztime % 3000 == 0) Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 3 : // hourly
-					if (ztime % 10000 == 0) Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 4 : // even hours
-					if (ztime == 0 || ztime == 20000 || ztime == 40000 ||
-						ztime == 60000 || ztime == 80000 || ztime == 100000 ||
-						ztime == 120000 || ztime == 140000 || ztime == 160000 ||
-						ztime == 180000 || ztime == 200000 || ztime == 220000 )
-						Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 5 : // odd hours
-					if (ztime == 10000 || ztime == 30000 || ztime == 50000 ||
-						ztime == 70000 || ztime == 90000 || ztime == 110000 ||
-						ztime == 130000 || ztime == 150000 || ztime == 170000 ||
-						ztime == 190000 || ztime == 210000 || ztime == 230000 )
-						Fl::awake(transmit_queue_main_thread, (void *)0);
-					break;
-				case 6 : // at specified times
-				{
-					if (parse_repeat_times(false))
-						Fl::awake(transmit_queue_main_thread, (void *)0);
-				}
-					break;
-				case 7 : // One time scheduled
-				{
-					if(parse_repeat_times(true))
-						Fl::awake(transmit_queue_main_thread, (void *)0);
-				}
-					break;
-
-				default : // do nothing
-					break;
-			}
-		} else if(progStatus.repeat_at_times && (progStatus.repeat_every == 8)) {
-
-			ztime_current = time(0);
-
-			parse_repeat_times(false);
-
-			if(ztime_current >= ztime_end) {
-				ztime_end = 0;
-				continuous_exception = false;
-			}
-
-			if(continuous_exception) {
-				try {
-					if (tx_state == "RX")
-						Fl::awake(transmit_queue_main_thread, (void *)0);
-				}
-				catch (...) {
-				}
-			}
-		} else if (progStatus.repeat_forever) {
-			try {
-				if (tx_state == "RX")
-					Fl::awake(transmit_queue_main_thread, (void *)0);
-			}
-			catch (...) {
-			}
-		}
-	}
-}
-
 #if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
+/** ********************************************************
+ *
+ ***********************************************************/
 int default_handler(int event)
 {
 	if (event != FL_SHORTCUT)
@@ -606,53 +660,179 @@ int default_handler(int event)
 
 	return 0;
 }
+
 #endif
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void checkdirectories(void)
 {
-	char dirbuf[FL_PATH_MAX + 1];
-#ifdef __WOE32__
-	if (BaseDir.empty()) {
-		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
-		BaseDir = dirbuf;
-	}
-	if (flampHomeDir.empty()) flampHomeDir.assign(BaseDir).append("flamp.files/");
-#else
-	if (BaseDir.empty()) {
-		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$HOME/");
-		BaseDir = dirbuf;
-	}
-	if (flampHomeDir.empty()) flampHomeDir.assign(BaseDir).append(".flamp/");
-#endif
-
 	struct DIRS {
 		string& dir;
 		const char* suffix;
 		void (*new_dir_func)(void);
 	};
-	DIRS flamp_dirs[] = {
-		{ flampHomeDir,  0,	0 },
-		{ flamp_rcv_dir, "rx", 0 },
-		{ flamp_xmt_dir, "tx", 0 },
+
+	DIRS NBEMS_dirs[] = {
+		{ NBEMS_dir,      0,        0 },
+		{ flampHomeDir,     "FLAMP",	0 },
+		{ flamp_rcv_dir,    "FLAMP/rx",      0 },
+		{ flamp_xmt_dir,    "FLAMP/tx",      0 },
+		{ flamp_script_dir, "FLAMP/scripts",      0 },
 	};
 
 	int r;
 
-	for (size_t i = 0; i < sizeof(flamp_dirs)/sizeof(*flamp_dirs); i++) {
-		if (flamp_dirs[i].dir.empty() && flamp_dirs[i].suffix)
-			flamp_dirs[i].dir.assign(flampHomeDir).append(flamp_dirs[i].suffix).append(PATH_SEP);
+	for (size_t i = 0; i < sizeof(NBEMS_dirs)/sizeof(*NBEMS_dirs); i++) {
+		if (NBEMS_dirs[i].suffix)
+			NBEMS_dirs[i].dir.assign(NBEMS_dir).append(NBEMS_dirs[i].suffix).append("/");
 
-		if ((r = mkdir(flamp_dirs[i].dir.c_str(), 0777)) == -1 && errno != EEXIST) {
-			cerr << _("Could not make directory") << ' ' << flamp_dirs[i].dir
-			<< ": " << strerror(errno) << '\n';
+		if ((r = mkdir(NBEMS_dirs[i].dir.c_str(), 0777)) == -1 && errno != EEXIST) {
+			cerr << _("Could not make directory") << ' ' << NBEMS_dirs[i].dir
+			     << ": " << strerror(errno) << '\n';
 			exit(EXIT_FAILURE);
 		}
-		else if (r == 0 && flamp_dirs[i].new_dir_func)
-			flamp_dirs[i].new_dir_func();
+		else if (r == 0 && NBEMS_dirs[i].new_dir_func)
+			NBEMS_dirs[i].new_dir_func();
 	}
+
+	flamp_script_default_dir.assign(flamp_script_dir);
 }
 
-void addfile(string xmtfname, void *rx, bool useCompression, char *desc)
+/** ********************************************************
+ *
+ ***********************************************************/
+void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
+{
+	std::string xmtfname;
+	bool useCompression = sp->comp();
+	bool proto = sp->proto();
+	std::string desc;
+	//int block_size = sp->blocks();
+
+	xmtfname.assign(sp->file());
+	xmt_fname = xmtfname;
+	string xmt_fname2 = xmtfname;
+
+	desc.assign(sp->desc());
+
+	int use_comp_on_file = 0;
+	int use_forced_comp_on_file = 0;
+
+	FILE *dfile = fopen(xmt_fname.c_str(), "rb");
+	if (!dfile) {
+		LOG_ERROR("could not open read/binary %s", xmt_fname.c_str());
+		exit (1);
+	}
+	fseek(dfile, 0, SEEK_END);
+	size_t fsize = ftell(dfile);
+	if (fsize <= 0) {
+		LOG_ERROR("%s", "fsize error");
+		return;
+	}
+	fseek(dfile, 0, SEEK_SET);
+	tx_buffer.resize(fsize);
+	size_t r = fread((void *)tx_buffer.c_str(), 1, fsize, dfile);
+	if (r != fsize) {
+		LOG_ERROR("%s", "read error");
+		return;
+	}
+
+	fclose(dfile);
+
+	if(proto) {
+		if(useCompression)
+			use_comp_on_file = 1;
+		else
+			use_comp_on_file = 0;
+
+		if (isbinary(tx_buffer) && !useCompression) {
+			use_comp_on_file = 1;
+		}
+
+		// Looking for command/control strings. Force compression if found.
+		if(tx_buffer.find(sz_flmsg) != std::string::npos) {
+			use_forced_comp_on_file = 1;
+		}
+
+		if(tx_buffer.find(sz_cmd) != std::string::npos) {
+			use_forced_comp_on_file = 1;
+		}
+
+		if(tx_buffer.find(sz_flamp) != std::string::npos) {
+			use_forced_comp_on_file = 1;
+		}
+	}
+
+	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
+	nu->xmt_full_path_fname(xmt_fname2);
+	nu->amp_type(TX_AMP);
+
+	if(sp->call_to().empty())
+		nu->callto("QST");
+	else
+		nu->callto(sp->call_to().c_str());
+
+	if(desc.size())
+		nu->xmt_descrip(desc);
+	else
+		nu->xmt_descrip("");
+
+	if(proto)
+		nu->unproto(false);
+	else
+		nu->unproto(true);
+
+	if(use_comp_on_file) {
+		nu->compress(true);
+	}
+
+	if(use_forced_comp_on_file) {
+		nu->forced_compress(true);
+	}
+
+	switch(sp->base()) {
+		default:
+		case 64:
+			nu->tx_base_conv_index(BASE64);
+			nu->tx_base_conv_str("base64");
+			break;
+
+		case 128:
+			nu->tx_base_conv_index(BASE128);
+			nu->tx_base_conv_str("base128");
+			break;
+
+		case 256:
+			nu->tx_base_conv_index(BASE256);
+			nu->tx_base_conv_str("base256");
+			break;
+	}
+
+	nu->unproto_markers(progStatus.enable_unproto_markers);
+	nu->xmt_blocksize(progStatus.blocksize);
+	nu->repeat(progStatus.repeatNN);
+	nu->header_repeat(progStatus.repeat_header);
+	nu->my_call(progStatus.my_call);
+	nu->my_info(progStatus.my_info);
+	nu->update_required(true);
+	nu->xmt_modem(g_modem);
+	nu->amp_update();
+
+	estimate(nu, false);
+
+	tx_amp.add(nu);
+	tx_queue->add(xmt_fname.c_str());
+
+	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
+}
+
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc)
 {
 	xmt_fname = xmtfname;
 	string xmt_fname2 = xmtfname;
@@ -710,21 +890,16 @@ void addfile(string xmtfname, void *rx, bool useCompression, char *desc)
 		use_forced_comp_on_file = 1;
 	}
 
-	if(use_comp_on_file && loading_from_queue_file == false)
+	if(use_comp_on_file)
 		fl_alert2("Suggest using compression on this file");
-	loading_from_queue_file = false;
+
 
 	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
+	nu->amp_type(TX_AMP);
 	nu->xmt_full_path_fname(xmt_fname2);
+	nu->callto("QST");
 
-	if(desc)
-		nu->xmt_descrip(desc);
-	else
-		nu->xmt_descrip("");
-
-	tx_array.push_back(nu);
-	tx_queue->add(xmt_fname.c_str());
-	tx_queue->select(tx_queue->size());
+	nu->xmt_descrip("");
 
 	if(use_comp_on_file) {
 		nu->compress(true);
@@ -739,8 +914,17 @@ void addfile(string xmtfname, void *rx, bool useCompression, char *desc)
 	nu->tx_base_conv_index(encoders->index() + 1);
 	nu->tx_base_conv_str(encoders->value());
 
-	cAmp *tx_amp = nu;
-	amp.tx_cAmp(nu);
+	nu->xmt_blocksize(progStatus.blocksize);
+
+	nu->unproto_markers(progStatus.enable_unproto_markers);
+	nu->my_call(progStatus.my_call);
+	nu->my_info(progStatus.my_info);
+	nu->repeat(progStatus.repeatNN);
+	nu->header_repeat(progStatus.repeat_header);
+	nu->xmt_modem(g_modem);
+	nu->update_required(true);
+	nu->amp_update();
+	nu->file_hash();
 
 	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
 
@@ -753,18 +937,25 @@ void addfile(string xmtfname, void *rx, bool useCompression, char *desc)
 		cnt_blocksize->value(xfrBlockSize);
 		txt_tx_descrip->value(txt_rx_descrip->value());
 
-		tx_amp->xmt_descrip(txt_rx_descrip->value());
-		tx_amp->tx_blocksize(xfrBlockSize);
+		nu->xmt_descrip(txt_rx_descrip->value());
+		nu->tx_blocksize(xfrBlockSize);
 
 		progStatus.blocksize = xfrBlockSize;
 		txt_tx_selected_blocks->value("");
-		update_selected_xmt();
 	}
 
-	estimate();
-	estimate_bc();
+	nu->update_required(true);
+	estimate(nu, false);
+
+	tx_amp.add(nu);
+	tx_amp.set(nu);
+	tx_queue->add(xmt_fname.c_str());
+	show_selected_xmt(tx_amp.amp2index(nu));
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int valid_block_size(int value)
 {
 	value = ((value / CNT_BLOCK_SIZE_STEP_RATE)
@@ -779,6 +970,10 @@ int valid_block_size(int value)
 	return value;
 }
 
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 {
 	int count = 0;
@@ -815,19 +1010,18 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 		return;
 	}
 
-	count = tx_queue->size();
+	count = tx_amp.size();
 
 	for(i = 1; i <= count; i++) {
-		tx = tx_array[i - 1];
+		tx = tx_amp.index2amp(i);
 		if(tx) {
 			cPtr = (char *) tx->xmt_full_path_fname().c_str();
 			if(strncmp(filename, cPtr, FILENAME_MAX) == 0) {
 				if(!tx->xmt_file_modified()) return;
 				compress = tx->compress();
 				LOG_INFO("File removed from transmit queue: %s", cPtr);
-				tx_queue->select(i);
-				amp.tx_cAmp(tx);
-				tx_removefile();
+				tx_amp.set(tx);
+				tx_removefile(false);
 				break;
 			}
 		}
@@ -837,10 +1031,12 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 
 	fn.assign(filename);
 
-	loading_from_queue_file = true;
 	addfile(fn, 0, compress, desc);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void auto_load_tx_queue_from_tx_directory(void)
 {
 	char *eMsg = (char *) "TX Queue access in progress, Auto load aborted";
@@ -848,7 +1044,6 @@ void auto_load_tx_queue_from_tx_directory(void)
 	struct dirent **list = 0;
 	int count = 0;
 	int index = 0;
-	//int tmp = 0;
 
 	if(active_data_io == true) {
 		LOG_INFO("%s", eMsg);
@@ -892,6 +1087,9 @@ void auto_load_tx_queue_from_tx_directory(void)
 	fl_filename_free_list(&list, count);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 char *copyTo(char *src, char *dest, int *limit, int stop_character)
 {
 	int count = 0;
@@ -933,6 +1131,9 @@ char *copyTo(char *src, char *dest, int *limit, int stop_character)
 	return cPtr;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void auto_load_tx_queue_from_list(void)
 {
 	char *line     = (char *) 0;
@@ -1021,12 +1222,12 @@ void auto_load_tx_queue_from_list(void)
 		goto EXIT_AUTO_LOAD;
 	}
 
-	memset(bname, 0, FILENAME_MAX);
-	memset(path, 0, FILENAME_MAX);
+	memset(bname,    0, FILENAME_MAX);
+	memset(path,     0, FILENAME_MAX);
 	memset(filepath, 0, FILENAME_MAX);
-	memset(comp, 0, FILENAME_MAX);
-	memset(line, 0, FILENAME_MAX);
-	memset(desc, 0, FILENAME_MAX);
+	memset(comp,     0, FILENAME_MAX);
+	memset(line,     0, FILENAME_MAX);
+	memset(desc,     0, FILENAME_MAX);
 
 	if (fgets(bname, FILENAME_MAX - 1, fd))
 		size = strnlen(bname, FILENAME_MAX);
@@ -1076,7 +1277,7 @@ void auto_load_tx_queue_from_list(void)
 		cPtr = line;
 		cPtr = copyTo(cPtr, bname, &size, ',');
 		cPtr = copyTo(cPtr, comp,  &size, ',');
-		cPtr = copyTo(cPtr, desc,  &size, '\n');
+		copyTo(cPtr, desc,  &size, '\n');
 
 		size = strnlen(bname, FILENAME_MAX);
 
@@ -1109,6 +1310,9 @@ EXIT_AUTO_LOAD:;
 	if(fd) fclose(fd);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void auto_load_tx_queue(void)
 {
 	if(progStatus.auto_load_queue == false)
@@ -1117,14 +1321,17 @@ void auto_load_tx_queue(void)
 	if(progStatus.load_from_tx_folder)
 		auto_load_tx_queue_from_tx_directory();
 	else
-		auto_load_tx_queue_from_list();
+		cb_load_tx_queue();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void readfile()
 {
 	string xmtfname;
 	xmtfname.clear();
-	const char *p = FSEL::select(_("Open file"), "any file\t*.*",
+	const char *p = FSEL::select(_("Open file"), "*.*",
 								 xmtfname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
@@ -1133,52 +1340,38 @@ void readfile()
 	addfile(xmtfname, 0, false, 0);
 }
 
-void show_selected_xmt(int n)
+/** ********************************************************
+ *
+ ***********************************************************/
+void update_rx_missing_blocks(void)
 {
-	if (!n) return;
-
-	cAmp * tx_amp = tx_array[n-1];
-	if(!tx_amp) return;
-
-	amp.tx_cAmp(tx_amp);
-
-	string fn = tx_amp->xmt_fname();
-	string ds = tx_amp->xmt_descrip();
-	string ns = tx_amp->xmt_numblocks();
-	string ts = tx_amp->xmt_tosend();
-
-	txt_tx_filename->value(fn.c_str());
-	txt_tx_descrip->value(ds.c_str());
-	txt_tx_selected_blocks->value(ts.c_str());
-
-	if(progStatus.enable_tx_unproto == true) {
-		txt_tx_numblocks->value("1");
-	} else {
-		txt_tx_numblocks->value(ns.c_str());
-	}
-
-	btn_use_compression->value(tx_amp->compress());
-	progStatus.encoder = tx_amp->tx_base_conv_index();
-	encoders->index(progStatus.encoder - 1);
-	tx_buffer = tx_amp->xmt_data();
+	cAmp * amp = rx_amp.get_amp();
+	if (!amp) return;
+	std::string tmp;
+	tmp.assign(txt_relay_selected_blocks->value());
+	amp->rx_relay_blocks(tmp);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void show_rx_amp()
 {
-	cAmp * rx_amp = amp.rx_cAmp();
-	if (!rx_amp) return;
+	cAmp * amp = rx_amp.get_amp();
+	if (!amp) return;
 
-	txt_rx_filename->value(rx_amp->get_rx_fname().c_str());
-	txt_rx_datetime->value(rx_amp->rx_time_stamp().c_str());
-	txt_rx_descrip->value(rx_amp->rx_desc().c_str());
-	txt_rx_callinfo->value(rx_amp->rx_callinfo().c_str());
-	txt_rx_filesize->value(rx_amp->rx_fsize().c_str());
-	txt_rx_numblocks->value(rx_amp->rx_numblocks().c_str());
-	txt_rx_blocksize->value(rx_amp->rx_blocksize().c_str());
-	txt_rx_missing_blocks->value(rx_amp->rx_missing().c_str());
-	rx_progress->set(rx_amp->rx_blocks(), rx_amp->rx_nblocks());
-	if (rx_amp->rx_completed() && txt_rx_output->buffer()->length() == 0) {
-		string data = rx_amp->rx_recvd_string();
+	txt_rx_filename->value(amp->get_rx_fname().c_str());
+	txt_rx_datetime->value(amp->rx_time_stamp().c_str());
+	txt_rx_descrip->value(amp->rx_desc().c_str());
+	txt_rx_callinfo->value(amp->rx_callinfo().c_str());
+	txt_rx_filesize->value(amp->rx_fsize().c_str());
+	txt_rx_numblocks->value(amp->rx_numblocks().c_str());
+	txt_rx_blocksize->value(amp->rx_blocksize().c_str());
+	txt_rx_missing_blocks->value(amp->rx_missing().c_str());
+	txt_relay_selected_blocks->value(amp->rx_relay_blocks().c_str());
+	rx_progress->set(amp->rx_blocks(), amp->rx_nblocks());
+	if (amp->rx_completed() && txt_rx_output->buffer()->length() == 0) {
+		string data = amp->rx_recvd_string();
 		decompress_maybe(data);
 		if (isbinary(data))
 			txt_rx_output->addstr("Data appears to be binary\n\nSave and view with appropriate software");
@@ -1187,6 +1380,9 @@ void show_rx_amp()
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void clear_rx_amp()
 {
 	txt_rx_filename->value("");
@@ -1197,12 +1393,16 @@ void clear_rx_amp()
 	txt_rx_numblocks->value("");
 	txt_rx_blocksize->value("");
 	txt_rx_missing_blocks->value("");
+	txt_tx_selected_blocks->value("");
 	txt_rx_output->clear();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void clear_missing(void *ptr)
 {
-	cAmp *tx_amp = 0;
+	cAmp *amp = 0;
 	int index = 0;
 	int count = 0;
 
@@ -1210,47 +1410,51 @@ void clear_missing(void *ptr)
 
 	if(progStatus.clear_tosend_on_tx_blocks) {
 		if(transmit_queue) {
-			count = tx_array.size();
+			count = tx_amp.count();
 			for(index = 0; index < count; index++) {
-				tx_amp = tx_array[index];
-				if(!tx_amp) continue;
-				tx_amp->reset_preamble_detection();
-				tx_amp->xmt_tosend_clear();
+				amp = tx_amp.index2amp(index + 1);
+				if(!amp) continue;
+				amp->reset_preamble_detection();
+				amp->xmt_tosend_clear();
 			}
 		} else {
-			tx_amp = amp.tx_cAmp();
-			if(!tx_amp) return;
-			tx_amp->xmt_tosend_clear();
-			tx_amp->reset_preamble_detection();
+			amp = tx_amp.get_amp();
+			if(!amp) return;
+			amp->xmt_tosend_clear();
+			amp->reset_preamble_detection();
 		}
 
 		txt_tx_selected_blocks->value("");
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void show_selected_rcv(int n)
 {
 	if (!n) return;
-
-	cAmp * rx_amp = rx_array[n-1];
-	amp.rx_cAmp(rx_amp);
-
+	rx_amp.set(n);
 	txt_rx_output->clear();
 	show_rx_amp();
 }
 
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void send_missing_report()
 {
 	string fname = txt_rx_filename->value();
 	if (fname.empty()) return;
 
-	cAmp * rx_amp = amp.rx_cAmp();
-	if(!rx_amp) return;
+	cAmp * amp = rx_amp.get_amp();
+	if(!amp) return;
 
 	string report("\nDE ");
 	report.append(txt_tx_mycall->value());
 	report.append("\nFile : ").append(fname).append("\n");
-	report.append(rx_amp->rx_report());
+	report.append(amp->rx_report());
 	report.append("DE ").append(txt_tx_mycall->value()).append(" K \n");
 
 	if (progStatus.fldigi_xmt_mode_change) {
@@ -1260,6 +1464,10 @@ void send_missing_report()
 	if(progStatus.use_tx_on_report) {
 		if (!bConnected) connect_to_fldigi(0);
 		if (!bConnected) return;
+		int results = fl_choice("%s",
+								(const char *)"Cancel", (const char *)"Yes", (const char *)0,
+								(void *) "You are about transmit!. Continue?");
+		if(results < 1) return;
 		send_via_fldigi(report);
 	} else {
 		report.append("\n\n^r");
@@ -1267,114 +1475,228 @@ void send_missing_report()
 	}
 }
 
-void update_selected_xmt()
-{
-	cAmp *tx_amp = amp.tx_cAmp();
-	if (!tx_amp) return;
-
-	tx_amp->xmt_descrip(txt_tx_descrip->value());
-	tx_amp->xmt_tosend(txt_tx_selected_blocks->value());
-	tx_amp->compress(btn_use_compression->value());
-	tx_amp->tx_base_conv_index(progStatus.encoder);
-	tx_amp->tx_base_conv_str(encoders->value());
-}
-
+/** ********************************************************
+ *
+ ***********************************************************/
 void recv_missing_report()
 {
+	cAmp *amp = 0;
+	size_t count = (size_t) tx_amp.size();
+	for (size_t num = 0; num < count; num++) {
+		amp = (cAmp *) tx_amp.index2amp(num + 1);
+		if(!amp) continue;
+		amp->tx_parse_report();
+	}
+
+	amp = tx_amp.get_amp();
+	if (!amp) return;
+
+	txt_tx_selected_blocks->value(amp->xmt_tosend().c_str());
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void relay_missing_report()
+{
 	cAmp *camp = 0;
-	for (size_t num = 0; num < tx_array.size(); num++) {
-		camp = (cAmp *) tx_array[num];
+	size_t count = (size_t) rx_amp.size();
+	for (size_t num = 0; num < count; num++) {
+		camp = (cAmp *) rx_amp.index2amp(num + 1);
 		if(!camp) continue;
 		camp->tx_parse_report();
 	}
 
-	cAmp *tx_amp = amp.tx_cAmp();
-	if (!tx_amp) return;
+	camp = rx_amp.get_amp();
+	if (!camp) return;
 
-	txt_tx_selected_blocks->value(tx_amp->xmt_tosend().c_str());
+	std::string tmp;
+	tmp.clear();
+	tmp.assign(camp->rx_relay_blocks()).append(" ");
+	tmp.append(camp->xmt_tosend());
+	camp->rx_relay_blocks(tmp);
+
+	txt_relay_selected_blocks->value(camp->rx_relay_blocks().c_str());
 }
 
-void tx_removefile()
+/** ********************************************************
+ *
+ ***********************************************************/
+void send_relay_data()
+{
+	if(transmitting)
+		return;
+
+	if (!bConnected) connect_to_fldigi(0);
+	if (!bConnected) return;
+
+	cAmp *amp = rx_amp.get_amp();
+
+	if (!amp)
+		return;
+
+	if(rx_queue->value() == 0)
+		return;
+
+	int results = 0;
+	std::string tx_string;
+	std::string missing_blocks;
+
+	static RELAY_DATA relay_data;
+
+	relay_data.serial_data.clear();
+	relay_data.header.clear();
+	relay_data.data.clear();
+	relay_data.amp = amp;
+
+	missing_blocks.clear();
+	missing_blocks.assign(txt_relay_selected_blocks->value());
+
+	if(progStatus.use_txrx_interval || progStatus.use_header_modem) {
+		results = amp->tx_relay_vector(progStatus.my_call, missing_blocks);
+		if(results < 1) return;
+		relay_data.header = amp->xmt_vector_header();
+		relay_data.data = amp->xmt_vector_data();
+	} else {
+		relay_data.serial_data = amp->tx_relay_string(progStatus.my_call, missing_blocks);
+	}
+
+	results = fl_choice("%s",
+						(const char *)"Cancel", (const char *)"Yes", (const char *)0,
+						(void *) "You are about transmit!. Continue?");
+
+	if(results < 1) return;
+
+	transmit_relay(&relay_data);
+
+	if(progStatus.clear_tosend_on_tx_blocks) {
+		amp->xmt_tosend_clear();
+		amp->rx_relay_blocks("");
+		amp->reset_preamble_detection();
+		txt_relay_selected_blocks->value("");
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void tx_removefile(bool all)
 {
 	if(active_data_io) {
 		LOG_INFO("Unable to remove TX queue item while being accessed.");
 		return;
 	}
 
-	tx_buffer.clear();
-	txt_tx_numblocks->value("");
-	txt_tx_filename->value("");
-	txt_tx_descrip->value("");
-	txt_transfer_size_time->value("");
-	txt_tx_selected_blocks->value("");
+	int flag = 0;
 
-	cAmp *tx_amp = amp.tx_cAmp();
-	if (!tx_amp) return;
+	if(progStatus.enable_delete_warning && !all) {
+		flag = fl_choice("Remove file %s from queue?", (const char *)"No", (const char *)"Yes", (const char *)0, txt_tx_filename->value());
+		if(flag < 1) return;
+	}
 
-	if (!tx_array.size()) return;
-	if (!tx_queue->size()) return;
-	int n = tx_queue->value();
-	if (!n) return;
-	tx_queue->remove(n);
-	n--;
+	cAmp *amp = tx_amp.get_amp();
 
-	amp.tx_cAmp((cAmp *)0);
-	tx_amp = tx_array[n];
-	amp.free_cAmp(tx_amp);
+	if (!tx_amp.size() || !tx_queue->size() || !amp) {
+		clear_tx_panel();
+		return;
+	}
 
-	tx_array.erase(tx_array.begin() + n);
+	int n = 0;
+	int count = tx_queue->size();
+	if(count != tx_amp.size())
+		return;
 
-	if (tx_queue->size()) {
-		n = 1;
-		tx_amp = tx_array[n - 1];
-		amp.tx_cAmp(tx_amp);
-		tx_queue->select(n);
-		estimate();
-		estimate_bc();
+	if(all) {
+		for(int i = count; i > 0; i--) {
+			show_selected_xmt(i);
+			tx_queue->remove(i);
+			tx_amp.remove(i);
+		}
+	} else {
+		n = tx_queue->value();
+		show_selected_xmt(n);
+		tx_queue->remove(n);
+		tx_amp.remove(n);
+	}
+
+	count = tx_queue->size();
+	if(count) {
+		if(count >= n)
+			show_selected_xmt(n);
+		else
+			show_selected_xmt(count);
+	} else {
+		clear_tx_panel();
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void writefile(int xfrFlag)
 {
-	cAmp * rx_amp = amp.rx_cAmp();
-	if (!rx_amp) return;
+	cAmp * amp = rx_amp.get_amp();
+	if (!amp) return;
 
-	size_t fsize = rx_amp->rx_size();
+	size_t fsize = amp->rx_size();
 
-	if(xfrFlag && !rx_amp->rx_completed()) {
+	if(xfrFlag && !amp->rx_completed()) {
 		fl_alert2("Only completed files can be transfered");
 		return;
 	}
 
-	if (!fsize || rx_amp->get_rx_fname().empty()) return;
+	if (!fsize || amp->get_rx_fname().empty()) return;
 
-	rx_fname.assign(flampHomeDir).append("rx").append(PATH_SEP).append(rx_amp->get_rx_fname());
+	static char rx_filename[FILENAME_MAX];
+	std::string rx_directory;
+	std::string rx_fname;
+	std::string file_path_name;
+
+	rx_directory.assign(flamp_rcv_dir);
+	rx_fname.assign(amp->get_rx_fname());
+
+	file_path_name.assign(flamp_rcv_dir).append(PATH_SEP).append(rx_fname);
+
+	memset(rx_filename, 0, FILENAME_MAX);
+	strncpy(rx_filename, rx_fname.c_str(), FILENAME_MAX);
+
+	rx_fname.assign(flamp_rcv_dir).append(PATH_SEP).append(amp->get_rx_fname());
 	const char *p = FSEL::saveas(_("Save file"), "file\t*.*",
 								 rx_fname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
-	rx_fname = p;
 
-	FILE *dfile = fopen(rx_fname.c_str(), "wb");
+	memset(rx_filename, 0, FILENAME_MAX);
+	strncpy(rx_filename, p, FILENAME_MAX - 1);
+
+	FILE *dfile = fopen(rx_filename, "wb");
+
 	if (!dfile) {
 		LOG_ERROR("could not open write/binary %s", rx_fname.c_str());
 		exit (1);
 	}
-	string data = rx_amp->rx_recvd_string();
+
+	string data = amp->rx_recvd_string();
 	decompress_maybe(data);
 
 	size_t r = fwrite((void *)data.c_str(), 1, data.length(), dfile);
+
 	if (r != data.length()) {
 		LOG_ERROR("%s", "write error");
 		return;
 	}
+
 	fclose(dfile);
 
 	if(xfrFlag && dfile) {
-		addfile(rx_fname, rx_amp, rx_amp->compress(), 0);
+		addfile(rx_fname, amp, amp->compress(), 0);
 	}
+
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 double time_f(void)
 {
 	struct timeval now;
@@ -1382,1323 +1704,9 @@ double time_f(void)
 	return ((double) now.tv_sec) + (((double)now.tv_usec) * 0.000001);
 }
 
-std::string tx_string(cAmp *tx, int callsign_flag, std::string t_string)
-{
-	std::string auto_send;
-
-	pthread_mutex_lock(&mutex_tx_data);
-
-	active_data_io = true;
-
-	std::string send_to = txt_tx_send_to->value();
-	std::string temp;
-
-	if (send_to.empty()) send_to.assign("QST");
-	send_to.append(" DE ").append(progStatus.my_call);
-	for (size_t n = 0; n < send_to.length(); n++)
-		send_to[n] = toupper(send_to[n]);
-
-	if(callsign_flag & CALLSIGN_PREAMBLE)
-		auto_send.assign("\n\n").append(send_to).append("\n\n");
-
-	tx->my_call(progStatus.my_call);
-	tx->my_info(progStatus.my_info);
-	tx->xmt_blocksize(progStatus.blocksize);
-
-	temp.clear();
-	temp.assign(tx->xmt_buffer());
-
-	if(progStatus.enable_tx_unproto == false) {
-		compress_maybe(temp, tx->tx_base_conv_index(), (tx->compress() | tx->forced_compress()));//true);
-		tx->xmt_data(temp);
-		tx->repeat(progStatus.repeatNN);
-		tx->header_repeat(progStatus.repeat_header);
-		auto_send.append(tx->xmt_string());
-	} else {
-		tx->xmt_unproto();
-		auto_send.append(tx->xmt_unproto_string());
-	}
-
-	if(callsign_flag & CALLSIGN_POSTAMBLE)
-		auto_send.append("\n\n").append(send_to).append(t_string);
-
-	auto_send.append("\n\n\n");
-
-	active_data_io = false;
-
-	pthread_mutex_unlock(&mutex_tx_data);
-
-	return auto_send;
-}
-
-// Create time table for the various modes
-// Starts at current selected mode.
-#define MIN_TX_TIME 10.0
-#ifdef OLD_WAY
-void * create_tx_table(void *ptr)
-{
-	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
-
-	if (!bConnected) connect_to_fldigi(0);
-	if (!bConnected) return run_in_thread_destroy(thread_ptr, 3);
-
-	int index = 0;
-	int mode = 0;
-	int start_mode = 0;
-	int end_mode = 0;
-	int buffer_send_size = 0;
-	int buffer_start_size = 50;
-	int buffer_size = 50;
-	int char_count = 10;
-	int adjust_count = 5;
-	int first_char_count = 0;
-	int second_char_count = 0;
-	int modulus = 64;
-
-	double time_used = 0;
-	double temp = 0.0;
-	double overhead = 0.0;
-	double time_seconds = 0;
-	double denominator = 1;
-	double min_tx_time = 10;
-	double first_measurement  = 0;
-	double second_measurement = 0;
-
-	char filename[256];
-	std::string response;
-	std::string txBuffer;
-	std::string mode_name;
-
-	FILE *fd = (FILE *)0;
-
-	transmitting = true;
-
-	{
-		Fl::awake(set_button_to_cancel, (void *)0);
-		static int value = TX_ALL_BUTTON;
-		Fl::awake(deactivate_button, (void *) &value);
-	}
-	turn_rsid_off();
-
-	// Not currently used, left for future use.
-	pthread_mutex_lock(&thread_ptr->mutex);
-	thread_ptr->thread_running = 1;
-	thread_ptr->exit_thread = 0;
-	pthread_mutex_unlock(&thread_ptr->mutex);
-
-	memset(filename, 0, sizeof(filename));
-
-	for(index = 0; index < 100; index++) {
-		snprintf(filename, sizeof(filename)-1, "time_table-%02d.txt", index);
-		fd = fopen(filename, "r");
-		if(!fd) break;
-		fclose(fd);
-	}
-
-	if(index > 99) {
-		LOG_DEBUG("time_table-xx.txt files reached count limit, delete some.");
-		return run_in_thread_destroy(thread_ptr, 3);
-	}
-
-	if(fd) fclose(fd);
-	fd = fopen(filename, "w");
-
-	if(fd) {
-		LOG_DEBUG("Table Gen filename %s", filename);
-		fprintf(fd, "typedef struct {\n"
-				"\tchar *mode_name;\n"
-				"\tfloat scale;\n"
-				"\tfloat overhead;\n"
-				"\tfloat table[256];\n"
-				"} MODE_TIME_TABLE;\n\n");
-
-		fprintf(fd, "%s", "MODE_TIME_TABLE mode_time_table[] = {\n");
-		fflush(fd);
-
-		if(thread_ptr->que) {
-			start_mode = 0;
-		} else {
-			start_mode = cbo_modes->index();
-		}
-
-		end_mode = cbo_modes->lsize();
-
-		mode = start_mode;
-
-		do {
-			buffer_send_size = buffer_start_size;
-
-			LOG_DEBUG("Processing Modem %s", cbo_modes->value());
-
-			send_clear_tx();
-			send_new_modem("CW");
-
-			cbo_modes->index(mode);
-			mode_name = cbo_modes->value();
-
-			send_new_modem(mode_name.c_str());
-			wait_seconds(1);
-
-			adjust_count = modulus;
-			char_count = adjust_count;
-
-			first_measurement = measure_tx_time('A', char_count, 120);
-
-			if(first_measurement == 0.0) {
-				transmit_stop = true;
-				LOG_ERROR("FLDIGI does not support xmlrpc command main.get_tx_duration");
-			}
-
-			wait_seconds(1);
-			double wait_time = MIN_TX_TIME;
-			do {
-				if(transmit_stop || thread_ptr->exit_thread) {
-					if(fd) fclose(fd);
-					return run_in_thread_destroy(thread_ptr, 3);
-				}
-				wait_seconds(1);
-				first_measurement = measure_tx_time('A', char_count, 120);
-				first_char_count = char_count;
-				LOG_DEBUG("first_measurement=%f first_char_count=%d", first_measurement, first_char_count);
-				char_count = (int) ((char_count / first_measurement) * wait_time);
-				char_count = (int) (((double) char_count) * 2.0) + adjust_count;
-				char_count += (modulus - (char_count % modulus));
-			} while (first_measurement < wait_time);
-
-			wait_time = first_measurement + MIN_TX_TIME;
-
-			do {
-				if(transmit_stop || thread_ptr->exit_thread) {
-					if(fd) fclose(fd);
-					return run_in_thread_destroy(thread_ptr, 3);
-				}
-				wait_seconds(1);
-				second_measurement = measure_tx_time('A', char_count, 120);
-				second_char_count = char_count;
-				LOG_DEBUG("second_measurement=%f second_char_count=%d", second_measurement, second_char_count);
-				char_count = (int) ((char_count / second_measurement) * wait_time);
-				char_count = (int) (((double) char_count) * 2.0) + adjust_count;
-				char_count += (modulus - (char_count % modulus));
-			} while (second_measurement < wait_time);
-
-			temp =  second_measurement - first_measurement;
-			temp /=  (second_char_count - first_char_count);
-			temp *=  second_char_count;
-			overhead = second_measurement - temp;
-
-			LOG_DEBUG("Mode %s overhead=%f", mode_name.c_str(), overhead);
-
-			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, %1.6f, \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
-			fflush(fd);
-
-			min_tx_time = overhead + MIN_TX_TIME;
-			buffer_send_size = first_char_count;
-
-			for(index = 0; index < 256; index++) {
-				if(transmit_stop || thread_ptr->exit_thread) {
-					char msg[] = "\nNOTICE: User requested Termination\n";
-					fprintf(fd, "%s", msg);
-					LOG_DEBUG("%s", msg);
-					fclose(fd);
-					return run_in_thread_destroy(thread_ptr, 3);
-				}
-
-				LOG_DEBUG("Proc Char = %d, %X : ", index, index);
-
-				if((index % 8) == 0 && index != 0) {
-					fprintf(fd, "\n\t\t\t");
-				}
-
-				/* if(c_binary(index)) {
-					fprintf(fd, "%3.6f", 0.0);
-					if(index < 255)
-						fprintf(fd, ", ");
-					continue;
-				} */
-
-				do {
-					if(transmit_stop || thread_ptr->exit_thread) {
-						fclose(fd);
-						return run_in_thread_destroy(thread_ptr, 3);
-					}
-
-					send_clear_tx();
-					send_new_modem("CW");
-
-					// Leave here.  Bored user my effect tx panal mode
-					cbo_modes->index(mode);
-					send_new_modem(cbo_modes->value());
-					//wait_seconds(1);
-
-					buffer_size = buffer_send_size;
-					time_used = measure_tx_time(index, buffer_send_size, 120.0);
-
-					LOG_DEBUG("char_count=%d time_used=%f min_tx_time=%f overhead=%f", buffer_send_size, time_used, min_tx_time, overhead);
-
-					if(time_used < min_tx_time || time_used > (min_tx_time * 1.3)) {
-						buffer_send_size = ((buffer_send_size / time_used) * min_tx_time);
-						buffer_send_size = (int) (((double) buffer_send_size) * 1.1);
-						buffer_send_size += (modulus - (buffer_send_size % modulus));
-						LOG_DEBUG("Buffer Adjusted to %d", buffer_send_size);
-					}
-				} while (time_used < min_tx_time);
-
-
-				if(buffer_size)
-				    time_seconds = 1.0 * (time_used - overhead) / buffer_size;
-				else
-					time_seconds = 0.0;
-
-				fprintf(fd, "%3.6f", time_seconds);
-
-				if(index < 255)
-					fprintf(fd, ", ");
-
-				if(index < ' ')
-					LOG_DEBUG("Character \'%d (%X)\' Transmit time in seconds=%f", (index & 0xff), (index & 0xff), time_seconds);
-				else
-					LOG_DEBUG("Character \'%c\' Transmit time in seconds=%f", (index & 0xff), time_seconds);
-
-				fflush(fd);
-
-			}
-
-			fprintf(fd, "\n\t\t}\n\t}");
-
-			mode++;
-
-			if(mode < end_mode)// && thread_ptr->que)
-				fprintf(fd, ",");
-
-			fprintf(fd, "\n");
-			fflush(fd);
-
-			//if(!thread_ptr->que) break;
-
-		} while(mode < end_mode);
-
-		fprintf(fd, "%s", "};\n");
-		fclose(fd);
-
-	} else {
-		LOG_ERROR("%s = %d", "File open Error", errno);
-	}
-
-	return run_in_thread_destroy(thread_ptr, 3);
-}
-#else
-
-double measure_tx_time(int character_to_send, double *over_head);
-
-void * create_tx_table(void *ptr)
-{
-	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
-
-	if (!bConnected) connect_to_fldigi(0);
-	if (!bConnected) return run_in_thread_destroy(thread_ptr, 3);
-
-	int index = 0;
-	int mode = 0;
-	int start_mode = 0;
-	int end_mode = 0;
-
-	double overhead = 0.0;
-	double time_seconds = 0;
-
-// these variables not used in current implementation
-//	int buffer_send_size = 0;
-//	int buffer_start_size = 50;
-//	int buffer_size = 50;
-//	int char_count = 10;
-//	int adjust_count = 5;
-//	int first_char_count = 0;
-//	int second_char_count = 0;
-//	int modulus = 64;
-//	double time_used = 0;
-//	double temp = 0.0;
-//	double denominator = 1;
-//	double min_tx_time = 10;
-//	double first_measurement  = 0;
-//	double second_measurement = 0;
-
-	char filename[256];
-	std::string response;
-	std::string txBuffer;
-	std::string mode_name;
-
-	FILE *fd = (FILE *)0;
-
-	transmitting = true;
-
-	{
-		Fl::awake(set_button_to_cancel, (void *)0);
-		static int value = TX_ALL_BUTTON;
-		Fl::awake(deactivate_button, (void *) &value);
-	}
-	turn_rsid_off();
-
-	// Not currently used, left for future use.
-	pthread_mutex_lock(&thread_ptr->mutex);
-	thread_ptr->thread_running = 1;
-	thread_ptr->exit_thread = 0;
-	pthread_mutex_unlock(&thread_ptr->mutex);
-
-	memset(filename, 0, sizeof(filename));
-
-	for(index = 0; index < 100; index++) {
-		snprintf(filename, sizeof(filename)-1, "time_table-%02d.txt", index);
-		fd = fopen(filename, "r");
-		if(!fd) break;
-		fclose(fd);
-	}
-
-	if(index > 99) {
-		LOG_DEBUG("time_table-xx.txt files reached count limit, delete some.");
-		return run_in_thread_destroy(thread_ptr, 3);
-	}
-
-	if(fd) fclose(fd);
-	fd = fopen(filename, "w");
-
-	if(fd) {
-		LOG_DEBUG("Table Gen filename %s", filename);
-		fprintf(fd, "typedef struct {\n"
-				"\tchar *mode_name;\n"
-				"\tfloat scale;\n"
-				"\tfloat overhead;\n"
-				"\tfloat table[256];\n"
-				"} MODE_TIME_TABLE;\n\n");
-
-		fprintf(fd, "%s", "MODE_TIME_TABLE mode_time_table[] = {\n");
-		fflush(fd);
-
-		if(thread_ptr->que) {
-			start_mode = 0;
-		} else {
-			start_mode = cbo_modes->index();
-		}
-
-		end_mode = cbo_modes->lsize();
-
-		mode = start_mode;
-
-		do {
-			LOG_DEBUG("Processing Modem %s", cbo_modes->value());
-
-			send_clear_tx();
-			send_new_modem("CW");
-
-			cbo_modes->index(mode);
-			mode_name = cbo_modes->value();
-
-			send_new_modem(mode_name.c_str());
-			wait_seconds(1);
-
-			time_seconds = measure_tx_time((int) 'A', &overhead);
-
-			LOG_DEBUG("Mode %s overhead=%f", mode_name.c_str(), overhead);
-
-			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, %1.6f, \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
-			fflush(fd);
-
-// unused variables
-//			min_tx_time = overhead + MIN_TX_TIME;
-//			buffer_send_size = first_char_count;
-
-			if(mode_name.find("Olivia") != string::npos || mode_name.find("MT63") != string::npos) {
-				for(index = 0; index < 128; index++) {
-					if((index % 8) == 0 && index != 0) {
-						fprintf(fd, "\n\t\t\t");
-					}
-					fprintf(fd, "%3.6f, ", time_seconds);
-				}
-				fflush(fd);
-
-				time_seconds = measure_tx_time((int) 130, &overhead);
-
-				for(index = 128; index < 256; index++) {
-					if((index % 8) == 0 && index != 0) {
-						fprintf(fd, "\n\t\t\t");
-					}
-
-					fprintf(fd, "%3.6f", time_seconds);
-
-					if(index < 255)
-						fprintf(fd, ", ");
-				}
-				fflush(fd);
-
-			} else {
-				for(index = 0; index < 256; index++) {
-					if(transmit_stop || thread_ptr->exit_thread) {
-						char msg[] = "\nNOTICE: User requested Termination\n";
-						fprintf(fd, "%s", msg);
-						LOG_DEBUG("%s", msg);
-						fclose(fd);
-						return run_in_thread_destroy(thread_ptr, 3);
-					}
-
-					LOG_DEBUG("Proc Char = %d, %X : ", index, index);
-
-					if((index % 8) == 0 && index != 0) {
-						fprintf(fd, "\n\t\t\t");
-					}
-
-					time_seconds = measure_tx_time(index, 0);
-
-					fprintf(fd, "%3.6f", time_seconds);
-
-					if(index < 255)
-						fprintf(fd, ", ");
-
-					if(index < ' ')
-						LOG_DEBUG("Charater \'%d (%X)\' Transmit time in seconds=%f", (index & 0xff), (index & 0xff), time_seconds);
-					else
-						LOG_DEBUG("Charater \'%c\' Transmit time in seconds=%f", (index & 0xff), time_seconds);
-
-					fflush(fd);
-
-				}
-			}
-
-			fprintf(fd, "\n\t\t}\n\t}");
-
-			mode++;
-
-			if(mode < end_mode)
-				fprintf(fd, ",");
-
-			fprintf(fd, "\n");
-			fflush(fd);
-
-		} while(mode < end_mode);
-
-		fprintf(fd, "};\n");
-		fflush(fd);
-		fclose(fd);
-
-	} else {
-		LOG_ERROR("%s = %d", "File open Error", errno);
-	}
-
-	return run_in_thread_destroy(thread_ptr, 3);
-}
-
-#endif //OLD_WAY
-
-#ifdef OLD_WAY
-double measure_tx_time(char character_to_send, unsigned int no_of_characters, double time_out_duration)
-{
-	double duration = 0;
-	unsigned int samples = 0;
-	unsigned int sample_rate = 0;
-	unsigned int over_head = 0;
-	double retun_val = 0.0;
-	int millisecond_delay = 1000;
-
-	std::string tx_duration;
-
-	if(no_of_characters < 1) {
-		LOG_ERROR("No of Characters = %u", no_of_characters);
-		transmit_stop = true;
-		return retun_val;
-	}
-
-	for(int i = 0; i < 256; i++)
-		tx_duration = get_tx_char_n_timing(i, no_of_characters);
-		//tx_duration = get_tx_char_n_timing(character_to_send, no_of_characters);
-
-	if(tx_duration.size() > 0) {
-		sscanf(tx_duration.c_str(), "%u:%u", &samples, &sample_rate, &over_head);
-		//sscanf(tx_duration.c_str(), "%u:%u:%u", &samples, &sample_rate);
-	}
-
-	if(sample_rate != 0)
-		duration = 1.0 * samples / sample_rate;
-	else
-		duration = 1.0;
-
-	// MilliSleep(millisecond_delay);
-
-	return duration;
-}
-#else
-double measure_tx_time(int character_to_send, double *over_head)
-{
-	double duration = 0;
-	unsigned int s = 0;
-	unsigned int sr = 0;
-	unsigned int oh = 0;
-	double retun_val = 0.0;
-//	int millisecond_delay = 1000;
-
-	std::string tx_duration;
-
-	set_xmlrpc_timeout(8.0);
-	tx_duration = get_char_timing(character_to_send);
-	// tx_duration = get_tx_char_n_timing(character_to_send, 0);
-	set_xmlrpc_timeout_default();
-
-	if(tx_duration.size() < 1) {
-		LOG_ERROR("No Data returned.");
-		transmit_stop = true;
-		return retun_val;
-	}
-
-	int count = sscanf(tx_duration.c_str(), "%u:%u:%u", &s, &sr, &oh);
-
-	if(count != 3) {
-		LOG_ERROR("Returned parameter error. Count = %d should be 3", count);
-		transmit_stop = true;
-		return retun_val;
-	}
-
-	if(sr != 0) {
-		duration = 1.0 * s / sr;
-
-		if(over_head) {
-			*over_head = 1.0 * oh / sr;
-		}
-	}
-	else
-		duration = 1.0;
-
-
-	//MilliSleep(millisecond_delay);
-
-	return duration;
-}
-
-#endif
-
-void transmit_current()
-{
-	if (!bConnected) connect_to_fldigi(0);
-	if (!bConnected) return;
-
-	if(transmitting) return;
-
-	transmit_stop  = false;
-	transmit_queue = false;
-
-	if(generate_time_table) {
-		run_in_thread(create_tx_table, 0, 0);
-	} else {
-		if(progStatus.use_txrx_interval) {
-			run_in_thread(transmit_interval, TX_SEGMENTED, false);
-		} else if(progStatus.use_header_modem) {
-			turn_rsid_on();
-			run_in_thread(transmit_interval, TX_CONTINIOUS, false);
-		} else {
-			run_in_thread(transmit_serial_current, 0, false);
-		}
-	}
-}
-
-void transmit_queued(bool event_driven)
-{
-	if (!bConnected) connect_to_fldigi(0);
-	if (!bConnected) return;
-
-	if(transmitting) return;
-
-	transmit_stop  = false;
-	transmit_queue = true;
-	g_event_driven = event_driven;
-
-	if(generate_time_table) {
-		run_in_thread(create_tx_table, 1, 1);
-	} else {
-		if(progStatus.auto_load_queue && active_data_io == false && event_driven) {
-			auto_load_tx_queue();
-		}
-		if(progStatus.use_txrx_interval) {
-			run_in_thread(transmit_interval, TX_SEGMENTED, true);
-		} else if(progStatus.use_header_modem) {
-			turn_rsid_on();
-			run_in_thread(transmit_interval, TX_CONTINIOUS, true);
-		} else {
-			run_in_thread(transmit_serial_queued, 0, true);
-		}
-	}
-}
-
-void * transmit_serial_current(void *ptr)
-{
-	void * ret = 0;
-	transmitting = true;
-
-	{
-		Fl::awake(set_button_to_cancel, (void *)0);
-		static int value = TX_ALL_BUTTON;
-		Fl::awake(deactivate_button, (void *) &value);
-	}
-
-	int n = tx_queue->value();
-	if (!n)
-		return run_in_thread_destroy((TX_FLDIGI_THREAD *) ptr, 3);
-
-	if (progStatus.fldigi_xmt_mode_change)
-		send_new_modem(cbo_modes->value());
-
-	float tx_time = 0;
-
-	cAmp *tx = 0;
-	string temp = "";
-	string temp2 = "";
-	string autosend = "";
-	string send_to = "";
-
-	temp.clear();
-	autosend.clear();
-	send_to.clear();
-
-	active_data_io = true;
-
-	tx = tx_array[n-1];
-
-	if(!tx) {
-		active_data_io = false;
-		return ptr;
-	}
-
-	autosend = tx_string(tx, CALLSIGN_PREAMBLE | CALLSIGN_POSTAMBLE, " K\n");
-
-	int value = tx->xmt_buffer().size();
-	if (!value) {
-		active_data_io = false;
-		return run_in_thread_destroy((TX_FLDIGI_THREAD *) ptr, 3);
-	}
-
-	float oh = 0;
-	tx_time = seconds_from_string(cbo_modes->value(), autosend, &oh);
-	tx_time += oh;
-	tx_time_g = tx_time;
-	tx_time *= 2.0;
-
-	send_via_fldigi(autosend);
-
-	wait_for_rx((int) tx_time);
-
-	//if (transmit_stop == true) send_abort();
-
-	show_selected_xmt(n);
-
-	ret = run_in_thread_destroy((TX_FLDIGI_THREAD *) ptr, 3);
-
-	return ret;
-}
-
-void * transmit_serial_queued(void *ptr)
-{
-	transmitting = true;
-
-	Fl::awake(set_button_to_cancel, (void *)0);
-	static int val = TX_ALL_BUTTON;
-	Fl::awake(deactivate_button, (void *) &val);
-
-	float tx_time = 0;
-	TX_FLDIGI_THREAD *thread = (TX_FLDIGI_THREAD *)ptr;
-
-	if (tx_array.size() == 0)
-		return run_in_thread_destroy(thread, 3);
-
-	if (progStatus.fldigi_xmt_mode_change)
-		send_new_modem(thread->modem.c_str());
-
-	cAmp *tx;
-	string temp = "";
-	string autosend = "";
-	string terminator = "";
-	string null_string = "";
-	temp.clear();
-	autosend.clear();
-
-	unsigned int count = tx_array.size();
-
-	if(continuous_exception)
-		terminator.assign(" BK\n");
-	else
-		terminator.assign(" K\n");
-
-	for (size_t num = 0; num < count; num++) {
-		tx = tx_array[num];
-		if (tx->xmt_buffer().empty())
-			return run_in_thread_destroy(thread, 3);
-
-		if(num == 0)
-			temp = tx_string(tx, CALLSIGN_PREAMBLE | CALLSIGN_POSTAMBLE, null_string);
-		else if(num == (count - 1))
-			temp = tx_string(tx, CALLSIGN_POSTAMBLE, terminator);
-		else
-			temp = tx_string(tx, CALLSIGN_POSTAMBLE, null_string);
-
-		autosend.append(temp);
-	}
-
-	send_via_fldigi(autosend);
-
-	float oh = 0;
-	tx_time = seconds_from_string(thread->modem.c_str(), autosend, &oh);
-	tx_time += oh;
-	tx_time_g = tx_time;
-	tx_time *= 1.10;
-
-	wait_for_rx((int) tx_time);
-
-	//if (transmit_stop == true) send_abort();
-
-	return run_in_thread_destroy(thread, 3);
-}
-
-void turn_rsid_on()
-{
-	// Turn on RX/TX RSIDs
-	send_via_fldigi("<cmd><txrsid>ON</txrsid></cmd><cmd><rsid>ON</rsid></cmd>");
-	wait_seconds(1);
-}
-
-void turn_rsid_off()
-{
-	// Turn on RX/TX RSIDs
-	send_via_fldigi("<cmd><txrsid>OFF</txrsid></cmd><cmd><rsid>OFF</rsid></cmd>");
-	wait_seconds(1);
-}
-
-void * transmit_interval(void * ptr)
-{
-	transmitting = true;
-
-	Fl::awake(set_button_to_cancel, (void *)0);
-	static int val = TX_ALL_BUTTON;
-	Fl::awake(deactivate_button, (void *) &val);
-
-	cAmp *tx = (cAmp *)0;
-	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
-	int count = 0;
-	int limit = 0;
-	int index = 0;
-	bool fills = 0;
-
-	std::vector<std::string> vector_data;
-	std::string temp;
-	std::string tail;
-	std::string autosend;
-	std::string send_to = txt_tx_send_to->value();
-
-	int n = 0;
-	int value = 0;
-
-	pthread_mutex_lock(&thread_ptr->mutex);
-	thread_ptr->thread_running = 1;
-	thread_ptr->exit_thread = 0;
-	pthread_mutex_unlock(&thread_ptr->mutex);
-
-	if(thread_ptr->que) {
-		index = 0;
-		count = 0;
-		limit = tx_array.size();
-	} else {
-		n = tx_queue->value();
-		if (!n)	return run_in_thread_destroy(thread_ptr, 3);
-		index = n - 1;
-		count = 0;
-		limit = 1;
-	}
-
-	if(progStatus.use_header_modem) {
-		turn_rsid_on();
-	}
-
-	if (send_to.empty()) send_to.assign("QST");
-	send_to.append(" DE ").append(progStatus.my_call);
-	for (size_t n = 0; n < send_to.length(); n++)
-		send_to[n] = toupper(send_to[n]);
-
-	do {
-		if(transmit_stop)
-			return run_in_thread_destroy(thread_ptr, 3);
-
-		tx = tx_array[index];
-
-		if(!tx)
-			return run_in_thread_destroy(thread_ptr, 3);
-
-		autosend.assign("\n\n").append(send_to);//.append("\n");
-
-		value = tx->xmt_buffer().size();
-		if (!value) {
-			LOG_DEBUG("Empty xmt_buffer");
-			return run_in_thread_destroy(thread_ptr, 3);
-		}
-
-		tx->my_call(progStatus.my_call);
-		tx->my_info(progStatus.my_info);
-		tx->xmt_blocksize(progStatus.blocksize);
-
-		temp.assign(tx->xmt_buffer());
-		compress_maybe(temp, tx->tx_base_conv_index(), (tx->compress() | tx->forced_compress()));//true);
-		tx->xmt_data(temp);
-		tx->repeat(progStatus.repeatNN);
-		tx->header_repeat(progStatus.repeat_header);
-
-		if(!tx->xmt_vector_string()) {
-			LOG_DEBUG("Empty xmt_vector_string");
-			return run_in_thread_destroy(thread_ptr, 3);
-		}
-
-		if(check_block_tx_time(tx, thread_ptr) == false)
-			return run_in_thread_destroy(thread_ptr, 3);
-
-		// Header section
-
-		vector_data = tx->xmt_vector_header();
-
-		tail.clear();
-		tail.assign("\n").append(send_to).append(" BK\n\n");
-
-		fills = false;
-		if(progStatus.disable_header_modem_on_block_fills && tx->preamble_detected() == false) {
-			char *cPtr = (char *) txt_tx_selected_blocks->value();
-			if(cPtr) {
-				int _limit = 0;
-				while(*cPtr) {
-					if(isdigit(*cPtr)) {
-						fills = true;
-						break;
-					}
-					cPtr++;
-					if(_limit++ > 16) break;
-				}
-			}
-		}
-
-		if(progStatus.use_header_modem && fills == false) {
-			LOG_DEBUG("Header Modem Sent to FLDGI. (%s)", cbo_header_modes->value());
-
-			send_new_modem(thread_ptr->header_modem);
-
-			if(!send_vector_to_fldigi(thread_ptr->header_modem, autosend, tail, vector_data, thread_ptr->mode)) {
-				return run_in_thread_destroy(thread_ptr, 3);
-			}
-			send_new_modem(thread_ptr->modem);
-		} else {
-			if (progStatus.fldigi_xmt_mode_change)
-				send_new_modem(thread_ptr->modem);
-
-			if(!send_vector_to_fldigi(thread_ptr->modem, autosend, tail, vector_data, thread_ptr->mode)) {
-				return run_in_thread_destroy(thread_ptr, 3);
-			}
-		}
-
-		if(thread_ptr->mode != TX_MODEM_SAME) {
-			if(thread_ptr->mode == TX_SEGMENTED)
-				wait_seconds(cnt_rx_internval_secs->value());
-			else
-				wait_seconds(1);
-		}
-
-		// Data section
-
-		if(transmit_stop)
-			return run_in_thread_destroy(thread_ptr, 3);
-
-		vector_data = tx->xmt_vector_data();
-
-		tail.clear();
-
-		if(count >= (limit - 1) && !continuous_exception)
-			tail.assign("\n").append(send_to).append(" K\n");
-		else
-			tail.assign("\n").append(send_to).append(" BK\n");
-
-		autosend.clear();
-
-		send_vector_to_fldigi(thread_ptr->modem, autosend, tail, vector_data, thread_ptr->mode);
-
-		show_selected_xmt(index);
-
-		index++;
-		count++;
-
-		if(count < limit) {
-			wait_seconds(cnt_rx_internval_secs->value());
-		}
-
-	} while(count < limit);
-
-	return run_in_thread_destroy(thread_ptr, 3);
-}
-
-bool send_vector_to_fldigi(std::string modem, std::string &autosend, std::string &tail, std::vector<std::string> vector_data, int mode)
-{
-	std::string temp;
-	int count = 0;
-	int index = 0;
-	float data_time_seconds = 0;
-	float transfer_segment_time = 0;
-	float transfer_limit_time = 0;
-	float overhead = 0;
-	float length = 0;
-	float next_length = 0;
-
-	std::string send_to = txt_tx_send_to->value();
-
-	if (send_to.empty()) send_to.assign("QST");
-	send_to.append(" DE ").append(progStatus.my_call);
-	for (size_t n = 0; n < send_to.length(); n++)
-		send_to[n] = toupper(send_to[n]);
-
-	temp.clear();
-	count = vector_data.size();
-	for(index = 0; index < count; index++) {
-		temp.append(vector_data[index]);
-	}
-
-	data_time_seconds = seconds_from_string(modem, temp, &overhead);
-	data_time_seconds += overhead;
-	tx_time_g = data_time_seconds;
-
-	if(data_time_seconds <= 0.0) return false;
-
-	if(mode == TX_SEGMENTED) {
-		transfer_limit_time = (float) cnt_tx_internval_mins->value() * 60;
-		if(transfer_limit_time < 1) return false;
-	} else
-		transfer_limit_time = (float) ID_TIME_SECONDS;
-
-	length = overhead;
-
-	if(data_time_seconds > transfer_limit_time) {
-
-		temp.assign("\n");
-
-		for(index = 0; index < count; index++) {
-
-			if(transmit_stop) return false;
-
-			length += seconds_from_string(modem, vector_data[index], &overhead);
-
-			temp.append(vector_data[index]);
-
-			if(index < (count - 1)) {
-				next_length = seconds_from_string(modem, vector_data[index + 1], &overhead);
-			} else
-				next_length = 0;
-
-			transfer_segment_time = length + next_length + INTERVAL_TIME_BUFFER;
-
-			if (transfer_segment_time > transfer_limit_time) {
-
-				tx_time_g = length;
-
-				autosend.append(temp).append("\n").append(send_to);
-
-				if(mode == TX_SEGMENTED) {
-					autosend.append(" BK");
-				} else {
-					autosend.append(" ID");
-				}
-
-				autosend.append("\n");
-
-				send_via_fldigi(autosend);
-
-				if(mode == TX_SEGMENTED) {
-					if (!wait_for_rx(transfer_segment_time * 10)) return false;
-					wait_seconds(cnt_rx_internval_secs->value());
-				}
-
-				autosend.assign("\n");
-				temp.clear();
-				length = overhead;
-			}
-		}
-
-		if(temp.size())
-			autosend.append(temp);
-
-		if(tail.size())
-			autosend.append(tail);
-
-		if(autosend.size()) {
-			tx_time_g = seconds_from_string(modem, autosend, &overhead);
-			tx_time_g += overhead;
-			send_via_fldigi(autosend);
-			if (!wait_for_rx(transfer_segment_time * 10)) return false;
-		}
-
-	} else {
-		autosend.append("\n").append(temp);
-		if(tail.size())
-			autosend.append(tail);
-
-		send_via_fldigi(autosend);
-
-		if (!wait_for_rx(data_time_seconds * 10)) return false;
-	}
-
-	if(progStatus.use_header_modem) {
-		if(progStatus.hamcast_mode_cycle && transmit_queue && g_event_driven) {
-			std::string m;
-			switch(modem_rotation_index) {
-				case 0:
-					send_new_modem(cbo_hamcast_mode_selection_1->value());
-					break;
-				case 1:
-					send_new_modem(cbo_hamcast_mode_selection_1->value());
-					break;
-				case 2:
-					send_new_modem(cbo_hamcast_mode_selection_1->value());
-					break;
-				case 3:
-					send_new_modem(cbo_hamcast_mode_selection_1->value());
-					break;
-				default:
-					send_new_modem(cbo_modes->value());
-			}
-		}
-		else {
-			send_new_modem(cbo_modes->value()); // Change to primary modem
-		}
-	}
-
-	return true;
-}
-
-bool check_block_tx_time(cAmp *tx, TX_FLDIGI_THREAD *thread_ptr)
-{
-	if(!tx) return false;
-
-	int index = 0;
-	int count = 0;
-	float max_tx_time = 0;
-	float interval_time = (float) cnt_tx_internval_mins->value();
-	float tx_time = 0;
-	bool return_value = true;
-	char str_buffer[256];
-	string modem;
-	std::vector<std::string> vector_data;
-
-	vector_data = tx->xmt_vector_header();
-	count = vector_data.size();
-
-	modem.clear();
-	if(progStatus.use_header_modem)
-		modem.assign(cbo_header_modes->value());
-	else
-		modem.assign(cbo_modes->value());
-
-	for(index = 0; index < count; index++) {
-		tx_time = minutes_from_string(modem, vector_data[index], (float *)0);
-		if(tx_time > max_tx_time) {
-			max_tx_time = tx_time;
-		}
-	}
-
-	if(max_tx_time > interval_time) {
-		memset(str_buffer, 0, sizeof(str_buffer));
-		snprintf(str_buffer, sizeof(str_buffer) - 1,
-				 "Header Section Modem: %s\nRequired Block Tx time: %3.1f Mins.\nUse Faster Mode, Increase Interval Time,\nor decrease block size.", \
-				 modem.c_str(), max_tx_time);
-		LOG_INFO("%s", str_buffer);
-		return_value = false;
-		if(thread_ptr) {
-			memset(&thread_ptr->err_msg[0], 0, THREAD_ERR_MSG_SIZE);
-			strncpy(&thread_ptr->err_msg[0], str_buffer, THREAD_ERR_MSG_SIZE - 1);
-			thread_ptr->err_flag = true;
-		}
-	}
-
-	vector_data.clear();
-	vector_data = tx->xmt_vector_data();
-
-	modem.clear();
-	modem.assign(cbo_modes->value());
-
-	max_tx_time = 0;
-
-	for(index = 0; index < count; index++) {
-		tx_time = minutes_from_string(modem, vector_data[index], (float *)0);
-		if(tx_time > max_tx_time) {
-			max_tx_time = tx_time;
-		}
-	}
-
-	if(max_tx_time > interval_time) {
-		memset(str_buffer, 0, sizeof(str_buffer));
-		snprintf(str_buffer, sizeof(str_buffer) - 1,
-				 "Data Section Modem: %s\nRequired Block Tx time: %3.1f Mins.\nUse Faster Mode, Increase Interval Time,\nor decrease block size.", \
-				 modem.c_str(), max_tx_time);
-		LOG_INFO("%s", str_buffer);
-		return_value = false;
-
-		if(thread_ptr) {
-			memset(&thread_ptr->err_msg[0], 0, THREAD_ERR_MSG_SIZE);
-			strncpy(&thread_ptr->err_msg[0], str_buffer, THREAD_ERR_MSG_SIZE - 1);
-			thread_ptr->err_flag = true;
-		}
-	}
-
-	return return_value;
-}
-
-bool wait_for_rx(int max_wait_seconds)
-{
-	static std::string response;
-	time_t eTime = time((time_t *)0) + 3;
-	time_t sTime = 0;
-
-	if(max_wait_seconds < 1) return false;
-
-	do {
-		MilliSleep(500);
-
-		response = get_trx_state();
-
-		if(response == "TX") break;
-
-		if(transmit_stop) return false;
-
-	} while (time((time_t *)0) < eTime);
-
-	MilliSleep(500);
-
-	sTime = time((time_t *)0);
-	eTime = sTime + max_wait_seconds;
-
-	do {
-		MilliSleep(500);
-
-		response = get_trx_state();
-
-		if(response == "RX") {
-			return true;
-		}
-
-		if(transmit_stop) break;
-
-	} while (time((time_t *)0) < eTime);
-
-	return false;
-}
-
-void wait_seconds(int seconds)
-{
-	time_t eTime = time((time_t *)0) + seconds + 1;
-
-	if(seconds < 1) return;
-
-	while (time((time_t *)0) < eTime) {
-		MilliSleep(500);
-	}
-}
-
-TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode, bool queued)
-{
-	TX_FLDIGI_THREAD *tx_thread = (TX_FLDIGI_THREAD *)0;
-	int count = 0;
-
-	if(transmitting) return tx_thread;
-
-	tx_thread = new TX_FLDIGI_THREAD;
-
-	if(tx_thread) {
-
-		tx_thread->err_flag = false;
-		tx_thread->mode = mode;
-		tx_thread->que  = queued;
-
-		if(progStatus.hamcast_mode_cycle && g_event_driven && queued) {
-			if(modem_rotation_index >= bc_modems.size())
-				modem_rotation_index = 0;
-
-			tx_thread->modem.assign(bc_modems[modem_rotation_index]);
-			modem_rotation_index++;
-
-		} else {
-			tx_thread->modem.assign(g_modem);
-		}
-
-		tx_thread->header_modem.assign(g_header_modem);
-
-		if(!pthread_mutex_init(&tx_thread->mutex, NULL)) {
-			count++;
-			if(!pthread_cond_init(&tx_thread->condition, NULL)) {
-				count++;
-				if(!pthread_attr_init(&tx_thread->attr)) {
-					count++;
-					if(!pthread_attr_setdetachstate(&tx_thread->attr, PTHREAD_CREATE_DETACHED)) {
-						count++;
-						if(!pthread_create(&tx_thread->thread, &tx_thread->attr, func, (void *) tx_thread)) {
-							return tx_thread;
-						}
-					}
-				}
-			}
-		}
-
-		run_in_thread_destroy(tx_thread, count);
-		LOG_ERROR("%s", "Thread creation error: run_in_thread()");
-	}
-
-	return (TX_FLDIGI_THREAD *) 0;
-}
-
-void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level)
-{
-	if(!tx_thread) return 0;
-
-	{
-		static int value = TX_BUTTON;
-		Fl::awake(deactivate_button, (void *) &value);
-	}
-
-	pthread_mutex_lock(&tx_thread->mutex);
-	tx_thread->thread_running = 0;
-	pthread_mutex_unlock(&tx_thread->mutex);
-
-	if(level > 3 || level < 1) level = 3;
-
-	switch (level) {
-		case 3: pthread_attr_destroy(&tx_thread->attr);
-		case 2:	pthread_cond_destroy(&tx_thread->condition);
-		case 1: pthread_mutex_destroy(&tx_thread->mutex);
-	}
-
-	if(tx_thread->err_flag) {
-		char *msg = (char *) malloc(THREAD_ERR_MSG_SIZE);
-
-		if(msg) {
-			memset(msg, 0, THREAD_ERR_MSG_SIZE);
-			strncpy(msg, tx_thread->err_msg, THREAD_ERR_MSG_SIZE - 1);
-			Fl::awake(thread_error_msg, (void *)msg);
-		}
-	}
-
-	delete tx_thread;
-
-
-	Fl::awake(set_button_to_xmit, (void *)0);
-	Fl::awake(clear_missing, (void *)0);
-
-	wait_for_rx(5);
-
-	{
-		static int value = TX_BUTTON;
-		Fl::awake(activate_button, (void *)&value);
-		static int value2 = TX_ALL_BUTTON;
-		Fl::awake(activate_button, (void *)&value2);
-	}
-
-	//if (transmit_stop == true) send_abort();
-
-	transmitting = false;
-	transmit_queue = false;
-
-	return 0;
-}
-
+/** ********************************************************
+ *
+ ***********************************************************/
 void abort_and_id(void)
 {
 	std::string idMessage;
@@ -2712,6 +1720,9 @@ void abort_and_id(void)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void abort_request(void)
 {
 	int response = fl_choice("Terminate Current Transmission?", "No", "Yes", NULL);
@@ -2725,12 +1736,15 @@ void abort_request(void)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void send_fldigi_modem(void *ptr)
 {
 	if(!ptr) return;
 	int *val = (int *) ptr;
 
-	char buffer[32];
+	static char buffer[32];
 
 	memset(buffer, 0, sizeof(buffer));
 
@@ -2749,6 +1763,9 @@ void send_fldigi_modem(void *ptr)
 	send_new_modem(buffer);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void get_trx_state_in_main_thread(void *ptr)
 {
 	if (!ptr) return;
@@ -2758,23 +1775,21 @@ void get_trx_state_in_main_thread(void *ptr)
 	*str = get_trx_state();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void transmit_queue_main_thread(void *ptr)
 {
+	if(progStatus.auto_load_queue && active_data_io == false) {
+		auto_load_tx_queue();
+	}
+
 	transmit_queued(true);
 }
 
-void send_via_fldigi_in_main_thread(void *ptr)
-{
-	if (!ptr) return;
-
-	string *data = (string *)ptr;
-
-	if (!bConnected) connect_to_fldigi(0);
-	if (!bConnected) return;
-
-	send_via_fldigi(*data);
-}
-
+/** ********************************************************
+ *
+ ***********************************************************/
 void deactivate_button(void *ptr)
 {
 	if (!ptr) return;
@@ -2786,6 +1801,9 @@ void deactivate_button(void *ptr)
 		btn_send_queue->deactivate();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void activate_button(void *ptr)
 {
 	if (!ptr) return;
@@ -2797,16 +1815,41 @@ void activate_button(void *ptr)
 		btn_send_queue->activate();
 }
 
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void set_button_to_xmit(void *ptr)
 {
 	btn_send_file->label(XMT_LABEL);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void set_button_to_cancel(void *ptr)
 {
 	btn_send_file->label(CANX_LABEL);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
+void set_relay_button_label(void *data)
+{
+	char *str = (char *)0;
+
+	if(!data)
+		str = (char *) RELAY_LABEL;
+	else
+		str = (char *) data;
+
+	btn_send_relay->label(str);
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void thread_error_msg(void *data)
 {
 	if(data) {
@@ -2815,6 +1858,9 @@ void thread_error_msg(void *data)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void set_xmit_label(void *data)
 {
 	if(data) {
@@ -2823,13 +1869,10 @@ void set_xmit_label(void *data)
 	}
 }
 
-void receive_data_stream()
-{
-	//if(bConnected) // Prevents cQue->sleep() from reaching the desired delay
-	//	cQue->signal();
-}
-
-int alt_receive_data_stream(void *ptr)
+/** ********************************************************
+ *
+ ***********************************************************/
+int receive_data_stream(void *ptr)
 {
 	static char buffer[CNT_BLOCK_SIZE_MAXIMUM];
 	int n = 0;
@@ -2855,6 +1898,9 @@ int alt_receive_data_stream(void *ptr)
 	return n;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int process_que(void *ptr)
 {
 	size_t readCount = 0, count = 0;
@@ -2947,6 +1993,9 @@ int process_que(void *ptr)
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void process_missing_stream(void)
 {
 	string retbuff;
@@ -2956,25 +2005,48 @@ void process_missing_stream(void)
 	char hash[5];
 	int len = 0;
 	int conv = 0;
-	string tx_hash;
+	int count = 0;
+	string txrx_hash;
 	size_t i = 0;
+	cAmp *ctmp = (cAmp *)0;
 
 	retbuff.assign(tmp_buffer);
 
 	conv = sscanf(retbuff.c_str(), "<%s %d %4s>{%4s", tag, &len, crc, hash);
 
 	if (conv == 4) {
-		for (i = 0; i < tx_array.size(); i++) {
-			if(!tx_array[i]) continue;
-			tx_hash = tx_array[i]->xmt_hash();
-			if (memcmp((const char *)hash, (const char *)tx_hash.c_str(), sizeof(hash) - 1) == 0) {
-				tx_array[i]->append_report(retbuff);
+
+		count = tx_amp.size();
+
+		for (i = 0; i < count; i++) {
+			ctmp = tx_amp.index2amp(i + 1);
+			if(!ctmp) continue;
+			txrx_hash = ctmp->xmt_hash();
+			if (memcmp((const char *)hash, (const char *)txrx_hash.c_str(), sizeof(hash) - 1) == 0) {
+				ctmp->append_report(retbuff);
+				break;
 			}
 		}
+
+		// For relay operations
+		count = rx_amp.size();
+		for (i = 0; i < count; i++) {
+			ctmp = rx_amp.index2amp(i + 1);
+			if(!ctmp) continue;
+			txrx_hash = ctmp->rx_hash();
+			if (memcmp((const char *)hash, (const char *)txrx_hash.c_str(), sizeof(hash) - 1) == 0) {
+				ctmp->append_report(retbuff);
+				break;
+			}
+		}
+
 	}
 }
 
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void process_data_stream(void)
 {
 	string retbuff;
@@ -2984,8 +2056,9 @@ void process_data_stream(void)
 	char hash[5];
 	int len;
 	int conv;
-
+	cAmp *tmp = 0;
 	size_t i = 0;
+	int count = rx_amp.size();
 
 	retbuff.assign(tmp_buffer);
 
@@ -2995,28 +2068,33 @@ void process_data_stream(void)
 
 		cAmp *existing = 0;
 
-		for (i = 0; i < rx_array.size(); i++) {
-			if (rx_array[i]->hash(hash)) {
-				existing = rx_array[i];
+		for (i = 0; i < count; i++) {
+			tmp = rx_amp.index2amp(i + 1);
+			if (tmp->hash(hash)) {
+				existing = tmp;
 				break;
 			}
 		}
 
 		if (!existing) { // a new rx process
 
+			std::string temp_fname;
+			temp_fname.assign("Unassigned");
+
 			cAmp *nu = new cAmp();
+			nu->amp_type(RX_AMP);
+			nu->rx_fname(temp_fname);
 			nu->rx_hash(hash);
+			nu->rx_to_tx_hash(); // For relay ops
 			nu->rx_append(retbuff);
 			nu->rx_parse_buffer();
-			rx_array.push_back(nu);
+			rx_amp.add(nu);
 			string s;
-			s.assign("@f").append(nu->rx_sz_percent()).append("\t");
+			s.assign("@f").append(nu->rx_sz_percent()).append("\t").append(nu->rx_hash()).append("\t");
 			s.append(nu->get_rx_fname());
 			rx_queue->add(s.c_str());
 			rx_queue->select(rx_queue->size());
-
-			amp.rx_cAmp(nu);
-
+			rx_amp.set(nu);
 			clear_rx_amp();
 			show_rx_amp();
 			LOG_INFO("New Amp instance: %s", nu->get_rx_fname().c_str());
@@ -3027,108 +2105,145 @@ void process_data_stream(void)
 			if (!existing->rx_completed()) {
 				existing->rx_append(retbuff);
 				existing->rx_parse_buffer();
-				bline.assign("@f").append(existing->rx_sz_percent()).append("\t").append(existing->get_rx_fname());
+				bline.assign("@f").append(existing->rx_sz_percent()).append("\t").append(existing->rx_hash()).append("\t").append(existing->get_rx_fname());
 				rx_queue->text(i+1, bline.c_str());
 			}
 		}
 	}
 
-	if (rx_array.size() != 0)
+	if (count != 0)
 		show_rx_amp();
 }
 
-void receive_remove_from_queue()
+/** ********************************************************
+ *
+ ***********************************************************/
+void receive_remove_from_queue(bool all)
 {
+	if(progStatus.enable_delete_warning && !all) {
+		int flag = fl_choice("Remove file %s from queue?", (const char *)"No", (const char *)"Yes", (const char *)0, txt_tx_filename->value());
+		if(flag < 1) return;
+	}
+
 	if (rx_queue->size()) {
 		int n = rx_queue->value();
-		cAmp * rx_amp = rx_array[n - 1];
 
-		amp.rx_cAmp((cAmp *)0);
+		while(n > 0) {
+			cAmp * amp = rx_amp.index2amp(n);
+			rx_amp.set((cAmp *)0);
 
-		if (rx_amp) {
-			rx_array.erase(rx_array.begin() + n - 1);
+			if (amp) {
+				rx_amp.remove(n);
+			}
+
+			rx_queue->remove(n);
+
+			if (rx_queue->size()) {
+				n = 1;
+				rx_amp.set(n);
+				rx_queue->select(n);
+				show_selected_rcv(n);
+			} else {
+				txt_rx_filename->value("");
+				txt_rx_datetime->value("");
+				txt_rx_descrip->value("");
+				txt_rx_callinfo->value("");
+				txt_rx_filesize->value("");
+				txt_rx_numblocks->value("");
+				txt_rx_missing_blocks->value("");
+				rx_progress->clear();
+				txt_rx_output->clear();
+			}
+			rx_queue->redraw();
+
+			n = rx_queue->value();
+
+			if(all == false) break;
 		}
-
-		amp.free_cAmp(rx_amp);
-
-		rx_queue->remove(n);
-
-		if (rx_queue->size()) {
-			n = 1;
-			amp.rx_cAmp(rx_array[n - 1]);
-			rx_queue->select(n);
-			show_selected_rcv(n);
-		} else {
-			txt_rx_filename->value("");
-			txt_rx_datetime->value("");
-			txt_rx_descrip->value("");
-			txt_rx_callinfo->value("");
-			txt_rx_filesize->value("");
-			txt_rx_numblocks->value("");
-			txt_rx_missing_blocks->value("");
-			rx_progress->clear();
-			txt_rx_output->clear();
-		}
-		rx_queue->redraw();
 	}
 }
 
-void transfer_time(std::string modem, float &cps, int &transfer_size, std::string buffer)
-{
-	transfer_size = buffer.length();
-
-	if (transfer_size == 0) {
-		return;
-	}
-
-	st_modes *stm = s_modes;
-	while (stm->f_cps && (stm->s_mode != modem)) stm++;
-	if (!stm->f_cps) return;
-
-	if (stm->s_mode.find("MT63") != string::npos) {
-		for (size_t j = 0; j < buffer.length(); j++)
-			if ((buffer[j] & 0x80) == 0x80) transfer_size += 3;
-	}
-
-	cps = stm->f_cps;
-
-}
-
-void estimate() {
-	int n = tx_queue->value();
-	if (!n) return;
+#if 0
+/** ********************************************************
+ *
+ ***********************************************************/
+void estimate(cAmp *amp, bool visable) {
 
 	static char sz_xfr_size[50];
 	float xfr_time = 0;
 	float oh = 0;
 	int transfer_size;
+	int n = 0;
 
-	cAmp *tx = tx_array[n-1];
-
-	string xmtstr = tx_string(tx, CALLSIGN_PREAMBLE | CALLSIGN_POSTAMBLE, " K\n");
-
-	transfer_size = xmtstr.length();
-
-	if (transfer_size == 0) {
-		txt_transfer_size_time->value("");
+	if(tx_amp.size() < 1)
 		return;
+
+	if(!amp) {
+		n = tx_queue->value();
+		if(n < 1) return;
+		amp = tx_amp.index2amp(n);
+		if(!amp) return;
 	}
 
-	xfr_time = seconds_from_string(cbo_modes->value(), xmtstr, &oh);
-	xfr_time += oh;
+	amp->amp_update();
+	string xmtstr = amp->tx_string(" K\n");
 
-	if (xfr_time < 60)
-		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d secs",
-				 transfer_size, (int)(xfr_time + 0.5));
-	else
-		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d m %d s",
-				 transfer_size,
-				 (int)(xfr_time / 60), ((int)xfr_time) % 60);
-	txt_transfer_size_time->value(sz_xfr_size);
+	if(visable) {
 
-	show_selected_xmt(n);
+		transfer_size = xmtstr.length();
+
+		if (transfer_size == 0) {
+			txt_transfer_size_time->value("");
+			return;
+		}
+
+
+		xfr_time = seconds_from_string(cbo_modes->value(), xmtstr, &oh);
+		xfr_time += oh;
+
+		if (xfr_time < 60)
+			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d secs",
+					 transfer_size, (int)(xfr_time + 0.5));
+		else
+			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d m %d s",
+					 transfer_size,
+					 (int)(xfr_time / 60), ((int)xfr_time) % 60);
+
+		txt_transfer_size_time->value(sz_xfr_size);
+		txt_tx_numblocks->value(amp->xmt_numblocks().c_str());
+	}
+}
+#else
+/** ********************************************************
+ *
+ ***********************************************************/
+void estimate(cAmp *amp, bool visable)
+{
+	int n = 0;
+
+	if(tx_amp.size() < 1)
+		return;
+
+	if(!amp) {
+		n = tx_queue->value();
+		if(n < 1) return;
+		amp = tx_amp.index2amp(n);
+		if(!amp) return;
+	}
+
+	amp->amp_update();
+
+	if(visable) {
+		txt_transfer_size_time->value(amp->estimate().c_str());
+		txt_tx_numblocks->value(amp->xmt_numblocks().c_str());
+	}
 }
 
+#endif
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void estimate_bc(void) {
 	static char sz_xfr_size[50];
 	float xfr_time = 0;
@@ -3145,18 +2260,16 @@ void estimate_bc(void) {
 	std::string temp;
 	std::string xmtstr;
 
-	count = tx_array.size();
+	count = tx_amp.size();
 	total_xfr_time = 0;
 	modem_index_count = BROADCAST_MAX_MODEMS;
 
 	xmtstr.clear();
 
 	for(index = 0; index < count; index++) {
-		tx = tx_array[index];
-		xmtstr.append(tx_string(tx, CALLSIGN_POSTAMBLE | CALLSIGN_POSTAMBLE, " K\n"));
+		tx = tx_amp.index2amp(index + 1);
+		xmtstr.append(tx->tx_string(" K\n"));
 	}
-
-	xfr_time = 0;
 
 	for(modem_index = 0; modem_index < modem_index_count; modem_index++) {
 		switch(modem_index) {
@@ -3187,22 +2300,22 @@ void estimate_bc(void) {
 		flag = false;
 		switch(modem_index) {
 			case 0:
-				if(btn_hamcast_mode_enable_1->value())
+				if(progStatus.hamcast_mode_enable_1)
 					flag = true;
 				txt_hamcast_select_1_time->value(sz_xfr_size);
 				break;
 			case 1:
-				if(btn_hamcast_mode_enable_2->value())
+				if(progStatus.hamcast_mode_enable_2)
 					flag = true;
 				txt_hamcast_select_2_time->value(sz_xfr_size);
 				break;
 			case 2:
-				if(btn_hamcast_mode_enable_3->value())
+				if(progStatus.hamcast_mode_enable_3)
 					flag = true;
 				txt_hamcast_select_3_time->value(sz_xfr_size);
 				break;
 			case 3:
-				if(btn_hamcast_mode_enable_4->value())
+				if(progStatus.hamcast_mode_enable_4)
 					flag = true;
 				txt_hamcast_select_4_time->value(sz_xfr_size);
 				break;
@@ -3222,32 +2335,30 @@ void estimate_bc(void) {
 	txt_hamcast_select_total_time->value(sz_xfr_size);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_exit()
 {
 	if(transmitting) {
 		transmit_stop = true;
 	}
 
+	exit_watch_dog = true;
+
 	progStatus.saveLastState();
+
 	FSEL::destroy();
-	cAmp *amp;
-	int size = tx_array.size();
-	for (int i = 0; i < size; i++) {
-		amp = tx_array[i];
-		delete amp;
-		tx_array.pop_back();
-	}
-	size = rx_array.size();
-	for (int i = 0; i < size; i++) {
-		amp = rx_array[i];
-		delete amp;
-		rx_array.pop_back();
-	}
+
+	tx_amp.free_all();
+	rx_amp.free_all();
+
 	if (tcpip) {
 		tcpip->close();
 		delete tcpip;
 		delete localaddr;
 	}
+
 	debug::stop();
 
 	if(cQue) delete cQue;
@@ -3255,6 +2366,9 @@ void cb_exit()
 	exit(0);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool numbers_and_dots_only(char *str, int expected_argc)
 {
 	int f = 0, s = 0, t = 0, fo = 0;
@@ -3270,6 +2384,9 @@ bool numbers_and_dots_only(char *str, int expected_argc)
 	return false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int parse_args(int argc, char **argv, int& idx)
 {
 	char check_for[48];
@@ -3280,18 +2397,18 @@ int parse_args(int argc, char **argv, int& idx)
 		return 1;
 	}
 
-	if (strstr(argv[idx], "--flamp-dir")) {
+	if (strstr(argv[idx], "--config-dir")) {
+		std::string temp_dir = "";
 		idx++;
-		// ignore if already set via NBEMS.DIR file contents
-		if (!flampHomeDir.empty()) return 1;
 		string tmp = argv[idx];
-		if (!tmp.empty()) flampHomeDir = tmp;
+		if (!tmp.empty()) temp_dir = tmp;
 		size_t p = string::npos;
-		while ( (p = flampHomeDir.find("\\")) != string::npos)
-			flampHomeDir[p] = '/';
-		if (flampHomeDir[flampHomeDir.length()-1] != '/')
-			flampHomeDir += '/';
+		while ( (p = temp_dir.find("\\")) != string::npos)
+			temp_dir[p] = '/';
+		if (temp_dir[temp_dir.length()-1] != '/')
+			temp_dir += '/';
 		idx++;
+		NBEMS_dir.assign(temp_dir);
 		return 1;
 	}
 
@@ -3392,6 +2509,9 @@ int parse_args(int argc, char **argv, int& idx)
 	return 0;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void exit_main(Fl_Widget *w)
 {
 	if (Fl::event_key() == FL_Escape)
@@ -3399,56 +2519,58 @@ void exit_main(Fl_Widget *w)
 	cb_exit();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int main(int argc, char *argv[])
 {
-	string appname = argv[0];
+	NBEMS_dir.clear();
 	{
+		string appname = argv[0];
 		string appdir;
-		char apptemp[FL_PATH_MAX];
-		fl_filename_expand(apptemp, sizeof(apptemp), appname.c_str());
-		appdir.assign(apptemp);
+		char dirbuf[FL_PATH_MAX + 1];
+		fl_filename_expand(dirbuf, FL_PATH_MAX, appname.c_str());
+		appdir.assign(dirbuf);
 
 #ifdef __WOE32__
 		size_t p = appdir.rfind("flamp.exe");
 		appdir.erase(p);
-#else
-		size_t p = appdir.rfind("flamp");
-		if (appdir.find("./flamp") != std::string::npos) {
-			if (getcwd(apptemp, sizeof(apptemp)))
-				appdir.assign(apptemp).append("/");
-		} else
-			appdir.erase(p);
-#endif
-
-		if (p != std::string::npos) {
-			string testfile;
-			testfile.assign(appdir).append("NBEMS.DIR");
-			FILE *testdir = fopen(testfile.c_str(),"r");
-			if (testdir) {
-				string dirline = "";
-				char ch = fgetc(testdir);
-				while (!feof(testdir)) {
-					dirline += ch;
-					ch = fgetc(testdir);
-				}
-				fclose(testdir);
-				// strip leading & trailing white space
-				while (dirline.length() && dirline[0] <= ' ')
-					dirline.erase(0,1);
-				while (dirline.length() && dirline[dirline.length()-1] <= ' ')
-					dirline.erase(dirline.length()-1, 1);
-				if (dirline.empty())
-					BaseDir = appdir;
-				else {
-					size_t p = 0;
-					while ( (p = dirline.find("\\")) != string::npos)
-						dirline[p] = '/';
-					if (dirline[dirline.length()-1] != '/')
-						dirline += '/';
-					flampHomeDir = dirline;
-				}
-			}
+		p = appdir.find("FL_APPS/");
+		if (p != string::npos) {
+			NBEMS_dir.assign(appdir.substr(0, p + 8));
+		} else {
+			fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
+			NBEMS_dir.assign(dirbuf);
 		}
+		NBEMS_dir.append("NBEMS.files/");
+
+#else
+
+		fl_filename_absolute(dirbuf, sizeof(dirbuf), argv[0]);
+		appdir.assign(dirbuf);
+		size_t p = appdir.rfind("flamp");
+		if (p != string::npos)
+			appdir.erase(p);
+		p = appdir.find("FL_APPS/");
+		if (p != string::npos)
+			NBEMS_dir.assign(appdir.substr(0, p + 8));
+		else {
+			fl_filename_expand(dirbuf, FL_PATH_MAX, "$HOME/");
+			NBEMS_dir = dirbuf;
+		}
+
+		DIR *isdir = 0;
+		string test_dir;
+		test_dir.assign(NBEMS_dir).append("NBEMS.files/");
+		isdir = opendir(test_dir.c_str());
+		if (isdir) {
+			NBEMS_dir = test_dir;
+			closedir(isdir);
+		} else {
+			NBEMS_dir.append(".nbems/");
+		}
+
+#endif
 	}
 
 	int arg_idx;
@@ -3466,8 +2588,7 @@ int main(int argc, char *argv[])
 	debug_file.append("debug_log.txt");
 	debug::start(debug_file.c_str());
 
-	LOG_INFO("Application: %s", appname.c_str());
-	LOG_INFO("Base dir: %s", BaseDir.c_str());
+	LOG_INFO("Base dir: %s", NBEMS_dir.c_str());
 
 	main_window = flamp_dialog();
 	main_window->resize( progStatus.mainX, progStatus.mainY, main_window->w(), main_window->h());
@@ -3522,12 +2643,12 @@ int main(int argc, char *argv[])
 	open_xmlrpc();
 	xmlrpc_thread = new pthread_t;
 	if (pthread_create(xmlrpc_thread, NULL, xmlrpc_loop, NULL)) {
-		perror("pthread_create");
+		perror("pthread_create: xmlrpc");
 		exit(EXIT_FAILURE);
 	}
 
 	try {
-		cQue = new TagSearch(alt_receive_data_stream, process_que);
+		cQue = new TagSearch(receive_data_stream, process_que);
 	} catch (const TagSearchException& e) {
 		LOG_ERROR("%d, %s", e.error(), e.what());
 		exit (EXIT_FAILURE);
@@ -3545,17 +2666,63 @@ int main(int argc, char *argv[])
 	tx_buffer.clear();
 	rx_buffer.clear();
 
+	watch_dog_seconds = time(0);
+	watch_dog_thread = new pthread_t;
+	if (pthread_create(watch_dog_thread, NULL, watch_dog_loop, NULL)) {
+		perror("pthread_create: ztimer watch dog not started");
+	}
+
 	ztimer((void *)true);
 
 	if(progStatus.auto_load_queue) {
 		auto_load_tx_queue();
 	}
 
-	unproto_widgets();
+	unproto_widgets(0);
+
+	Fl::add_timeout(0.5, check_io_mode);
 
 	return Fl::run();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
+void check_io_mode(void *v)
+{
+	// Check to see what io mode FLDIGI is in.
+	std::string io_mode = get_io_mode();
+	int flag = 0;
+	if(!io_mode.empty()) {
+		flag = strncmp(io_mode.c_str(), "ARQ", 3);
+		if(flag != 0) {
+			flag = fl_choice2(_("KISS interface active! Switch FLDIGI to ARQ?"),
+							  _("No"), _("Yes"), NULL);
+			if(flag == 1)
+				enable_arq();
+		}
+	}
+
+	check_call_and_id(v);
+}
+
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void check_call_and_id(void *v)
+{
+	if(progStatus.my_call.empty() || progStatus.my_info.empty()) {
+		if(tabs && Config_tab) {
+			tabs->value(Config_tab);
+			fl_choice2(_("Update Callsign and Info"), _("Okay"), NULL, NULL);
+		}
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void open_url(const char* url)
 {
 	LOG_INFO("%s", url);
@@ -3595,16 +2762,25 @@ void open_url(const char* url)
 #endif
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void show_help()
 {
 	open_url("http://www.w1hkj.com/flamp2.1-help/index.html");
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_folders()
 {
 	open_url(flampHomeDir.c_str());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void drop_file_changed()
 {
 	string buffer = Fl::event_text();

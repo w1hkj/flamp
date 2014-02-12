@@ -122,9 +122,14 @@ flamp_SOURCES += \
 	$(srcdir)/utils/util.cxx \
 	$(srcdir)/utils/file_io.cxx \
 	$(srcdir)/utils/xml_io.cxx \
+	$(srcdir)/utils/global_amp.cxx \
 	$(srcdir)/utils/circular_queue.cxx \
 	$(srcdir)/utils/tagSearch.cxx \
 	$(srcdir)/utils/time_table.cxx \
+	$(srcdir)/utils/transmit_camp.cxx \
+	$(srcdir)/utils/ztimer.cxx \
+	$(srcdir)/utils/script_parsing.cxx \
+	$(srcdir)/utils/run_scripts.cxx \
 	$(srcdir)/widgets/calendar.cxx \
 	$(srcdir)/widgets/combo.cxx \
 	$(srcdir)/widgets/date.cxx \
@@ -142,6 +147,8 @@ flamp_SOURCES += \
 	$(srcdir)/widgets/pixmaps.cxx \
 	$(srcdir)/widgets/pixmaps_tango.cxx \
 	$(srcdir)/widgets/font_browser.cxx \
+	$(srcdir)/widgets/hamcast_group.cxx \
+	$(srcdir)/include/hamcast_group.h \
 	$(srcdir)/xmlrpcpp/XmlRpc.h \
 	$(srcdir)/xmlrpcpp/XmlRpcClient.cpp \
 	$(srcdir)/xmlrpcpp/XmlRpcClient.h \
@@ -213,9 +220,13 @@ EXTRA_DIST = \
 	$(srcdir)/include/util.h \
 	$(srcdir)/include/file_io.h \
 	$(srcdir)/include/xml_io.h \
+	$(srcdir)/include/global_amp.h \
 	$(srcdir)/include/circular_queue.h \
 	$(srcdir)/include/tagSearch.h \
 	$(srcdir)/include/time_table.h \
+	$(srcdir)/include/transmit_camp.h \
+	$(srcdir)/include/ztimer.h \
+	$(srcdir)/include/script_parsing.h \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \

@@ -12,81 +12,81 @@
 
 namespace XmlRpc {
 
-  // An RPC source represents a file descriptor to monitor
-  class XmlRpcSource;
+	// An RPC source represents a file descriptor to monitor
+	class XmlRpcSource;
 
-  //! An object which monitors file descriptors for events and performs
-  //! callbacks when interesting events happen.
-  class XmlRpcDispatch {
-  public:
-    //! Constructor
-    XmlRpcDispatch();
-    ~XmlRpcDispatch();
+	//! An object which monitors file descriptors for events and performs
+	//! callbacks when interesting events happen.
+	class XmlRpcDispatch {
+	public:
+		//! Constructor
+		XmlRpcDispatch();
+		~XmlRpcDispatch();
 
-    //! Values indicating the type of events a source is interested in
-    enum EventType {
-      ReadableEvent = 1,    //!< data available to read
-      WritableEvent = 2,    //!< connected/data can be written without blocking
-      Exception     = 4     //!< uh oh
-    };
-    
-    //! Monitor this source for the event types specified by the event mask
-    //! and call its event handler when any of the events occur.
-    //!  @param source The source to monitor
-    //!  @param eventMask Which event types to watch for. \see EventType
-    void addSource(XmlRpcSource* source, unsigned eventMask);
+		//! Values indicating the type of events a source is interested in
+		enum EventType {
+			ReadableEvent = 1,    //!< data available to read
+			WritableEvent = 2,    //!< connected/data can be written without blocking
+			Exception     = 4     //!< uh oh
+		};
 
-    //! Stop monitoring this source.
-    //!  @param source The source to stop monitoring
-    //! The source socket is not closed.
-    void removeSource(XmlRpcSource* source);
+		//! Monitor this source for the event types specified by the event mask
+		//! and call its event handler when any of the events occur.
+		//!  @param source The source to monitor
+		//!  @param eventMask Which event types to watch for. \see EventType
+		void addSource(XmlRpcSource* source, unsigned eventMask);
 
-    //! Modify the types of events to watch for on this source
-    void setSourceEvents(XmlRpcSource* source, unsigned eventMask);
+		//! Stop monitoring this source.
+		//!  @param source The source to stop monitoring
+		//! The source socket is not closed.
+		void removeSource(XmlRpcSource* source);
 
-
-    //! Watch current set of sources and process events for the specified
-    //! duration (in seconds, -1 implies wait forever, or until exit is called)
-    void work(double timeSeconds);
-
-    //! Exit from work routine
-    void exit();
-
-    //! Clear all sources from the monitored sources list. Sources are closed.
-    void clear();
-
-  protected:
-
-    //! Wait for I/O on any source, timeout, or interrupt signal.
-    bool waitForAndProcessEvents(double timeoutSeconds);
+		//! Modify the types of events to watch for on this source
+		void setSourceEvents(XmlRpcSource* source, unsigned eventMask);
 
 
-    //! Returns current time in seconds since something
-    double getTime();
+		//! Watch current set of sources and process events for the specified
+		//! duration (in seconds, -1 implies wait forever, or until exit is called)
+		void work(double timeSeconds);
 
-    // A source to monitor and what to monitor it for
-    struct MonitoredSource
-    {
-      MonitoredSource(XmlRpcSource* src, unsigned mask) : _src(src), _mask(mask) {}
-      XmlRpcSource* getSource() const { return _src; }
-      unsigned& getMask() { return _mask; }
-      XmlRpcSource* _src;
-      unsigned _mask;
-    };
+		//! Exit from work routine
+		void exit();
 
-    // A list of sources to monitor
-    typedef std::vector< MonitoredSource > SourceList; 
+		//! Clear all sources from the monitored sources list. Sources are closed.
+		void clear();
 
-    // Sources being monitored
-    SourceList _sources;
+	protected:
 
-    // When work should stop (-1 implies wait forever, or until exit is called)
-    double _endTime;
+		//! Wait for I/O on any source, timeout, or interrupt signal.
+		bool waitForAndProcessEvents(double timeoutSeconds);
 
-    bool _doClear;
-    bool _inWork;
 
-  };
+		//! Returns current time in seconds since something
+		double getTime();
+
+		// A source to monitor and what to monitor it for
+		struct MonitoredSource
+		{
+			MonitoredSource(XmlRpcSource* src, unsigned mask) : _src(src), _mask(mask) {}
+			XmlRpcSource* getSource() const { return _src; }
+			unsigned& getMask() { return _mask; }
+			XmlRpcSource* _src;
+			unsigned _mask;
+		};
+
+		// A list of sources to monitor
+		typedef std::vector< MonitoredSource > SourceList;
+
+		// Sources being monitored
+		SourceList _sources;
+
+		// When work should stop (-1 implies wait forever, or until exit is called)
+		double _endTime;
+
+		bool _doClear;
+		bool _inWork;
+
+	};
 } // namespace XmlRpc
 
 #endif  // _XMLRPCDISPATCH_H_

@@ -39,6 +39,10 @@
 
 #define XMT_LABEL "Xmit"
 #define CANX_LABEL "Cancel"
+#define RELAY_LABEL "Relay"
+
+extern Fl_Tabs  * tabs;
+extern Fl_Group * Config_tab;
 
 extern Fl_Double_Window *main_window;
 
@@ -57,10 +61,16 @@ extern Fl_Hold_Browser* rx_queue;
 
 extern FTextView* txt_rx_output;
 
+extern Fl_Check_Button* btn_enable_unproto_markers;
 extern Fl_Check_Button* btn_enable_tx_unproto;
 extern Fl_Check_Button* btn_enable_txrx_interval;
 extern Fl_Check_Button* btn_enable_header_modem;
 extern Fl_Check_Button* btn_disable_header_modem_on_block_fills;
+
+extern Fl_Check_Button* btn_sync_mode_flamp_fldigi;
+extern Fl_Check_Button* btn_sync_mode_fldigi_flamp;
+extern Fl_Check_Button* btn_fldigi_xmt_mode_change;
+extern Fl_Check_Button* btn_load_from_tx_folder;
 
 extern Fl_ComboBox* cbo_header_modes;
 extern Fl_Simple_Counter* cnt_tx_internval_mins;
@@ -101,21 +111,24 @@ extern Fl_ComboBox* cbo_modes;
 extern Fl_Output*   txt_transfer_size_time;
 extern Fl_Output*   txt_transfer_time;
 
+extern Fl_Check_Button *btn_enable_delete_warning;
+extern Fl_Check_Button *btn_enable_tx_on_report;
+extern Fl_Check_Button *btn_clear_tosend_on_tx_blocks;
+
 extern Fl_Hold_Browser* tx_queue;
 
 extern Fl_Double_Window* flamp_dialog();
 
 extern bool valid_mode_check(std::string &md);
 
-struct st_modes {std::string s_mode; float f_cps; float latency;};
-extern struct st_modes s_basic_modes[];
-extern struct st_modes s_modes[];
+extern const char *s_basic_modes[];
+extern char *s_modes[];
 
 extern void update_cbo_modes(std::string &fldigi_modes);
 
 extern Fl_Check_Button* btn_enable_header_modem;
 extern void cb_enable_header_modem(Fl_Check_Button *a, void *b);
-extern void unproto_widgets(void);
+extern void unproto_widgets(class cAmp *amp);
 
 // Hamcasting panel
 
@@ -144,7 +157,14 @@ extern void estimate_bc(void);
 
 extern std::string g_modem;
 extern std::string g_header_modem;
+extern std::string selected_encoder_string;
 
 // end Hamcasting panel
+
+// Receive pane
+extern Fl_Button *btn_send_relay;
+extern Fl_Input2 *txt_relay_selected_blocks;
+extern Fl_Button *btn_parse_relay_blocks;
+// end Receive pane
 
 #endif

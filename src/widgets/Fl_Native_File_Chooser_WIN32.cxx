@@ -752,7 +752,7 @@ void FNFC_CLASS::parse_filter(const char *in) {
 			default:
 			regchar:		// handle regular char
 				switch ( mode ) {
-					case LBRACKET_CHR: 
+					case LBRACKET_CHR:
 						// create new wildcard
 						++nwildcards;
 						// copy in prefix
@@ -760,17 +760,17 @@ void FNFC_CLASS::parse_filter(const char *in) {
 						// append search char
 						chrcat(wildcards[nwildcards-1], *in);
 						continue;
-						
+
 					case LCURLY_CHR:
 						if ( nwildcards > 0 ) {
 							chrcat(wildcards[nwildcards-1], *in);
 						}
 						continue;
-						
+
 					case 'n':
 						chrcat(name, *in);
 						continue;
-						
+
 					case 'w':
 						chrcat(wildprefix, *in);
 						for ( t=0; t<nwildcards; t++ ) {

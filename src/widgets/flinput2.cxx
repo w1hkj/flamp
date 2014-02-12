@@ -5,16 +5,20 @@
 // Author: Stelios Buononos, M0GLD
 // Copyright: 2010
 //
+// This file is part of FLAMP.
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
 // This software is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  It is
-// copyright under the GNU General Public License.
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc.
-// 59 Temple Place, Suite 330
-// Boston, MA  02111-1307 USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 // =====================================================================
 
@@ -134,13 +138,13 @@ int Fl_Input2::handle(int event)
 	}
 
 	bool sel = position() != mark(), ro = readonly();
-	set_active(&cmenu[OP_UNDO], !ro);
-	set_active(&cmenu[OP_CUT], !ro && sel);
-	set_active(&cmenu[OP_COPY], sel);
-	set_active(&cmenu[OP_PASTE], !ro);
-	set_active(&cmenu[OP_DELETE], !ro && sel);
-	set_active(&cmenu[OP_CLEAR], !ro && size());
-	set_active(&cmenu[OP_SELECT_ALL], size());
+	::set_active(&cmenu[OP_UNDO], !ro);
+	::set_active(&cmenu[OP_CUT], !ro && sel);
+	::set_active(&cmenu[OP_COPY], sel);
+	::set_active(&cmenu[OP_PASTE], !ro);
+	::set_active(&cmenu[OP_DELETE], !ro && sel);
+	::set_active(&cmenu[OP_CLEAR], !ro && size());
+	::set_active(&cmenu[OP_SELECT_ALL], size());
 
 	take_focus();
 	window()->cursor(FL_CURSOR_DEFAULT);
@@ -148,7 +152,7 @@ int Fl_Input2::handle(int event)
 	Fl_Tooltip::disable();
 	const Fl_Menu_Item* m = cmenu->popup(Fl::event_x(), Fl::event_y());
 	Fl_Tooltip::enable(t);
-	
+
 	if (!m)
 		return 1;
 	switch (m - cmenu) {
@@ -175,6 +179,6 @@ int Fl_Input2::handle(int event)
 			position(0, size());
 			break;
 	}
-	
+
 	return 1;
 }

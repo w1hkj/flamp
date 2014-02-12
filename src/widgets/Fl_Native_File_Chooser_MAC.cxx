@@ -800,7 +800,7 @@ void FNFC_CLASS::parse_filter(const char *in) {
 				// DONE?
 				if ( *in == '\0' ) return;	// done
 				else continue;			// not done yet, more filters
-				
+
 				// Parse all other chars
 			default:				// handle all non-special chars
 			regchar:				// handle regular char
@@ -833,16 +833,16 @@ Boolean FNFC_CLASS::filter_proc_cb2(AEDesc *theItem,
 									NavFilterModes filterMode) {
 	// All files chosen or no filters
 	if ( _filt_value == _filt_total ) return(true);
-	
+
 	FSSpec fsspec;
 	char pathname[4096];
-	
+
 	// On fail, filter should return true by default
 	if ( AEDescToFSSpec(theItem, &fsspec) != noErr ) {
 		return(true);
 	}
 	FSSpecToPath(fsspec, pathname, sizeof(pathname)-1);
-	
+
 	if ( fl_filename_isdir(pathname) ) return(true);
 	if ( fl_filename_match(pathname, _filt_patt[_filt_value]) ) return(true);
 	else return(false);

@@ -212,7 +212,10 @@ void Fl_ComboBox::readonly()
 
 void Fl_ComboBox::value( const char *s )
 {
-	int i;
+	int i = 0;
+	if(!s)
+		return;
+
 	if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
 		for (i = 0; i < listsize; i++) {
 			if (strcasecmp (s, datalist[i]->s) == 0)
@@ -224,8 +227,10 @@ void Fl_ComboBox::value( const char *s )
 				break;
 		}
 	}
-	if ( i < listsize)
-		Output->value(datalist[i]->s);
+	if ( i < listsize) {
+		//Output->value(datalist[i]->s);
+		index(i);
+	}
 }
 
 void Fl_ComboBox::put_value(const char *s)

@@ -1,7 +1,10 @@
 // file_io.cxx
 //
 // Author(s): Dave Freese, W1HKJ (2012)
-//            Robert Stiles, KK5VD (2013)
+//            Robert Stiles, KK5VD (2013, 2014)
+//
+//
+// This file is part of FLAMP.
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,10 +17,8 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with the program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-
 // $Id: main.c 141 2008-07-19 15:59:57Z jessekornblum $
 
 #include <stdlib.h>
@@ -106,33 +107,43 @@ string wrap_inpshortname = "";
 string wrap_outshortname = "";
 string wrap_foldername = "";
 
-void base64encode(string &inptext)
+pthread_mutex_t mutex_comp_data = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_decomp_data = PTHREAD_MUTEX_INITIALIZER;
+
+static void base64encode(string &inptext)
 {
 	string outtext;
-	outtext = b64.encode(inptext);
-	inptext = b64_start;
+	outtext.clear();
+	outtext.reserve(inptext.size() + 100);
+	outtext.assign(b64.encode(inptext));
+	inptext.assign(b64_start);
 	inptext.append(outtext);
 	inptext.append(b64_end);
 }
 
-void base128encode(string &inptext)
+static void base128encode(string &inptext)
 {
 	string outtext;
-	outtext = b128.encode(inptext);
-	inptext = b128_start;
+	outtext.clear();
+	outtext.reserve(inptext.size() + 100);
+	outtext.assign(b128.encode(inptext));
+	inptext.assign(b128_start);
 	inptext.append(outtext);
 	inptext.append(b128_end);
 }
 
-void base256encode(string &inptext)
+static void base256encode(string &inptext)
 {
-	string outtext = b256.encode(inptext);
-	inptext = b256_start;
+	string outtext;
+	outtext.clear();
+	outtext.reserve(inptext.size() + 100);
+	outtext.assign(b256.encode(inptext));
+	inptext.assign(b256_start);
 	inptext.append(outtext);
 	inptext.append(b256_end);
 }
 
-void convert2crlf(string &s)
+static void convert2crlf(string &s)
 {
 	size_t p = s.find('\n', 0);
 
@@ -142,7 +153,7 @@ void convert2crlf(string &s)
 	}
 }
 
-bool convert2lf(string &s)
+static bool convert2lf(string &s)
 {
 	bool converted = false;
 	size_t p = s.find("\r\n", 0);
@@ -157,11 +168,11 @@ bool convert2lf(string &s)
 
 #define LZMA_STR "\1LZMA"
 
-void compress_maybe(string& input, int encode_with, bool try_compress)//bool file_transfer)
+void compress_maybe(string& input, int encode_with, bool try_compress)
 {
-	//	if (!progStatus.use_compression && !file_transfer) return;
-
 	// allocate 110% of the original size for the output buffer
+	pthread_mutex_lock(&mutex_comp_data);
+
 	size_t outlen = (size_t)ceil(input.length() * 1.1);
 	unsigned char* buf = new unsigned char[outlen];
 
@@ -171,7 +182,6 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 
 	string bufstr;
 
-	//	if (progStatus.use_compression) { // || file_transfer) {
 	if (try_compress) {
 		// replace input with: LZMA_STR + original size (in network byte order) + props + data
 		int r;
@@ -183,7 +193,6 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 			bufstr.append((const char*)&origlen, sizeof(origlen));
 			bufstr.append((const char*)&outprops, sizeof(outprops));
 			bufstr.append((const char*)buf, outlen);
-			//			if (file_transfer && input.length() < bufstr.length()) {
 			if (input.length() < bufstr.length()) {
 				LOG_DEBUG("%s", "Lzma could not compress data");
 				bufstr.assign(input);
@@ -199,7 +208,8 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 		else
 			base64encode(bufstr);
 	} else {
-		bufstr = input;
+		bufstr.reserve(input.size() * 2);
+		bufstr.assign(input);
 		if (binary(bufstr)) {
 			if (encode_with == BASE256)
 				base256encode(bufstr);
@@ -214,16 +224,16 @@ void compress_maybe(string& input, int encode_with, bool try_compress)//bool fil
 
 	input = bufstr;
 
+	pthread_mutex_unlock(&mutex_comp_data);
+
 	return;
 }
 
 void decompress_maybe(string& input)
 {
-	// input is LZMA_STR + original size (in network byte order) + props + data
-	//	if (input.find(LZMA_STR) == string::npos)
-	//		return;
+	pthread_mutex_lock(&mutex_decomp_data);
 
-	int decode = NONE;//BASE64;
+	int decode = NONE; //BASE64;
 	bool decode_error = false;
 
 	size_t	p0 = string::npos,
@@ -246,20 +256,18 @@ void decompress_maybe(string& input)
 	if (p2 == string::npos) {
 		switch (decode) {
 			case BASE64 :
-				//				LOG_ERROR("%s", "Base 64 decode failed");
 				fprintf(stderr, "Base 64 decode failed\n");
 				break;
 			case BASE128 :
-				//				LOG_ERROR("%s", "Base 128 decode failed");
 				fprintf(stderr, "Base 128 decode failed\n");
 				break;
 			case BASE256 :
-				//				LOG_ERROR("%s", "Base 256 decode failed");
 				fprintf(stderr, "Base 256 decode failed\n");
 				break;
 			case NONE :
 			default : ;
 		}
+		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 	switch (decode) {
@@ -285,39 +293,43 @@ void decompress_maybe(string& input)
 	}
 
 	if (decode_error == true) {
-		//		LOG_ERROR("%s", cmpstr.c_str());
 		fprintf(stderr,"%s\n", cmpstr.c_str());
+		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 
 	if (cmpstr.find(LZMA_STR) == string::npos) {
 		input.replace(p0, p3 - p0, cmpstr);
+		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 
 	const char* in = cmpstr.data();
 	size_t outlen = ntohl(*reinterpret_cast<const uint32_t*>(in + strlen(LZMA_STR)));
 	if (outlen > 1 << 25) {
-		//		LOG_ERROR("%s", "Refusing to decompress data (> 32 MiB)");
 		fprintf(stderr, "Refusing to decompress data (> 32 MiB)\n");
+		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
+
 	unsigned char* buf = new unsigned char[outlen];
 	unsigned char inprops[LZMA_PROPS_SIZE];
+
 	memcpy(inprops, in + strlen(LZMA_STR) + sizeof(uint32_t), LZMA_PROPS_SIZE);
 	size_t inlen = cmpstr.length() - strlen(LZMA_STR) - sizeof(uint32_t) - LZMA_PROPS_SIZE;
 
 	int r;
 	if ((r = LzmaUncompress(buf, &outlen, (const unsigned char*)in + cmpstr.length() - inlen, &inlen,
 							inprops, LZMA_PROPS_SIZE)) != SZ_OK)
-		//		LOG_ERROR("Lzma Uncompress failed: %s", LZMA_ERRORS[r]);
 		fprintf(stderr, "Lzma Uncompress failed: %s\n", LZMA_ERRORS[r]);
 	else {
-		//		LOG_INFO("Decompress: in = %ld, out = %ld", (long int)inlen, (long int)outlen);
 		cmpstr.assign((const char*)buf, outlen);
 		input.replace(p0, p3 - p0, cmpstr);
 	}
+
 	delete [] buf;
+
+	pthread_mutex_unlock(&mutex_decomp_data);
 }
 
 void connect_to_fldigi(void *)
@@ -463,7 +475,7 @@ bool isPlainText(std::string &_buffer)
 	int count = 0;
 	int index = 0;
 	int data = 0;
-
+	
 	count = _buffer.size();
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
@@ -478,9 +490,9 @@ bool isPlainText(char *_buffer, size_t count)
 {
 	size_t index = 0;
 	int data = 0;
-
+	
 	if(!_buffer || count) return false;
-
+	
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
 		if(c_binary(data) || (data & 0x80)) {
@@ -490,74 +502,4 @@ bool isPlainText(char *_buffer, size_t count)
 	return true;
 }
 
-int convert_to_plain_text(std::string &_buffer)
-{
-	char *buffer = (char *)0;
-	char *dest_buffer = (char *)0;
-	size_t result_count = 0;
-	size_t count = 0;
-
-	buffer = (char *) _buffer.c_str();
-	count = (size_t) _buffer.size();
-
-	if(!buffer || count < 1) return 0;
-
-	dest_buffer = (char *) malloc(count + 2);
-
-	if(!dest_buffer) return 0;
-
-	memset(dest_buffer, 0, count + 2);
-
-	result_count = convert_to_plain_text(buffer, dest_buffer, count);
-
-	if(result_count > 0) {
-		_buffer.assign(dest_buffer, result_count);
-	} else {
-		_buffer.clear();
-	}
-
-	free(dest_buffer);
-
-	return (int) result_count;
-}
-
-int convert_to_plain_text(char *_src, char *_dst, size_t count)
-{
-	size_t index = 0;
-	size_t data = 0;
-	//size_t change_count = 0;
-	size_t dest_count = 0;
-	
-	char *buffer = _src;
-	char *dest = (char *)0;
-	char *cPtr = (char *)0;
-	
-	if(_src == (char *)0 || _dst == (char *)0) return 0;
-	
-	if(count < 1) return 0;
-	
-	dest = (char *) malloc(count + 2);
-	
-	if(dest == (char *)0) return 0;
-	
-	memset(dest, 0, count + 2);
-	
-	cPtr = dest;
-	for(index = 0; index < count; index++) {
-		data = buffer[index];
-		if(c_binary(data) || (data & 0x80)) {
-			continue;
-		}
-		*cPtr++ = data;
-		dest_count++;
-	}
-	
-	if(dest_count > 0) {
-		memcpy(_dst, dest, dest_count);
-	}
-	
-	free(dest);
-	
-	return (int) dest_count;
-}
 
