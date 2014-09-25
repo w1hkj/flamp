@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=fllnk
+GenericName=Ax25/ARQ Connection Client/Server
+Comment=Amateur Radio Communications
+Exec=fllnk
+Icon=fllnk
+Terminal=false
+Type=Application
+Categories=Network;HamRadio;

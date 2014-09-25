@@ -1,0 +1,52 @@
+Brian,
+
+Please move this to hamradio/packet/tcpip/ka9q_gpl/ka9q_gpl.tar.gz .
+
+	Thanks
+
+	Bruce Perens AB6YM
+
+29-December-1994
+
+Phil Karn KA9Q has graciously agreed to make a small subset of the
+source files of his "KA9Q NOS" program available under the GNU General
+Public License, Version 2 (the "GPL"), as well as his current licensing
+terms (the "KA9Q license"). I asked Phil to dual-license these files so
+that we could include his AX.25 protocol stack within the Linux kernel,
+which is a GPL-ed program.
+
+Please note that Phil has _NOT_ GPL-ed the entirety of NOS, only the
+few source files related to the AX.25 and KISS protocols that I asked
+for. The TCP/IP stack within NOS is explicitly _NOT_ included in the
+files that have been released under the GPL. All of the files of NOS,
+including those that are available under the GPL, are still available
+under the KA9Q license, which made them free for use by ham radio
+operators and schools, and required a payment from others.
+
+Specifically, the files that have been released under the GPL are:
+
+	ahdlc.c ahdlc.h ax25.c ax25.h ax25cmd.c ax25dump.c ax25hdr.c
+	ax25subr.c ax25user.c axheard.c axsock.c devparam.c
+	devparam.h kiss.c kiss.h kissdump.c lapb.c lapb.h lapbtime.c
+	nrdump.c z8530.h z8530.s z8536.h
+
+I have uploaded the GPL-ed version of these files to
+ftp.ucsd.edu:hamradio/packet/tcpip/incoming/ka9q_gpl.tar.gz . This is a
+"tar" archive compressed with "gzip". Brian Kantor will probably move
+them from incoming into ftp.ucsd.edu:hamradio/packet/tcpip/ka9q_gpl
+when he has time.
+
+The versions of these files that are available under the KA9Q license are
+in the ZIP archive ftp.ucsd.edu:hamradio/packet/tcpip/ka9q/rcsdsrc.zip .
+
+I understand that a few other code fragments of NOS (headers mostly) may
+be necessary to port the KA9Q AX.25 protocol stack to Linux. When we
+determine what other fragments we need, I will communicate with Phil
+regarding them.
+
+If you have any questions about this announcement, please ask them in
+e-mail to Bruce@Pixar.com .
+
+	Thanks
+
+	Bruce Perens AB6YM
