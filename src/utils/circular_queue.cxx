@@ -34,11 +34,17 @@
 
 using namespace std;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Circular_queue::Circular_queue()
 {
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Circular_queue::Circular_queue(
 							   int po2,
 							   int (*_matchFound)(void *),
@@ -48,6 +54,9 @@ Circular_queue::Circular_queue(
 	setUp(po2, _matchFound, _readDataFrom, _queueParser);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Circular_queue::~Circular_queue()
 {
 	signal();
@@ -62,6 +71,9 @@ Circular_queue::~Circular_queue()
 	delete [] buffer;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::setUp(
 						   int po2,
 						   int (*_matchFound)(void *),
@@ -106,16 +118,25 @@ void Circular_queue::setUp(
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::stopDataOut()
 {
 	inhibitDataOut = CQUE_HOLD;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::startDataOut()
 {
 	inhibitDataOut = CQUE_RESUME;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::addToQueueNullFiltered(char *_buffer, int _size)
 {
 	if(!_buffer || _size < 1) return;
@@ -141,6 +162,9 @@ void Circular_queue::addToQueueNullFiltered(char *_buffer, int _size)
 	pthread_mutex_unlock(&mutex);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::addToQueue(char *_buffer, int _size)
 {
 	if(!_buffer || _size < 1) return;
@@ -162,7 +186,11 @@ void Circular_queue::addToQueue(char *_buffer, int _size)
 	pthread_mutex_unlock(&mutex);
 }
 
-int  Circular_queue::lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal, int *reset)
+/** ********************************************************
+ *
+ ***********************************************************/
+int  Circular_queue::lookAheadCRC(char *_buffer, int _size,
+	unsigned int *crcVal, int *reset)
 {
 	if(!_buffer || _size < 1 || !crcVal || !reset) return 0;
 
@@ -222,6 +250,9 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int Circular_queue::lookAhead(char *_buffer, int _size)
 {
 	if(!_buffer || _size < 1) return 0;
@@ -261,6 +292,9 @@ int Circular_queue::lookAhead(char *_buffer, int _size)
 	return count;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int Circular_queue::readQueData(int buffer_count)
 {
 	if(buffer_count < 32 && readData) {
@@ -276,6 +310,9 @@ int Circular_queue::readQueData(int buffer_count)
 	return 0;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int Circular_queue::adjustReadQueIndex(int count)
 {
 	if (count < 1) return 0;
@@ -302,8 +339,11 @@ int Circular_queue::adjustReadQueIndex(int count)
 	return count;
 }
 
-
-int Circular_queue::lookAheadToTerminator(char *_buffer, char terminator, int maxLen)
+/** ********************************************************
+ *
+ ***********************************************************/
+int Circular_queue::lookAheadToTerminator(char *_buffer, char terminator,
+	int maxLen)
 {
 	if (!_buffer || maxLen < 1) return 0;
 
@@ -347,6 +387,9 @@ int Circular_queue::lookAheadToTerminator(char *_buffer, char terminator, int ma
 	return count;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int Circular_queue::lookAheadForCharacter(char character, int *found)
 {
 	if (!found) return 0;
@@ -387,16 +430,25 @@ int Circular_queue::lookAheadForCharacter(char character, int *found)
 	return count;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::stopQueue()
 {
 	inhibitDataOut = CQUE_HOLD;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::resumeQueue()
 {
 	inhibitDataOut = CQUE_RESUME;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 {
 	time_t currentTime = time(NULL);
@@ -408,7 +460,7 @@ bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 			timeValue = currentTime;
 			ret = true;
 			break;
-			
+
 		case TIME_COUNT:
 			if(currentTime > ExpTime) {
 				timeValue = 0;
@@ -416,28 +468,34 @@ bool Circular_queue::timeOut(time_t &timeValue, time_t seconds, int attribute)
 			}
 			break;
 	}
-	
+
 	if(timeValue == 0 && seconds > 0)
 		timeValue = currentTime;
-	
+
 	return ret;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::sleep(int seconds, int milliseconds)
 {
 	struct timespec		ts;
 	struct timeval		tp;
-	
+
 	gettimeofday(&tp, NULL);
-	
+
 	ts.tv_nsec = (tp.tv_usec * 1000) + milliseconds * 1000000;
 	ts.tv_sec  = tp.tv_sec + seconds;
-	
+
 	pthread_mutex_lock(&mutex);
 	pthread_cond_timedwait(&condition, &mutex, &ts);
 	pthread_mutex_unlock(&mutex);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Circular_queue::signal(void)
 {
 	pthread_cond_signal(&condition);

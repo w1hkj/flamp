@@ -37,6 +37,9 @@
 #    include <sys/time.h>
 #  endif
 #  include <errno.h>
+/** ********************************************************
+ *
+ ***********************************************************/
 int clock_gettime(clockid_t clock_id, struct timespec* tp)
 {
 	if (clock_id == CLOCK_REALTIME) {
@@ -69,6 +72,9 @@ int clock_gettime(clockid_t clock_id, struct timespec* tp)
 }
 #endif // !HAVE_CLOCK_GETTIME
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timespec operator+(const struct timespec &t0, const double &t)
 {
 	struct timespec r;
@@ -81,6 +87,9 @@ struct timespec operator+(const struct timespec &t0, const double &t)
 	return r;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timespec operator-(const struct timespec &t0, const struct timespec &t1)
 {
 	struct timespec r = t0;
@@ -95,6 +104,9 @@ struct timespec operator-(const struct timespec &t0, const struct timespec &t1)
 	return r;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timespec& operator-=(struct timespec &t0, const struct timespec &t1)
 {
 	if (t0.tv_nsec < t1.tv_nsec) {
@@ -107,6 +119,9 @@ struct timespec& operator-=(struct timespec &t0, const struct timespec &t1)
 	return t0;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool operator>(const struct timespec &t0, const struct timespec &t1)
 {
 	if (t0.tv_sec == t1.tv_sec)
@@ -117,12 +132,17 @@ bool operator>(const struct timespec &t0, const struct timespec &t1)
 		return false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool operator==(const struct timespec &t0, const struct timespec &t1)
 {
 	return t0.tv_sec == t1.tv_sec && t0.tv_nsec == t1.tv_nsec;
 }
 
-
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timeval operator+(const struct timeval &t0, const double &t)
 {
 	struct timeval r;
@@ -135,6 +155,9 @@ struct timeval operator+(const struct timeval &t0, const double &t)
 	return r;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timeval operator-(const struct timeval &t0, const struct timeval &t1)
 {
 	struct timeval r = t0;
@@ -149,6 +172,9 @@ struct timeval operator-(const struct timeval &t0, const struct timeval &t1)
 	return r;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct timeval& operator-=(struct timeval &t0, const struct timeval &t1)
 {
 	if (t0.tv_usec < t1.tv_usec) {
@@ -161,6 +187,9 @@ struct timeval& operator-=(struct timeval &t0, const struct timeval &t1)
 	return t0;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool operator>(const struct timeval &t0, const struct timeval &t1)
 {
 	if (t0.tv_sec == t1.tv_sec)
@@ -171,6 +200,9 @@ bool operator>(const struct timeval &t0, const struct timeval &t1)
 		return false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool operator==(const struct timeval &t0, const struct timeval &t1)
 {
 	return t0.tv_sec == t1.tv_sec && t0.tv_usec == t1.tv_usec;
@@ -182,6 +214,9 @@ bool operator==(const struct timeval &t0, const struct timeval &t1)
 
 static pthread_mutex_t gmtime_r_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct tm *gmtime_r(const time_t *_Time, struct tm *_Tm)
 {
 	pthread_mutex_lock (&gmtime_r_mutex);
@@ -193,6 +228,9 @@ struct tm *gmtime_r(const time_t *_Time, struct tm *_Tm)
 
 static pthread_mutex_t gmtime_local_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 struct tm *localtime_r(const time_t *_Time,struct tm *_Tm)
 {
 	pthread_mutex_lock (&gmtime_local_mutex);

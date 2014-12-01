@@ -111,6 +111,9 @@ status progStatus = {
 
 extern std::string selected_encoder_string;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void status::saveLastState()
 {
 	Fl_Preferences FLAMPpref(flampHomeDir.c_str(), "w1hkj.com",  PACKAGE_NAME);
@@ -190,6 +193,9 @@ void status::saveLastState()
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void status::loadLastState()
 {
 	Fl_Preferences FLAMPpref(flampHomeDir.c_str(), "w1hkj.com", PACKAGE_NAME);
@@ -313,17 +319,17 @@ void status::loadLastState()
 
 		FLAMPpref.get("hamcast_mode_selection_3", i, hamcast_mode_selection_3);
 		hamcast_mode_selection_3 = i;
-		
+
 		FLAMPpref.get("hamcast_mode_enable_4", i, hamcast_mode_enable_4);
 		hamcast_mode_enable_4 = (bool) i;
-		
+
 		FLAMPpref.get("hamcast_mode_selection_4", i, hamcast_mode_selection_4);
 		hamcast_mode_selection_4 = i;
-		
-		
+
+
 		if(auto_load_queue_path.size() < 1)
 			auto_load_queue = false;
-		
+
 		if(enable_tx_unproto) {
 			use_header_modem = false;
 		}

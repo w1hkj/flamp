@@ -308,15 +308,16 @@ Event Type List:
 	<b>Format:</b> <tt>EVENT:\<ON|OFF\></tt>
 
 \subsection ss_file_desc Add file to TX Queue
-	Add a file to the transmit queue list. This is the filename.txt only. Use
-	the \ref ss_path_directory "PATH" command to indicated the directory
-	location of the file(s). The second parameter is a description of the
-	file and fills the AMP protocol	DESC tag field. Enclosed \"\" are
-	required if the description contains either a comma or space(s).
-	See \ref ss_path_directory and \ref s_os_differences for formatting/use.
+	Add a file to the transmit queue list. Do not include a path to the file,
+	file name and/or extension only. Use the \ref ss_path_directory "PATH"
+	command to indicated the directory location of the file(s). The second
+	parameter is a	description of the file and fills the AMP protocol DESC
+	tag field. Enclosed \"\" are required if the description contains either a
+	comma or space(s). See \ref ss_path_directory and \ref s_os_differences
+	for formatting/use.
 <br>
 <br>
-	<b>Format:</b> <tt>FILE:\<filename.txt\>,\<\"description of the file\"\></tt>
+	<b>Format:</b> <tt>FILE:\<filename.ext\>,\<\"description of the file\"\></tt>
 
 \subsection ss_hamcast_modem Setting/Enabling/Disabling Hamcast Modems
 	Enable/Disable specific <pos> hamcast modem and/or set the modem type for

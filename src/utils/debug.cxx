@@ -75,6 +75,9 @@ static void clear_cb(Fl_Widget *w, void*);
 static void save_cb(Fl_Widget *w, void*);
 static void synctext(void *);
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int strlen_n(char *buf, size_t limit)
 {
 	size_t index = 0;
@@ -92,6 +95,9 @@ int strlen_n(char *buf, size_t limit)
 	return count;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::start(const char* filename)
 {
 	if (debug::inst)
@@ -126,6 +132,9 @@ void debug::start(const char* filename)
 	window->end();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::stop(void)
 {
 	delete inst;
@@ -138,6 +147,9 @@ static char sztemp[1024];
 static string estr = "";
 bool   debug_in_use = false;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::log(level_e level, const char* func, const char* srcf, int line, const char* format, ...)
 {
 	if (!inst)
@@ -168,6 +180,9 @@ void debug::log(level_e level, const char* func, const char* srcf, int line, con
 	MilliSleep(10);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::slog(level_e level, const char* func, const char* srcf, int line, const char* format, ...)
 {
 	if (!inst)
@@ -194,16 +209,25 @@ void debug::slog(level_e level, const char* func, const char* srcf, int line, co
 	MilliSleep(10);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::elog(const char* func, const char* srcf, int line, const char* text)
 {
 	log(ERROR_LEVEL, func, srcf, line, "%s: %s", text, strerror(errno));
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::show(void)
 {
 	window->show();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::sync_text(void *arg)
 {
 	debug_in_use = true;
@@ -218,6 +242,9 @@ void debug::sync_text(void *arg)
 	debug_in_use = false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void debug::append_dbg_buffer(char * message)
 {
 	debug_in_use = true;
@@ -263,6 +290,9 @@ void debug::append_dbg_buffer(char * message)
 	debug_in_use = false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 debug::debug(const char* filename)
 {
 	if ((wfile = fopen(filename, "w")) == NULL)
@@ -281,12 +311,18 @@ debug::debug(const char* filename)
 #endif
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 debug::~debug()
 {
 	fclose(wfile);
 	fclose(rfile);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void synctext(void *d)
 {
 	debug_in_use = true;
@@ -300,6 +336,9 @@ static void synctext(void *d)
 	debug_in_use = false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void slider_cb(Fl_Widget* w, void*)
 {
 	debug::level = (debug::level_e)((Fl_Slider*)w)->value();
@@ -307,12 +346,18 @@ static void slider_cb(Fl_Widget* w, void*)
 	w->parent()->redraw();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void clear_cb(Fl_Widget* w, void*)
 {
 	btext->clear();
 	dbg_buffer.clear();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void save_cb(Fl_Widget* w, void*)
 {
 	if (!btext->size()) return;

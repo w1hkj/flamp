@@ -19,6 +19,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+// =====================================================================
 // ----------------------------------------------------------------------------
 
 #include <config.h>
@@ -44,6 +45,8 @@
 
 
 using namespace std;
+
+namespace icons {
 
 #if USE_IMAGE_LABELS
 typedef map<Fl_Multi_Label*, Fl_Image**> imap_t;
@@ -258,3 +261,5 @@ void set_message_icon(const char** pixmap)
 	msg->box(FL_NO_BOX);
 	msg->image(msg_icon = new Fl_Pixmap(pixmap));
 }
+
+} // icons

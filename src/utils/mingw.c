@@ -37,16 +37,18 @@
 /* default mode for stdin, stdout and stderr */
 unsigned int _CRT_fmode = _O_BINARY;
 
-/******************************************************************************/
-
 /*
  * The size parameter specifies the available space, i.e. includes
  * the trailing NUL byte; but Windows's vsnprintf expects the
  * number of characters to write without the trailing NUL.
  */
+
 #define SNPRINTF_SIZE_CORR 1
 
 #undef vsnprintf
+/** ********************************************************
+ *
+ ***********************************************************/
 int git_vsnprintf(char *str, size_t maxsize, const char *format, va_list ap)
 {
 	char *s;
@@ -80,6 +82,9 @@ int git_vsnprintf(char *str, size_t maxsize, const char *format, va_list ap)
 	return ret;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int git_snprintf(char *str, size_t maxsize, const char *format, ...)
 {
 	va_list ap;
@@ -92,6 +97,9 @@ int git_snprintf(char *str, size_t maxsize, const char *format, ...)
 	return ret;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 unsigned sleep(unsigned seconds)
 {
 	Sleep(seconds*1000);
@@ -99,6 +107,9 @@ unsigned sleep(unsigned seconds)
 }
 
 #undef getcwd
+/** ********************************************************
+ *
+ ***********************************************************/
 char *mingw_getcwd(char *pointer, int len)
 {
 	int i;
@@ -112,6 +123,9 @@ char *mingw_getcwd(char *pointer, int len)
 }
 
 #undef getenv
+/** ********************************************************
+ *
+ ***********************************************************/
 char *mingw_getenv(const char *name)
 {
 	char *result = getenv(name);
@@ -125,6 +139,9 @@ char *mingw_getenv(const char *name)
 }
 
 #undef rename
+/** ********************************************************
+ *
+ ***********************************************************/
 int mingw_rename(const char *pold, const char *pnew)
 {
 	DWORD attrs;
@@ -158,8 +175,9 @@ int mingw_rename(const char *pold, const char *pnew)
 	return -1;
 }
 
-/******************************************************************************/
-
+/** ********************************************************
+ *
+ ***********************************************************/
 __attribute__((constructor))
 static void wsa_init(void)
 {
@@ -177,6 +195,9 @@ static void wsa_init(void)
 	wsa_init_ = 1;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int socketpair(int family, int type, int protocol, int *sv)
 {
 	struct sockaddr_in addr;
@@ -233,8 +254,9 @@ int socketpair(int family, int type, int protocol, int *sv)
 	return SOCKET_ERROR;
 }
 
-/******************************************************************************/
-
+/** ********************************************************
+ *
+ ***********************************************************/
 int nanosleep(const struct timespec *req, struct timespec *rem)
 {
 	if (req->tv_nsec < 0 || req->tv_nsec < 0L || req->tv_nsec > 999999999L) {
@@ -251,6 +273,9 @@ int nanosleep(const struct timespec *req, struct timespec *rem)
 
 BOOL GetOsInfo(LPSTR OsName, LPSTR Release, LPSTR Version);
 BOOL GetMachInfo(LPSTR MachineName, LPSTR ProcessorName);
+/** ********************************************************
+ *
+ ***********************************************************/
 int uname(struct utsname *name)
 {
 	char processor[1024];
@@ -280,6 +305,9 @@ int uname(struct utsname *name)
 	return 0;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int getrusage(int who, struct rusage *usage)
 {
 	FILETIME ct, et, kt, ut;
@@ -306,7 +334,7 @@ int getrusage(int who, struct rusage *usage)
 	memcpy(&uli, &ut, sizeof(FILETIME));
 	usage->ru_utime.tv_sec  = uli.QuadPart / 10000000L;
 	usage->ru_utime.tv_usec = uli.QuadPart % 10000000L;
-	
+
 	return 0;
 }
 

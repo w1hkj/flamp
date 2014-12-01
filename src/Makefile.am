@@ -181,6 +181,7 @@ flamp_SOURCES += \
 EXTRA_DIST = \
 	$(srcdir)/config.h \
 	$(srcdir)/utils/mingw.c \
+	$(srcdir)/utils/time_table.dat \
 	$(srcdir)/widgets/flnfc_common.cxx \
 	$(srcdir)/widgets/Fl_Native_File_Chooser_FLTK.cxx \
 	$(srcdir)/widgets/Fl_Native_File_Chooser_MAC.cxx \

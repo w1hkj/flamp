@@ -67,12 +67,12 @@ extern void preamble_detected(void);
 typedef struct relay_data {
 	class cAmp *amp;              //!< Enable relay fills using interval timer.
 	std::string serial_data;
-	vector<std::string>header;
 	vector<std::string>data;
+	vector<std::string>header;
 	relay_data() {
-		serial_data.clear();
-		header.clear();
 		data.clear();
+		header.clear();
+		serial_data.clear();
 	}
 } RELAY_DATA;
 
@@ -84,65 +84,67 @@ public:
 
 private:
 	// both
-	int cAmp_type;
-	bool _update_required;
 	bool _update_required_vector;
+	bool _update_required;
 	bool _valid_tx_data;
 	bool _valid_tx_vec_data;
+
+	int cAmp_type;
 	int thread_locks;
+
 	pthread_mutex_t mutex_amp_io;
+
 	void unlock(void);
 	void lock(void);
-
 
 	static const char *ltypes[];
 
 	// transmit
-	std::string xmtfilename;
-	std::string xmtbuffer;
-	std::string xmtdata;
-	std::string xmtstring;
-	std::string xmtdttm;
-	std::string xmtdesc;
-	std::string xmtcall;
-	std::string xmtinfo;
-	std::string xmthash;
-	std::string tosend; // designated blocks if not an ALL transfer
-	std::string report_buffer;
-	std::string xmtbase;
-	std::string xmtunproto;
-	std::string xmtfilename_fullpath;
 	std::string modem;
-	std::string xmtcallto;
+	std::string report_buffer;
 	std::string sz_xfr_size;
+	std::string tosend; // designated blocks if not an ALL transfer
+	std::string xmtbase;
+	std::string xmtbuffer;
+	std::string xmtcall;
+	std::string xmtcallto;
+	std::string xmtdata;
+	std::string xmtdesc;
+	std::string xmtdttm;
+	std::string xmtfilename_fullpath;
+	std::string xmtfilename;
+	std::string xmthash;
+	std::string xmtinfo;
+	std::string xmtstring;
+	std::string xmtunproto;
 
-	std::vector<std::string> header_string_array;
 	std::vector<std::string> data_string_array;
+	std::vector<std::string> header_string_array;
 
-	std::string program_header(void);
-	std::string file_header(void);
-	std::string id_header(void);
-	std::string desc_header(void);
-	std::string size_header(void);
 	std::string data_block(int index);
 	std::string data_eof(void);
 	std::string data_eot(void);
+	std::string desc_header(void);
+	std::string file_header(void);
+	std::string id_header(void);
+	std::string program_header(void);
+	std::string size_header(void);
 
 	struct stat tx_statbuf;
 
-	int xmtnumblocks;
-	int xmtblocksize;
-	int xmt_repeat; // repeat n time; default 1
-	int repeat_header; // repeat header; default 1
+	int base_conversion_index;
 	int blocksize;
 	int fsize;
-	int base_conversion_index;
+	int repeat_header; // repeat header; default 1
+	int xmt_repeat; // repeat n time; default 1
+	int xmtblocksize;
+	int xmtnumblocks;
 
+	bool _unproto_markers;
+	bool preamble_detected_flag;
 	bool use_compression;
 	bool use_forced_compression;
-	bool preamble_detected_flag;
 	bool use_unproto;
-	bool _unproto_markers;
 
 	// tx / rx
 	Ccrc16 chksum;
@@ -167,13 +169,13 @@ private:
 		return szsize;
 	}
 
-	std::string reformat_missing_blocks(std::string &missing_blocks);
-	void xmt_calc_numblocks();
 	std::string _file_hash();
-	void _time_stamp(time_t *tp);
 	std::string _tx_string(void);
-
+	std::string reformat_missing_blocks(std::string &missing_blocks);
 	std::string xmt_unproto_string(void);
+
+	void _time_stamp(time_t *tp);
+	void xmt_calc_numblocks();
 	void xmt_unproto_string(std::string &str);
 
 public:
@@ -287,97 +289,88 @@ public:
 
 	// receive
 private:
-	std::string rxfilename;
-	std::string rxbuffer;
-	std::string rxdata;
-	std::string rxstring;
-	std::string rxdttm;
-	std::string rxdesc;
-	std::string rxcall_info;
-	std::string rxhash;
-	std::string rxprogname;
-	std::string rx_rcvd;
-	std::string relay_blocks;
+	std::string _rx_raw_cntl;
+	std::string _rx_raw_desc;
 	std::string _rx_raw_file;
 	std::string _rx_raw_id;
-	std::string _rx_raw_size;
-	std::string _rx_raw_desc;
 	std::string _rx_raw_prog;
-	std::string _rx_raw_cntl;
+	std::string _rx_raw_size;
+	std::string relay_blocks;
+	std::string rx_rcvd;
+	std::string rxbuffer;
+	std::string rxcall_info;
+	std::string rxdata;
+	std::string rxdesc;
+	std::string rxdttm;
+	std::string rxfilename;
+	std::string rxhash;
+	std::string rxprogname;
+	std::string rxstring;
 
-	int rxnumblocks;
+	int rx_crc_flags;
+	int rx_ok_blocks;
 	int rxblocksize;
 	int rxfilesize;
-	int rx_ok_blocks;
-	int rx_crc_flags;
+	int rxnumblocks;
 
 	char temp_buffer[TEMP_BUFFER_SIZE+1];
 
 	AMPmap rxblocks;
 	AMPmap rxDataHeader;
 
-	void rx_parse_dttm_filename(char *, std::string data);
 	void rx_parse_desc(string data);
+	void rx_parse_dttm_filename(char *, std::string data);
 	void rx_parse_size(string data);
 
 public:
-	void rx_fname(std::string fn) {
-		rxfilename.assign(fn);
-	}
-	std::string get_rx_fname() { return rxfilename; }
 
-	void rx_append(std::string s) { rxbuffer.append(s); }
-
-	bool hash(std::string s) { return (s == rxhash); }
-	void rx_to_tx_hash(void) { xmthash.assign(rxhash); }
-
-	void rx_relay_blocks(std::string str) {
-		relay_blocks.assign(reformat_missing_blocks(str));
-	}
-
-	std::string rx_relay_blocks(void) { return relay_blocks; }
-
-	std::string rx_recvd_string();
-	void rx_time_stamp(std::string ts) { rxdttm.assign(ts); }
-	void rx_add_data(std::string data);
-	void rx_parse_buffer();
-	void append_report(std::string s);
-	void rx_parse_id(std::string data);
 	bool rx_parse_line(int ltype, char *crc, std::string data);
 	bool rx_completed() {
 		return (rx_ok_blocks > 0 ? ((rx_ok_blocks == rxnumblocks) && (rx_crc_flags == 0)) : false);
 	}
+	bool hash(std::string s) { return (s == rxhash); }
 
-	int rx_size() { return rxfilesize; }
-	int rx_nblocks() { return rxnumblocks; }
-	int rx_blocksize_int() { return rxblocksize; }
-
-	std::string rx_fsize() { return sz_num(rxfilesize); }
-	std::string rx_blocksize() { return sz_num(rxblocksize); }
-	std::string rx_numblocks() { return sz_num(rxnumblocks); }
-	std::string rx_time_stamp() { return rxdttm; }
-	std::string rx_desc() { return rxdesc; }
-	std::string rx_callinfo() { return rxcall_info; }
-	std::string rx_progname() { return rxprogname; }
-	std::string rx_stats();
-	std::string rx_blocks() { return rx_rcvd; }
-	std::string rx_missing();
-	std::string rx_report();
-	std::string rx_hash() { return rxhash; }
-	std::string rx_hash(string s) { rxhash = s; return s; }
-	std::string rx_parse_hash_line(string data);
-
-	std::string rx_raw_file(void) { return _rx_raw_file; }
-	std::string rx_raw_id(void)   { return _rx_raw_id;   }
-	std::string rx_raw_size(void) { return _rx_raw_size; }
-	std::string rx_raw_desc(void) { return _rx_raw_desc; }
-	std::string rx_raw_prog(void) { return _rx_raw_prog; }
-	std::string rx_raw_cntl(void) { return _rx_raw_cntl; }
-
-	std::string tx_relay_string(std::string callfrom, std::string missig_blocks);
+	int rx_blocksize_int(void) { return rxblocksize; }
+	int rx_nblocks(void) { return rxnumblocks; }
+	int rx_size(void) { return rxfilesize; }
 	int tx_relay_vector(std::string callfrom, std::string missing_blocks);
 
-	const char* rx_sz_percent() {
+	std::string get_rx_fname(void) { return rxfilename; }
+	std::string rx_blocks(void) { return rx_rcvd; }
+	std::string rx_blocksize(void) { return sz_num(rxblocksize); }
+	std::string rx_callinfo(void) { return rxcall_info; }
+	std::string rx_desc(void) { return rxdesc; }
+	std::string rx_fsize(void) { return sz_num(rxfilesize); }
+	std::string rx_hash(void) { return rxhash; }
+	std::string rx_hash(string s) { rxhash = s; return s; }
+	std::string rx_missing(void);
+	std::string rx_numblocks() { return sz_num(rxnumblocks); }
+	std::string rx_parse_hash_line(string data);
+	std::string rx_progname() { return rxprogname; }
+	std::string rx_raw_cntl(void) { return _rx_raw_cntl; }
+	std::string rx_raw_desc(void) { return _rx_raw_desc; }
+	std::string rx_raw_file(void) { return _rx_raw_file; }
+	std::string rx_raw_id(void)   { return _rx_raw_id;   }
+	std::string rx_raw_prog(void) { return _rx_raw_prog; }
+	std::string rx_raw_size(void) { return _rx_raw_size; }
+	std::string rx_recvd_string(void);
+	std::string rx_relay_blocks(void) { return relay_blocks; }
+	std::string rx_report(void);
+	std::string rx_stats(void);
+	std::string rx_time_stamp() { return rxdttm; }
+	std::string tx_relay_string(std::string callfrom, std::string missig_blocks);
+
+	void append_report(std::string s);
+	void rx_add_data(std::string data);
+	void rx_append(std::string s) { rxbuffer.append(s); }
+	void rx_fname(std::string fn) {	rxfilename.assign(fn);	}
+	void rx_parse_buffer(void);
+	void rx_parse_id(std::string data);
+	void rx_relay_blocks(std::string str) {	relay_blocks.assign(reformat_missing_blocks(str)); }
+	void rx_time_stamp(std::string ts) { rxdttm.assign(ts); }
+	void rx_to_tx_hash(void) { xmthash.assign(rxhash); }
+
+	const char* rx_sz_percent(void) {
 		static const char empty[] = "  0 %";
 		if (rxnumblocks == 0 || rx_ok_blocks == 0) return empty;		static char percent[6];
 		int nokb = rx_ok_blocks;
@@ -387,7 +380,8 @@ public:
 		snprintf(percent, sizeof(percent), "%3.0f %%", 100.0*nokb/nrxb);
 		return percent;
 	}
-	float rx_percent() {
+
+	float rx_percent(void) {
 		int nokb = rx_ok_blocks;
 		int nrxb = rxnumblocks + 1;
 		if(!rx_crc_flags)

@@ -26,6 +26,9 @@
 
 #include "base256.h"
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void base256::init()
 {
 	iolen = 0;
@@ -34,14 +37,12 @@ void base256::init()
 	linelength = 0;
 }
 
-//----------------------------------------------------------------------
-// fldigi uses some control codes to alter the program state
-// several digital modems suppress some control and high bit set
-// characters
-//
-// this function substitutes a two character sequence for the offending
-// characters
-//----------------------------------------------------------------------
+/** ********************************************************
+ * /brief FLDIGI uses some control codes to alter the program state
+ * several digital modems suppress some control and high bit set
+ * characters this function substitutes a two character
+ * sequence for the offending characters
+ ***********************************************************/
 void base256::escape(string &in, bool encode)
 {
 	string out;
@@ -98,6 +99,9 @@ void base256::escape(string &in, bool encode)
 	in = out;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void base256::addlf(string &in)
 {
 	string out;
@@ -109,6 +113,9 @@ void base256::addlf(string &in)
 	in.assign(out);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void base256::remlf(string &in)
 {
 	string out;
@@ -118,6 +125,9 @@ void base256::remlf(string &in)
 	in.assign(out);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 string base256::encode(string &in)
 {
 	char insize[20];
@@ -133,10 +143,13 @@ string base256::encode(string &in)
 	return output;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 string base256::decode(string &in, bool &decode_error)
 {
 	int temp;
-	size_t nbr = 0;
+	//size_t nbr = 0;
 	string output = in;
 	decode_error = false;
 
@@ -145,10 +158,10 @@ string base256::decode(string &in, bool &decode_error)
 		decode_error = true;
 		return "ERROR: base256 missing character count";
 	}
-	
+
 	sscanf(output.substr(0, p).c_str(), "%d", &temp);
-	nbr = temp;
-	
+	//nbr = temp;
+
 	output.erase(0, p+1);
 	escape(output, false);
 	return output;

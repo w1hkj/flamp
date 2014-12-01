@@ -43,98 +43,95 @@
 
 //======================================================================
 
-Fl_Double_Window *main_window = 0;
-Fl_Double_Window *wCmdLine = 0;
+Fl_Double_Window * main_window = 0;
+Fl_Double_Window * wCmdLine    = 0;
 
-Fl_Tabs  * tabs = 0;
+Fl_Tabs  * tabs       = 0;
 Fl_Group * Config_tab = 0;
 
-Fl_Output* txt_rx_filename = 0;
-Fl_Output* txt_rx_datetime = 0;
-Fl_Output* txt_rx_descrip = 0;
-Fl_Output* txt_rx_callinfo = 0;
-Fl_Output* txt_rx_filesize = 0;
-Fl_Output* txt_rx_numblocks = 0;
-Fl_Output* txt_rx_blocksize = 0;
-Fl_Output* txt_rx_missing_blocks = 0;
+Fl_Output * txt_rx_blocksize = 0;
+Fl_Output * txt_rx_callinfo  = 0;
+Fl_Output * txt_rx_datetime  = 0;
+Fl_Output * txt_rx_descrip   = 0;
+Fl_Output * txt_rx_filename  = 0;
+Fl_Output * txt_rx_filesize  = 0;
+Fl_Output * txt_rx_missing_blocks = 0;
+Fl_Output * txt_rx_numblocks = 0;
 
-Fl_Button* btn_parse_blocks = 0;
+Fl_Button * btn_parse_blocks = 0;
 
-Fl_BlockMap* rx_progress = 0;
+Fl_BlockMap * rx_progress  = 0;
 
-FTextView* txt_rx_output = 0;
-Fl_Hold_Browser* rx_queue = 0;
+FTextView * txt_rx_output  = 0;
+Fl_Hold_Browser * rx_queue = 0;
 
-Fl_Input2* txt_tx_mycall = 0;
-Fl_Input2* txt_tx_myinfo = 0;
-Fl_Input2* txt_tx_send_to = 0;
-Fl_Simple_Counter* cnt_blocksize = 0;
-Fl_Simple_Counter* cnt_repeat_nbr = 0;
-Fl_Simple_Counter* cnt_repeat_header = 0;
+Fl_Input2 * txt_tx_mycall  = 0;
+Fl_Input2 * txt_tx_myinfo  = 0;
+Fl_Input2 * txt_tx_send_to = 0;
+Fl_Simple_Counter * cnt_blocksize     = 0;
+Fl_Simple_Counter * cnt_repeat_header = 0;
+Fl_Simple_Counter * cnt_repeat_nbr    = 0;
 
-Fl_Check_Button* btn_use_compression = 0;
-Fl_ComboBox* encoders = 0;
-Fl_ComboBox* cbo_modes = 0;
-Fl_Output*   txt_transfer_size_time = 0;
-Fl_Output*   txt_tx_numblocks = 0;
-Fl_Output*   txt_tx_filename = 0;
-Fl_Input2*   txt_tx_descrip = 0;
-Fl_Input*    drop_file = 0;
-Fl_Hold_Browser* tx_queue = 0;
+Fl_Check_Button * btn_use_compression = 0;
+Fl_ComboBox *     cbo_modes           = 0;
+Fl_ComboBox *     encoders            = 0;
+Fl_Hold_Browser * tx_queue            = 0;
+Fl_Input *        drop_file           = 0;
+Fl_Input2 *       txt_tx_descrip      = 0;
+Fl_Output *       txt_transfer_size_time = 0;
+Fl_Output *       txt_tx_filename     = 0;
+Fl_Output *       txt_tx_numblocks    = 0;
 
-Fl_Button* btn_save_file = 0;
-Fl_Button* btn_rx_remove = 0;
-Fl_Button* btn_open_file = 0;
-Fl_Button* btn_copy_missing = 0;
-Fl_Button* btn_rxq_to_txq = 0;
+Fl_Button * btn_copy_missing = 0;
+Fl_Button * btn_open_file    = 0;
+Fl_Button * btn_rx_remove    = 0;
+Fl_Button * btn_rxq_to_txq   = 0;
+Fl_Button * btn_save_file    = 0;
 
-Fl_Button* btn_tx_remove_file = 0;
-Fl_Button* btn_send_file = 0;
-Fl_Button* btn_send_queue = 0;
+Fl_Button * btn_send_file      = 0;
+Fl_Button * btn_send_queue     = 0;
+Fl_Button * btn_tx_remove_file = 0;
 
-Fl_Button *btn_send_relay = 0;
-Fl_Button *btn_parse_relay_blocks = 0;
-Fl_Input2 *txt_relay_selected_blocks = 0;
+Fl_Button * btn_parse_relay_blocks    = 0;
+Fl_Button * btn_send_relay            = 0;
+Fl_Input2 * txt_relay_selected_blocks = 0;
 
 
 // Configuraton panel
 
-Fl_Check_Button* btn_sync_mode_flamp_fldigi = 0;
-Fl_Check_Button* btn_sync_mode_fldigi_flamp = 0;
-Fl_Check_Button* btn_fldigi_xmt_mode_change = 0;
+Fl_Check_Button * btn_fldigi_xmt_mode_change = 0;
+Fl_Check_Button * btn_sync_mode_flamp_fldigi = 0;
+Fl_Check_Button * btn_sync_mode_fldigi_flamp = 0;
 
-Fl_Check_Button* btn_enable_tx_unproto = 0;
-Fl_Check_Button* btn_enable_txrx_interval = 0;
-Fl_Check_Button* btn_enable_header_modem = 0;
-Fl_Check_Button* btn_disable_header_modem_on_block_fills = 0;
-Fl_ComboBox* cbo_header_modes = 0;
+Fl_Check_Button * btn_disable_header_modem_on_block_fills = 0;
+Fl_Check_Button * btn_enable_header_modem  = 0;
+Fl_Check_Button * btn_enable_tx_unproto    = 0;
+Fl_Check_Button * btn_enable_txrx_interval = 0;
+Fl_ComboBox *     cbo_header_modes         = 0;
 
-Fl_Simple_Counter* cnt_tx_internval_mins = 0;
-Fl_Simple_Counter* cnt_rx_internval_secs = 0;
+Fl_Simple_Counter * cnt_tx_internval_mins = 0;
+Fl_Simple_Counter * cnt_rx_internval_secs = 0;
 
-Fl_Check_Button* btn_enable_tx_on_report = 0;
-
-Fl_Check_Button* btn_clear_tosend_on_tx_blocks = 0;
-
-Fl_Check_Button* btn_enable_delete_warning = 0;
-
-Fl_Check_Button* btn_enable_unproto_markers = 0;
+Fl_Check_Button * btn_clear_tosend_on_tx_blocks = 0;
+Fl_Check_Button * btn_enable_delete_warning     = 0;
+Fl_Check_Button * btn_enable_tx_on_report       = 0;
+Fl_Check_Button * btn_enable_unproto_markers    = 0;
 
 // end Configuration panel.
 
 // Event panel
 
-Fl_Check_Button* btn_repeat_at_times = 0;
-Fl_ComboBox*     cbo_repeat_every = 0;
-Fl_Input2*       txt_repeat_times = 0;
+Fl_Check_Button * btn_repeat_at_times = 0;
+Fl_ComboBox *     cbo_repeat_every    = 0;
+Fl_Input2 *       txt_repeat_times    = 0;
 
-Fl_Input2*       txt_auto_load_queue_path = 0;
-Fl_Check_Button* btn_auto_load_queue = 0;
-Fl_Check_Button* btn_load_from_tx_folder = 0;
-Fl_Button*       btn_manual_load_queue = 0;
+Fl_Button *       btn_manual_load_queue    = 0;
+Fl_Check_Button * btn_auto_load_queue      = 0;
+Fl_Check_Button * btn_load_from_tx_folder  = 0;
+Fl_Input2 *       txt_auto_load_queue_path = 0;
 
-Fl_Check_Button* btn_repeat_forever = 0;
-Fl_Light_Button* do_events = 0;
+Fl_Check_Button * btn_repeat_forever = 0;
+Fl_Light_Button * do_events = 0;
 
 Fl_Output* outTimeValue = 0;
 
@@ -142,25 +139,25 @@ Fl_Output* outTimeValue = 0;
 
 Fl_Check_Button * btn_hamcast_mode_cycle = 0;
 
-Fl_Check_Button * btn_hamcast_mode_enable_1 = 0;
-Fl_ComboBox * cbo_hamcast_mode_selection_1 = 0;
+Fl_Check_Button *   btn_hamcast_mode_enable_1           = 0;
+Fl_ComboBox *       cbo_hamcast_mode_selection_1        = 0;
+Fl_Output *         txt_hamcast_select_1_time           = 0;
 Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_1 = 0;
-Fl_Output * txt_hamcast_select_1_time = 0;
 
-Fl_Check_Button * btn_hamcast_mode_enable_2 = 0;
-Fl_ComboBox * cbo_hamcast_mode_selection_2 = 0;
+Fl_Check_Button *   btn_hamcast_mode_enable_2           = 0;
+Fl_ComboBox *       cbo_hamcast_mode_selection_2        = 0;
+Fl_Output *         txt_hamcast_select_2_time           = 0;
 Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_2 = 0;
-Fl_Output * txt_hamcast_select_2_time = 0;
 
-Fl_Check_Button * btn_hamcast_mode_enable_3 = 0;
-Fl_ComboBox * cbo_hamcast_mode_selection_3 = 0;
+Fl_Check_Button *   btn_hamcast_mode_enable_3           = 0;
+Fl_ComboBox *       cbo_hamcast_mode_selection_3        = 0;
+Fl_Output *         txt_hamcast_select_3_time           = 0;
 Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_3 = 0;
-Fl_Output * txt_hamcast_select_3_time = 0;
 
-Fl_Check_Button * btn_hamcast_mode_enable_4 = 0;
-Fl_ComboBox * cbo_hamcast_mode_selection_4 = 0;
+Fl_Check_Button *   btn_hamcast_mode_enable_4           = 0;
+Fl_ComboBox *       cbo_hamcast_mode_selection_4        = 0;
+Fl_Output *         txt_hamcast_select_4_time           = 0;
 Fl_Simple_Counter * cnt_hamcast_mode_selection_repeat_4 = 0;
-Fl_Output * txt_hamcast_select_4_time = 0;
 
 Fl_Output * txt_hamcast_select_total_time = 0;
 
@@ -171,8 +168,17 @@ Fl_Output * txt_hamcast_select_total_time = 0;
 Fl_Input2*  txt_tx_selected_blocks = 0;
 
 extern void show_selected_xmt(int n);
+extern void cb_load_tx_queue(void);
+extern void cb_scripts_in_main_thread(void *);
 
-//----------------------------------------------------------------------
+/** ********************************************************
+ * Basic modem character array pointer list. It's
+ * compared to a supplied list from FLDIGI via XMLRPC
+ * command. And matches entries available in the
+ * time_table.cxx structure. No, you can not remove this list
+ * and use the one in the time_table.cxx. As FLAMP generates
+ * this table using the --time-table command line switch.
+ ***********************************************************/
 const char *s_basic_modes[] = {
 	(char *) "8PSK250",
 	(char *) "8PSK500",
@@ -258,6 +264,9 @@ const char *s_basic_modes[] = {
 
 char *s_modes[sizeof(s_basic_modes)/sizeof(char *)];
 
+/** ********************************************************
+ * A string table of event types
+ ***********************************************************/
 const char *event_types[] = {
 	(char *) "5 min",
 	(char *) "15 min",
@@ -273,11 +282,17 @@ const char *event_types[] = {
 
 std::string valid_modes;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool valid_mode_check(std::string &md)
 {
 	return (valid_modes.find(md) != string::npos);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void update_cbo_modes(std::string &fldigi_modes)
 {
 	memset(s_modes, 0, sizeof(s_modes));
@@ -318,6 +333,9 @@ void update_cbo_modes(std::string &fldigi_modes)
 	g_header_modem.assign(cbo_header_modes->value());
 }
 
+/** ********************************************************
+ * Initialize a minimal set of available modems
+ ***********************************************************/
 void init_cbo_modes()
 {
 	string min_modes;
@@ -326,11 +344,15 @@ void init_cbo_modes()
 	min_modes.append("MT63-500L|MT63-1KL|MT63-2KL|");
 	min_modes.append("BPSK125|BPSK250|BPSK500|");
 	min_modes.append("PSK125R|PSK250R|PSK500R|");
-	min_modes.append("Olivia-4-250|Olivia-4-500|Olivia-8-250|Olivia-8-500|Olivia-8-1K|Olivia-16-500|Olivia-16-1K|");
+	min_modes.append("Olivia-4-250|Olivia-4-500|Olivia-8-250|Olivia-8-500|");
+	min_modes.append("Olivia-8-1K|Olivia-16-500|Olivia-16-1K|");
 	min_modes.append("THOR16|THOR22");
 	update_cbo_modes(min_modes);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void init_cbo_events()
 {
 	int index = 0;
@@ -342,6 +364,9 @@ void init_cbo_events()
 	cbo_repeat_every->index(progStatus.repeat_every);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_cbo_modes()
 {
 	progStatus.selected_mode = cbo_modes->index();
@@ -353,39 +378,57 @@ void cb_cbo_modes()
 	show_selected_xmt(0);
 }
 
-//----------------------------------------------------------------------
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_mnuExit(void *, void *)
 {
 	cb_exit();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_mnuEventLog(void *, void *)
 {
 	debug::show();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_mnuOnLineHelp(Fl_Menu_*, void*) {
 	show_help();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_mnu_folders(Fl_Menu_*, void*) {
 	cb_folders();
 }
 
-extern void cb_scripts_in_main_thread(void *);
-
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_mnu_scripts(Fl_Menu_*, void*) {
-	static bool value = false;
+	//static bool value = false;
 	//Fl::awake(cb_scripts_in_main_thread, (void *)&value);
 	cb_scripts(false);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_mnu_scripts_default(Fl_Menu_*, void*) {
-	static bool value = true;
+	//static bool value = true;
 	//Fl::awake(cb_scripts_in_main_thread, (void *)&value);
 	cb_scripts(true);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_mnuAbout(void *, void *)
 {
 	fl_message2("\tFlamp: %s\n\n" \
@@ -395,6 +438,9 @@ void cb_mnuAbout(void *, void *)
 				FLAMP_VERSION);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_mnuCmdLineParams(void *, void *)
 {
 	if (!wCmdLine) {
@@ -413,6 +459,9 @@ void cb_mnuCmdLineParams(void *, void *)
 	wCmdLine->show();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Fl_Menu_Item menu_[] = {
 	{_("&File"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("&Folders"), 0, (Fl_Callback*)cb_mnu_folders, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
@@ -431,6 +480,9 @@ Fl_Menu_Item menu_[] = {
 	{0,0,0,0,0,0,0,0,0}
 };
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_tx_mycall(Fl_Input2*, void*)
 {
 	progStatus.my_call = txt_tx_mycall->value();
@@ -438,6 +490,9 @@ static void cb_tx_mycall(Fl_Input2*, void*)
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_tx_myinfo(Fl_Input2*, void*)
 {
 	progStatus.my_info = txt_tx_myinfo->value();
@@ -445,65 +500,104 @@ static void cb_tx_myinfo(Fl_Input2*, void*)
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_tx_send_to(Fl_Input2*, void*)
 {
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_tx_descrip(Fl_Input2*, void*)
 {
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_selected_blocks(Fl_Input2*, void*)
 {
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_save_file(Fl_Button*, void*) {
 	writefile(0);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_transfer_file_txQ(Fl_Button*, void*) {
 	writefile(1);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_rx_remove(Fl_Button*, void*) {
 	receive_remove_from_queue(false);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_open_file(Fl_Button*, void*) {
 	readfile();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_tx_remove_file(Fl_Button*, void*) {
 	tx_removefile(false);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_copy_missing(Fl_Button*, void*) {
 	send_missing_report();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_parse_blocks(Fl_Button*, void*)
 {
 	recv_missing_report();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_tx_queue(Fl_Hold_Browser *hb, void*)
 {
 	int value = tx_queue->value();
 	show_selected_xmt(value);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_rx_queue(Fl_Hold_Browser *hb, void*)
 {
 	int n = hb->value();
 	show_selected_rcv(n);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_send_file(Fl_Button*, void*) {
 	if(transmitting) {
 		if (do_events_flag == 1) {
@@ -525,6 +619,9 @@ static void cb_btn_send_file(Fl_Button*, void*) {
 	transmit_current();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_btn_send_queue(Fl_Button*, void*) {
 	if(transmitting) {
 		abort_request();
@@ -538,6 +635,9 @@ static void cb_btn_send_queue(Fl_Button*, void*) {
 	transmit_queued(false);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_cnt_blocksize(Fl_Button*, void*) {
 	progStatus.blocksize = (int)cnt_blocksize->value();
 	update_cAmp_changes(0);
@@ -546,6 +646,9 @@ static void cb_cnt_blocksize(Fl_Button*, void*) {
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 	progStatus.repeatNN = (int)cnt_repeat_nbr->value();
 	txt_tx_selected_blocks->value("");
@@ -554,6 +657,9 @@ static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_repeat_header(Fl_Button*, void*) {
 	progStatus.repeat_header = (int)cnt_repeat_header->value();
 	txt_tx_selected_blocks->value("");
@@ -562,6 +668,9 @@ static void cb_repeat_header(Fl_Button*, void*) {
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_use_compression()
 {
 	progStatus.use_compression = btn_use_compression->value();
@@ -570,6 +679,9 @@ void cb_use_compression()
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_use_encoder()
 {
 	progStatus.encoder = encoders->index()+1;
@@ -578,6 +690,9 @@ void cb_use_encoder()
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void init_encoders()
 {
 	encoders->clear();
@@ -588,16 +703,25 @@ void init_encoders()
 	progStatus.encoder_string.assign(encoders->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_sync_mode_flamp_fldigi(Fl_Check_Button *b, void *)
 {
 	progStatus.sync_mode_flamp_fldigi = btn_sync_mode_flamp_fldigi->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_sync_mode_fldigi_flamp(Fl_Check_Button *b, void *)
 {
 	progStatus.sync_mode_fldigi_flamp = btn_sync_mode_fldigi_flamp->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_fldigi_xmt_mode_change(Fl_Check_Button *b, void *)
 {
 	if(progStatus.use_txrx_interval == true) {
@@ -608,6 +732,9 @@ void cb_fldigi_xmt_mode_change(Fl_Check_Button *b, void *)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_repeat_at_times(Fl_Check_Button *b, void *)
 {
 	progStatus.repeat_at_times = btn_repeat_at_times->value();
@@ -617,6 +744,9 @@ void cb_repeat_at_times(Fl_Check_Button *b, void *)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_auto_load_que(Fl_Check_Button *b, void *)
 {
 	int val = false;
@@ -633,33 +763,49 @@ void cb_auto_load_que(Fl_Check_Button *b, void *)
 	btn_auto_load_queue->value(val);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_load_from_tx_folder(Fl_Check_Button *b, void *)
 {
 	progStatus.load_from_tx_folder = btn_load_from_tx_folder->value();
 }
 
-extern void cb_load_tx_queue(void);
-
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_manual_load_que(Fl_Button *b, void *)
 {
 	cb_load_tx_queue();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_auto_load_queue_path(Fl_Input2 *b, void *)
 {
 	progStatus.auto_load_queue_path.assign(txt_auto_load_queue_path->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_repeat_every(Fl_ComboBox *cb, void *)
 {
 	progStatus.repeat_every = cbo_repeat_every->index();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_repeat_times(Fl_Input2 *txt, void *)
 {
 	progStatus.repeat_times = txt_repeat_times->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_repeat_forever(Fl_Check_Button *b, void *)
 {
 	progStatus.repeat_forever = btn_repeat_forever->value();
@@ -669,10 +815,16 @@ void cb_repeat_forever(Fl_Check_Button *b, void *)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void cb_drop_file(Fl_Input*, void*) {
 	drop_file_changed();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_do_events(Fl_Light_Button *b, void*)
 {
 	if(generate_time_table) do_events->value(0);
@@ -688,6 +840,9 @@ void cb_do_events(Fl_Light_Button *b, void*)
 	do_events->redraw_label();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 {
 	progStatus.use_txrx_interval = (bool) btn_enable_txrx_interval->value();
@@ -699,42 +854,66 @@ void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_tx_interval_mins(Fl_Simple_Counter *a, void *b)
 {
 	progStatus.tx_interval_minutes = cnt_tx_internval_mins->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_rx_interval_secs(Fl_Simple_Counter *a, void *b)
 {
 	progStatus.rx_interval_seconds = cnt_rx_internval_secs->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_header_modem(Fl_Check_Button *a, void *b)
 {
 	progStatus.use_header_modem = btn_enable_header_modem->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_header_modes(Fl_ComboBox *a, void *b)
 {
 	progStatus.header_selected_mode = cbo_header_modes->index();
 	g_header_modem.assign(cbo_header_modes->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_disable_header_modem_on_block_fills(Fl_Check_Button *a, void *b)
 {
 	progStatus.disable_header_modem_on_block_fills = (bool) btn_disable_header_modem_on_block_fills->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_tx_on_report(Fl_Check_Button *a, void *b)
 {
 	progStatus.use_tx_on_report = btn_enable_tx_on_report->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_clear_tosend_on_tx_blocks(Fl_Check_Button *a, void *b)
 {
 	progStatus.clear_tosend_on_tx_blocks = btn_clear_tosend_on_tx_blocks->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_unproto_markers(Fl_Check_Button *a, void *b)
 {
 	progStatus.enable_unproto_markers = btn_enable_unproto_markers->value();
@@ -742,6 +921,9 @@ void cb_enable_unproto_markers(Fl_Check_Button *a, void *b)
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_tx_unproto(Fl_Check_Button *a, void *b)
 {
 	progStatus.enable_tx_unproto = btn_enable_tx_unproto->value();
@@ -755,6 +937,9 @@ void cb_enable_tx_unproto(Fl_Check_Button *a, void *b)
 	show_selected_xmt(tx_queue->value());
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void unproto_widgets(cAmp *amp)
 {
 	if(amp)
@@ -777,6 +962,9 @@ void unproto_widgets(cAmp *amp)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_cycle(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_cycle = btn_hamcast_mode_cycle->value();
@@ -787,6 +975,9 @@ void cb_hamcast_mode_cycle(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_enable_1(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_enable_1 = btn_hamcast_mode_enable_1->value();
@@ -797,6 +988,9 @@ void cb_hamcast_mode_enable_1(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_selection_1(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_selection_1 = cbo_hamcast_mode_selection_1->index();
@@ -807,6 +1001,9 @@ void cb_hamcast_mode_selection_1(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_enable_2(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_enable_2 = btn_hamcast_mode_enable_2->value();
@@ -817,6 +1014,9 @@ void cb_hamcast_mode_enable_2(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_selection_2(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_selection_2 = cbo_hamcast_mode_selection_2->index();
@@ -827,6 +1027,9 @@ void cb_hamcast_mode_selection_2(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_enable_3(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_enable_3 = btn_hamcast_mode_enable_3->value();
@@ -837,6 +1040,9 @@ void cb_hamcast_mode_enable_3(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_selection_3(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_selection_3 = cbo_hamcast_mode_selection_3->index();
@@ -847,6 +1053,9 @@ void cb_hamcast_mode_selection_3(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_enable_4(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_enable_4 = btn_hamcast_mode_enable_4->value();
@@ -857,6 +1066,9 @@ void cb_hamcast_mode_enable_4(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_hamcast_mode_selection_4(Fl_Check_Button *a, void *b)
 {
 	progStatus.hamcast_mode_selection_4 = cbo_hamcast_mode_selection_4->index();
@@ -867,11 +1079,17 @@ void cb_hamcast_mode_selection_4(Fl_Check_Button *a, void *b)
 	estimate_bc();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_enable_delete_warning(Fl_Check_Button *a, void *b)
 {
 	progStatus.enable_delete_warning = btn_enable_delete_warning->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_btn_send_relay(Fl_Check_Button *a, void *b)
 {
 	if(transmitting) {
@@ -881,17 +1099,26 @@ void cb_btn_send_relay(Fl_Check_Button *a, void *b)
 	send_relay_data();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_btn_parse_relay_blocks(Fl_Check_Button *a, void *b)
 {
 	relay_missing_report();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void cb_relay_selected_blocks(Fl_Check_Button *a, void *b)
 {
 	update_rx_missing_blocks();
 }
 
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Fl_Double_Window* flamp_dialog() {
 
 	int W = 500, H = 496;

@@ -37,14 +37,12 @@ void base128::init()
 	linelength = 0;
 }
 
-//----------------------------------------------------------------------
-// fldigi uses some control codes to alter the program state
-// several digital modems suppress some control and high bit set
-// characters
-//
-// this function substitutes a two character sequence for the offending
-// characters
-//----------------------------------------------------------------------
+/** ********************************************************
+ * /brief FLDIGI uses some control codes to alter the program state
+ * several digital modems suppress some control and high bit set
+ * characters this function substitutes a two character
+ * sequence for the offending characters
+ ***********************************************************/
 void base128::escape(string &in, bool encode)
 {
 	string out;
@@ -101,6 +99,9 @@ void base128::escape(string &in, bool encode)
 	in = out;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void base128::addlf(string &in)
 {
 	string out;
@@ -112,6 +113,9 @@ void base128::addlf(string &in)
 	in.assign(out);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void base128::remlf(string &in)
 {
 	string out;
@@ -121,6 +125,9 @@ void base128::remlf(string &in)
 	in.assign(out);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 string base128::encode(string &in)
 {
 	size_t n;
@@ -163,6 +170,9 @@ string base128::encode(string &in)
 	return output;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 string base128::decode(string &in, bool &decode_error)
 {
 	int i, itemp;
@@ -210,7 +220,7 @@ string base128::decode(string &in, bool &decode_error)
 		o[4] = ((b[4] << 5) & 0xE0) | ((b[5] >> 2) & 0x1F);
 		o[5] = ((b[5] << 6) & 0xC0) | ((b[6] >> 1) & 0x3F);
 		o[6] = ((b[6] << 7) & 0x80) |  (b[7]       & 0x7F);
-		
+
 		for (i = 0; i < 7; i++) {
 			if (iocp++ < nbr)
 				output += o[i];

@@ -63,58 +63,64 @@ protected:
 
 class Circular_queue {
 private:
+
 	pthread_t thread;
 	pthread_mutex_t mutex;
 	pthread_cond_t  condition;
 
-	int read_index;
-	int write_index;
-
-	int stalled;
-	int buffer_size;
-	int index_mask;
-	int exit_thread;
-	//int listCount;
-	int bufferCount;
 	char *buffer;
 
+	int buffer_size;
+	int bufferCount;
+	int exit_thread;
+	int index_mask;
+	int read_index;
+	int stalled;
+	int write_index;
+
 public:
-	int thread_running;
+
 	int inhibitDataOut;
+	int thread_running;
 
 	int  (* matchFound)(void *);
 	int  (* readData)(void *);
 	void * (* queueParser)(void *);
 
 public:
+
 	Circular_queue(void);
 	Circular_queue(int po2, int (*_matchFound)(void *),	\
 				   int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
 	~Circular_queue();
 
 public:
-	void startDataOut();
-	void stopDataOut();
+
+	bool timeOut(time_t &timeValue, time_t seconds, int attribute);
+
+	int  adjustReadQueIndex(int count);
+	int  lookAhead(char *_buffer, int _size);
+	int  lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal, int *reset);
+	int  lookAheadForCharacter(char character, int *found);
+	int  lookAheadToTerminator(char *_buffer, char terminator, int maxLen);
+	int  queueStalled() { return stalled; }
+	int  readQueData(int buffer_count);
+	int  thread_exit() { return exit_thread; }
+
 	void addToQueue(char *_buffer, int _size);
 	void addToQueueNullFiltered(char *_buffer, int _size);
-	int  lookAheadCRC(char *_buffer, int _size, unsigned int *crcVal, int *reset);
-	int  lookAhead(char *_buffer, int _size);
-	int  readQueData(int buffer_count);
-	int  adjustReadQueIndex(int count);
-	int  lookAheadToTerminator(char *_buffer, char terminator, int maxLen);
-	int  lookAheadForCharacter(char character, int *found);
-	void stopQueue();
 	void resumeQueue();
-	int  thread_exit() { return exit_thread; }
-	int  queueStalled() { return stalled; }
+	void signal(void);
 	void sleep(int seconds, int milliseconds);
+	void startDataOut();
+	void stopDataOut();
+	void stopQueue();
+
 	void milliSleep(int milliseconds)
 	{
 		sleep(0, milliseconds);
 	}
-	void signal(void);
 
-	bool timeOut(time_t &timeValue, time_t seconds, int attribute);
 	void setUp(int po2, int (*_matchFound)(void *),	\
 			   int (*_readDataFrom)(void *), void * (*_queueParser)(void *));
 };

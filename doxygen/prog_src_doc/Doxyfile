@@ -1,6 +1,6 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "FLAMP Programmer Code Reference"
-PROJECT_NUMBER         = 2.1
+PROJECT_NUMBER         = 2.2
 PROJECT_BRIEF          =
 PROJECT_LOGO           = ../images/FLAMP_LOGO_72dpi.png
 OUTPUT_DIRECTORY       = ../../doc/programmer_docs

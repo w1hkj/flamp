@@ -39,22 +39,22 @@
 
 enum {NONE, BASE64, BASE128, BASE256};
 
-extern Socket *tcpip;
 extern Address *localaddr;
 extern bool bConnected;
+extern Socket *tcpip;
 
 extern void compress_maybe(std::string& input, int encode_with, bool try_compress = true);
+extern void connect_to_fldigi(void *);
 extern void decompress_maybe(std::string& input);
 extern void send_via_fldigi(std::string tosend);
-extern void connect_to_fldigi(void *);
 
-extern void rx_extract_reset();
-extern int  rx_fldigi(std::string &);
 extern int  rx_fldigi(char *buffer, int limit);
+extern int  rx_fldigi(std::string &);
+extern void rx_extract_reset();
 
 extern bool binary(std::string &);
 extern bool c_binary(int c);
-extern bool isPlainText(std::string &_buffer);
 extern bool isPlainText(char *_buffer, size_t count);
+extern bool isPlainText(std::string &_buffer);
 
 #endif

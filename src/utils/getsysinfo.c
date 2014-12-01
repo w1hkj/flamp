@@ -30,6 +30,9 @@ static const char * vid_nexgen =  "NexGenDriven";
 #define cpuid(op,a,b,c,d)\
 __asm__("cpuid": "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (op));
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void GetVendorID (char *vid)
 {
 	unsigned long MaxEax, ebx, ecx, edx, zerobyte;
@@ -42,6 +45,9 @@ static void GetVendorID (char *vid)
 	memcpy (vid+12, &zerobyte, 1);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 BOOL GetMachInfo(LPSTR MachineName, LPSTR ProcessorName)
 {
 	SYSTEM_INFO sysinf;
@@ -179,6 +185,9 @@ BOOL GetMachInfo(LPSTR MachineName, LPSTR ProcessorName)
 #undef BUFSIZE
 #define BUFSIZE 255
 
+/** ********************************************************
+ *
+ ***********************************************************/
 BOOL GetOsInfo(LPSTR OsName, LPSTR Release, LPSTR Version)
 {
 	OSVERSIONINFOEX osvi;
@@ -297,8 +306,8 @@ BOOL GetOsInfo(LPSTR OsName, LPSTR Release, LPSTR Version)
 				 if ( osvi.szCSDVersion[1] == 'C' || osvi.szCSDVersion[1] == 'B' )
 				 strcat(OsName, "OSR2 " );
 				 */
-			} 
-			
+			}
+
 			if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 10) {
 				strcpy(OsName, "Microsoft Windows 98");
 				if (BuildNumber > 1998 && BuildNumber < 2183)
@@ -309,11 +318,11 @@ BOOL GetOsInfo(LPSTR OsName, LPSTR Release, LPSTR Version)
 				 if ( osvi.szCSDVersion[1] == 'A' )
 				 strcat(OsName, "SE " );
 				 */
-			} 
-			
+			}
+
 			if (osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 90) {
 				strcpy(OsName, "Microsoft Windows Millennium Edition ");
-			} 
+			}
 			break;
 	}
 	sprintf(Release, "%lu.%lu.%lu", osvi.dwPlatformId,

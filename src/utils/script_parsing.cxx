@@ -464,8 +464,8 @@ SCRIPT_CODES ScriptParsing::check_numbers(char *value, paramter_types p)
 SCRIPT_CODES ScriptParsing::check_parameters(struct script_cmds *cmd)
 {
 	SCRIPT_CODES error = script_no_errors;
-	int index = 0;
-	int count = 0;
+	int count   = 0;
+	int index   = 0;
 	size_t size = 0;
 
 	if(!cmd)
@@ -537,11 +537,11 @@ SCRIPT_CODES ScriptParsing::check_parameters(struct script_cmds *cmd)
  *****************************************************************/
 SCRIPT_COMMANDS * ScriptParsing::search_command(const char *command)
 {
-	int index = 0;
-	int diff = 0;
 	char *cmd_buffer = (char *)0;
-	size_t count = _script_command_table_count;
+	int diff = 0;
 	SCRIPT_COMMANDS * found = (SCRIPT_COMMANDS *) 0;
+	size_t count = _script_command_table_count;
+	size_t index = 0;
 
 	if(!command) return found;
 
@@ -582,9 +582,9 @@ void ScriptParsing::to_uppercase(char *str, int limit)
 {
 	if(!str || limit < 1) return;
 
-	int count = 0;
-	int index = 0;
 	int character = 0;
+	int count     = 0;
+	int index     = 0;
 
 	count = (int) strnlen(str, limit);
 
@@ -603,9 +603,9 @@ void ScriptParsing::to_uppercase(char *str, int limit)
  *****************************************************************/
 void ScriptParsing::to_uppercase(std::string &str)
 {
-	int count = 0;
-	int index = 0;
 	int character = 0;
+	int count     = 0;
+	int index     = 0;
 
 	count = (int) str.length();
 
@@ -624,10 +624,10 @@ void ScriptParsing::to_uppercase(std::string &str)
  *****************************************************************/
 int ScriptParsing::assign_callback(const char *scriptCommand, int (*cb)(ScriptParsing *sp, SCRIPT_COMMANDS *sc))
 {
-	int index = 0;
-	int diff = 0;
 	char *cmd_buffer = (char *)0;
+	int diff = 0;
 	size_t count = _script_command_table_count;
+	size_t index = 0;
 
 	if(!scriptCommand || !cb) return 0;
 
@@ -689,11 +689,11 @@ void ScriptParsing::defaults(bool all)
 	_clear_missing          = false;
 	_event                  = false;
 	_event_forever          = false;
+	_hamcast                = false;
 	_hamcast_modem_1_enable = false;
 	_hamcast_modem_2_enable = false;
 	_hamcast_modem_3_enable = false;
 	_hamcast_modem_4_enable = false;
-	_hamcast                = false;
 	_inhibit_header         = false;
 	_interval               = false;
 	_proto                  = true;
@@ -808,8 +808,8 @@ ScriptParsing::ScriptParsing()
 	_parent = (ScriptParsing *)0;
 
 	_script_command_table = (SCRIPT_COMMANDS *)0;
-	_script_command_table_total_count = 0;
 	_script_command_table_count = 0;
+	_script_command_table_total_count = 0;
 
 	count = sizeof(default_script_command_table)/sizeof(SCRIPT_COMMANDS);
 
@@ -819,8 +819,8 @@ ScriptParsing::ScriptParsing()
 		return;
 	}
 
-	_script_command_table_total_count = count + 1;
 	_script_command_table_count = count;
+	_script_command_table_total_count = count + 1;
 
 	memset(_script_command_table, 0, sizeof(SCRIPT_COMMANDS) * _script_command_table_total_count);
 	memcpy(_script_command_table, default_script_command_table, sizeof(default_script_command_table));
@@ -839,6 +839,12 @@ int ScriptParsing::CopyScriptParsingEnv(ScriptParsing *src)
 {
 	if(!src || (src == this)) return -1;
 
+#if 0 // Do not copy these variables.
+	desc(src->desc());
+	file(src->file());
+	load_queue(src->load_queue());
+#endif // 0
+
 	auto_load_queue(src->auto_load_queue());
 	base(src->base());
 	blocks(src->blocks());
@@ -848,26 +854,23 @@ int ScriptParsing::CopyScriptParsingEnv(ScriptParsing *src)
 	clear_rxq(src->clear_rxq());
 	clear_txq(src->clear_txq());
 	comp(src->comp());
-	event_type(src->event_type());
-	event_times(src->event_times());
-	event(src->event());
 	event_forever(src->event_forever());
-	//desc(src->desc());
-	//file(src->file());
-	hamcast_modem_1(src->hamcast_modem_1());
-	hamcast_modem_2(src->hamcast_modem_2());
-	hamcast_modem_3(src->hamcast_modem_3());
-	hamcast_modem_4(src->hamcast_modem_4());
+	event_times(src->event_times());
+	event_type(src->event_type());
+	event(src->event());
 	hamcast_modem_1_enable(src->hamcast_modem_1_enable());
+	hamcast_modem_1(src->hamcast_modem_1());
 	hamcast_modem_2_enable(src->hamcast_modem_2_enable());
+	hamcast_modem_2(src->hamcast_modem_2());
 	hamcast_modem_3_enable(src->hamcast_modem_3_enable());
+	hamcast_modem_3(src->hamcast_modem_3());
 	hamcast_modem_4_enable(src->hamcast_modem_4_enable());
+	hamcast_modem_4(src->hamcast_modem_4());
 	hamcast(src->hamcast());
 	hdr_repeat(src->hdr_repeat());
 	info(src->info());
 	inhibit_header(src->inhibit_header());
 	interval(src->interval());
-	//load_queue(src->load_queue());
 	modem(src->modem());
 	path(src->path());
 	proto(src->proto());
@@ -881,10 +884,10 @@ int ScriptParsing::CopyScriptParsingEnv(ScriptParsing *src)
 	warn_user(src->warn_user());
 	xmit_repeat(src->xmit_repeat());
 
-	script_command_table_total_count(src->script_command_table_total_count());
-	script_command_table_count(src->script_command_table_count());
-	sub_script_count(src->sub_script_count() + 1);
 	parent(src);
+	script_command_table_count(src->script_command_table_count());
+	script_command_table_total_count(src->script_command_table_total_count());
+	sub_script_count(src->sub_script_count() + 1);
 
 	SCRIPT_COMMANDS * dst_table = script_command_table();
 	SCRIPT_COMMANDS * src_table = src->script_command_table();
@@ -893,9 +896,9 @@ int ScriptParsing::CopyScriptParsingEnv(ScriptParsing *src)
 	size_t count = script_command_table_count();
 
 	for(index = 0; index < count; index++) {
-		dst_table[index].valid_values      =  src_table[index].valid_values;
-		dst_table[index].valid_value_count =  src_table[index].valid_value_count;
 		dst_table[index].cb                =  src_table[index].cb;
+		dst_table[index].valid_value_count =  src_table[index].valid_value_count;
+		dst_table[index].valid_values      =  src_table[index].valid_values;
 	}
 
 	initialize_function_members();
@@ -1201,11 +1204,11 @@ SCRIPT_CODES ScriptParsing::sc_event_type(struct script_cmds *cmd)
 		et_continious_at
 	};
 
-	int index   = 0;
-	int match   = -1;
-	int count   = (sizeof(valid_values)/sizeof(char *));
-	std::string value = "";
+	int match     = -1;
 	SCRIPT_CODES error = script_invalid_parameter;
+	size_t count  = (sizeof(valid_values)/sizeof(char *));
+	size_t index  = 0;
+	std::string value = "";
 
 	if(cmd->argc && cmd->args[0]) {
 		value.assign(cmd->args[0]);
@@ -1240,12 +1243,12 @@ SCRIPT_CODES ScriptParsing::sc_event_times(struct script_cmds *cmd)
 {
 	if(!cmd) return script_function_parameter_error;
 
-	int index = 0;
-	int count = cmd->argc;
-	int j = 0;
-	char *cPtr = (char *)0;
-	size_t size = 0;
-	size_t hits = 0;
+	char *cPtr   = (char *)0;
+	size_t count = cmd->argc;
+	size_t hits  = 0;
+	size_t index = 0;
+	size_t j     = 0;
+	size_t size  = 0;
 	size_t valid_data = 0;
 	std::string valid_string = "";
 
@@ -1382,9 +1385,9 @@ SCRIPT_CODES ScriptParsing::sc_file(struct script_cmds *cmd)
 	if(!cmd)
 		return script_function_parameter_error;
 
-	std::string value = "";
 	char *buffer = (char *)0;
 	SCRIPT_CODES error = script_no_errors;
+	std::string value = "";
 
 	if(cmd->argc > 1) {
 		buffer = new char[FILENAME_MAX];
@@ -1438,14 +1441,14 @@ SCRIPT_CODES ScriptParsing::sc_hamcast_modem(struct script_cmds *cmd)
 	if(!cmd)
 		return script_function_parameter_error;
 
-	int pos = 0;
-	int diff = 0;
-	int on_diff = 0;
+	bool flag    = false;
+	int diff     = 0;
+	int index    = 0;
 	int off_diff = 0;
-	int index = 0;
-	bool flag = false;
+	int on_diff  = 0;
+	int pos      = 0;
 
-	size_t size = 0;
+	size_t size  = 0;
 	std::string value = "";
 
 	if(cmd->argc > 1) {
@@ -1617,12 +1620,8 @@ SCRIPT_CODES ScriptParsing::sc_header_modem(struct script_cmds *cmd)
 	if(!cmd)
 		return script_function_parameter_error;
 
-	//int pos = 0;
-	int diff = 0;
+	int diff  = 0;
 	int index = 0;
-	//bool flag = false;
-
-	//size_t size = 0;
 	std::string value = "";
 
 	if(cmd->argc > 0 && cmd->args[0]) {
@@ -1704,7 +1703,6 @@ SCRIPT_CODES ScriptParsing::sc_info(struct script_cmds *cmd)
 	if(!cmd)
 		return script_function_parameter_error;
 
-
 	if(cmd->argc && cmd->args[0]) {
 		std::string value = "";
 		value.assign(cmd->args[0]);
@@ -1774,9 +1772,7 @@ SCRIPT_CODES ScriptParsing::sc_interval(struct script_cmds *cmd)
 	}
 
 	return error;
-
 }
-
 
 /** **************************************************************
  * \brief Load Queue script execution.
@@ -1798,9 +1794,9 @@ SCRIPT_CODES ScriptParsing::sc_interval(struct script_cmds *cmd)
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::sc_load_queue(struct script_cmds *cmd)
 {
+	char *buffer = (char *)0;
 	SCRIPT_CODES error = script_no_errors;
 	std::string value = "";
-	char *buffer = (char *)0;
 
 	if(sub_script_count() >= MAX_SUB_SCRIPTS)
 		return script_max_sub_script_reached;
@@ -2050,7 +2046,8 @@ SCRIPT_CODES ScriptParsing::sc_unproto_makers(struct script_cmds *cmd)
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::sc_queue_filepath(struct script_cmds *cmd)
 {
-	if((cmd->argc > 0) && !cmd->args[0]) return script_invalid_parameter;
+	if((cmd->argc > 0) && !cmd->args[0])
+		return script_invalid_parameter;
 
 	FILE *fd = fopen(cmd->args[0], "r");
 
@@ -2177,7 +2174,7 @@ SCRIPT_CODES ScriptParsing::sc_sync_with(struct script_cmds *cmd)
 
 		to_uppercase(value);
 
-		for(int index = 0; index < sizeof(valid_values)/sizeof(char *); index++) {
+		for(size_t index = 0; index < sizeof(valid_values)/sizeof(char *); index++) {
 			diff = strncmp(value.c_str(), valid_values[index], MAX_PARAMETER_LENGTH);
 
 			if(diff == 0) {
@@ -2489,8 +2486,8 @@ char * ScriptParsing::skip_white_spaces(char * data, char * limit, SCRIPT_CODES 
  *****************************************************************/
 char * ScriptParsing::skip_numbers(char * data, char * limit, SCRIPT_CODES &error)
 {
-	char *cPtr      = (char *) 0;
-	int  q_flag     = 0;
+	char *cPtr  = (char *) 0;
+	int  q_flag = 0;
 
 	if(!data || !limit) {
 		error = script_function_parameter_error;
@@ -2532,8 +2529,8 @@ char * ScriptParsing::skip_numbers(char * data, char * limit, SCRIPT_CODES &erro
  *****************************************************************/
 char * ScriptParsing::skip_characters(char * data, char * limit, SCRIPT_CODES &error)
 {
-	char *cPtr      = (char *) 0;
-	int  q_flag     = 0;
+	char *cPtr  = (char *) 0;
+	int  q_flag = 0;
 
 	if(!data || !limit) {
 		error = script_function_parameter_error;
@@ -2574,8 +2571,8 @@ char * ScriptParsing::skip_characters(char * data, char * limit, SCRIPT_CODES &e
  *****************************************************************/
 char * ScriptParsing::skip_alpha_numbers(char * data, char * limit, SCRIPT_CODES &error)
 {
-	char *cPtr      = (char *) 0;
-	int  q_flag     = 0;
+	char *cPtr  = (char *) 0;
+	int  q_flag = 0;
 
 	if(!data || !limit) {
 		error = script_function_parameter_error;
@@ -2618,8 +2615,8 @@ char * ScriptParsing::skip_alpha_numbers(char * data, char * limit, SCRIPT_CODES
  *****************************************************************/
 char * ScriptParsing::skip_to_character(char c, char * data, char * limit, SCRIPT_CODES &error)
 {
-	char *cPtr      = (char *) 0;
-	int  q_flag     = 0;
+	char *cPtr  = (char *) 0;
+	int  q_flag = 0;
 
 	if(!data || !limit) {
 		error = script_function_parameter_error;
@@ -2659,8 +2656,8 @@ char * ScriptParsing::skip_to_character(char c, char * data, char * limit, SCRIP
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::remove_crlf_comments(char *data, char *limit, size_t &count)
 {
-	char *cPtr   = (char *)0;
-	int  q_flag  = 0;
+	char *cPtr  = (char *) 0;
+	int  q_flag = 0;
 
 	SCRIPT_CODES error = script_no_errors;
 
@@ -2721,8 +2718,9 @@ SCRIPT_CODES ScriptParsing::copy_command(char *buffer, char *sPtr, char *ePtr, s
 	if(!buffer || !sPtr || !ePtr || limit < 1) {
 		return script_function_parameter_error;
 	}
-	char *dPtr = buffer;
-	int index = 0;
+
+	char *dPtr   = buffer;
+	size_t index = 0;
 
 	for(index = 0; index < limit; index++) {
 		*dPtr++ = toupper(*sPtr++);
@@ -2740,10 +2738,10 @@ SCRIPT_CODES ScriptParsing::copy_command(char *buffer, char *sPtr, char *ePtr, s
  *****************************************************************/
 void ScriptParsing::trim(char *buffer, size_t limit)
 {
-	char *s   = (char *)0;
-	char *e   = (char *)0;
-	char *dst = (char *)0;
-	int count = 0;
+	char *s      = (char *)0;
+	char *e      = (char *)0;
+	char *dst    = (char *)0;
+	size_t count = 0;
 
 	if(!buffer || limit < 1) {
 		return;
@@ -2757,7 +2755,7 @@ void ScriptParsing::trim(char *buffer, size_t limit)
 	s = buffer;
 	e = &buffer[count-1];
 
-	for(int i = 0; i < count; i++) {
+	for(size_t i = 0; i < count; i++) {
 		if((*s <= ' ') || (*s == '"')) s++;
 		else break;
 	}
@@ -2787,12 +2785,12 @@ void ScriptParsing::trim(char *buffer, size_t limit)
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::parse_parameters(char *s, char *e, SCRIPT_COMMANDS *matching_command)
 {
-	char *c = s;
-	char *d = (char *)0;
+	char *c   = s;
+	char *d   = (char *)0;
 	int index = 0;
 	int parameter_count = matching_command->argc;
 	int count = 0;
-	long tmp = 0;
+	long tmp  = 0;
 
 	SCRIPT_CODES error = script_no_errors;
 
@@ -2863,11 +2861,11 @@ SCRIPT_CODES ScriptParsing::parse_parameters(char *s, char *e, SCRIPT_COMMANDS *
  *****************************************************************/
 int ScriptParsing::call_callback(SCRIPT_COMMANDS *cb_data)
 {
+	int argc     = 0;
+	int error    = 0;
+	int index    = 0;
 	SCRIPT_COMMANDS *tmp = (SCRIPT_COMMANDS *)0;
-	int index = 0;
 	size_t count = 0;
-	int error = 0;
-	int argc = 0;
 
 	if(!cb_data || !cb_data->cb) return -1;
 
@@ -2929,16 +2927,16 @@ int ScriptParsing::call_callback(SCRIPT_COMMANDS *cb_data)
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 {
-	char *cPtr   = (char *)0;
-	char *ePtr   = (char *)0;
-	char *endPtr = (char *)0;
 	char *buffer = (char *)0;
-	size_t index = 0;
-	size_t cmp_results = 0;
-	size_t size = 0;
-	size_t cmd_size = 0;
-	int callback_error = 0;
+	char *cPtr   = (char *)0;
+	char *endPtr = (char *)0;
+	char *ePtr   = (char *)0;
 	int allocated_buffer_size = 128;
+	int callback_error = 0;
+	size_t cmd_size    = 0;
+	size_t cmp_results = 0;
+	size_t index       = 0;
+	size_t size        = 0;
 
 	SCRIPT_CODES error = script_no_errors;
 
@@ -2947,16 +2945,16 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 
 	cPtr = skip_white_spaces(cPtr, endPtr, error);
 	if(error != script_no_errors) return error;
-	
+
 	ePtr = skip_to_character(':', cPtr, endPtr, error);
 	if(error != script_no_errors) return script_command_seperator_missing;
-	
+
 	buffer = new char [allocated_buffer_size];
 	if(!buffer) {
 		LOG_INFO("Buffer allocation Error near File: %s Line %d", __FILE__, __LINE__);
 		return script_memory_allocation_error;
 	}
-	
+
 	memset(buffer, 0, allocated_buffer_size);
 	error = copy_command(buffer, cPtr, ePtr, allocated_buffer_size-1);
 	if(error != script_no_errors) {
@@ -2967,12 +2965,12 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 
 	int str_count = str_cnt(buffer, allocated_buffer_size);
 	trim(buffer, str_count);
-	
+
 	for(index = 0; index < _script_command_table_count; index++) {
 		size = strnlen(_script_command_table[index].command, MAX_COMMAND_LENGTH);
 		cmd_size = strnlen(buffer, MAX_COMMAND_LENGTH);
 		cmp_results = memcmp(buffer, _script_command_table[index].command, size);
-		
+
 		if(cmp_results == 0 && (cmd_size == size)) {
 			if(file_type() & _script_command_table[index].flags) {
 				error = parse_parameters(++ePtr, endPtr, &_script_command_table[index]);
@@ -2981,7 +2979,7 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 					delete [] buffer;
 					return error;
 				}
-				
+
 				if(_script_command_table[index].cb) {
 					callback_error = call_callback(&_script_command_table[index]);
 					if(callback_error < 0)
@@ -2995,10 +2993,10 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 			break;
 		}
 	}
-	
+
 	buffer[0] = 0;
 	delete [] buffer;
-	
+
 	return script_no_errors;
 }
 
@@ -3009,79 +3007,78 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
  *****************************************************************/
 SCRIPT_CODES ScriptParsing::parse_commands(char *file_name_path)
 {
-	FILE *fd = (FILE *)0;
+	bool log_error  = false;
+	char *cPtr      = (char *)0;
+	FILE *fd        = (FILE *)0;
 	int line_number = 0;
-	size_t tmp = 0;
-	bool log_error = false;
-	size_t count = 0;
 	SCRIPT_CODES error_code = script_no_errors;
-	char *cPtr = (char *)0;
-	
-	
+	size_t count    = 0;
+	size_t tmp      = 0;
+
 	if(!file_name_path) {
 		LOG_INFO("Invalid function parameter 'char *file_name_path' (null)");
 		return script_general_error;
 	}
-	
+
 	fd = fopen(file_name_path, "r");
-	
+
 	if(!fd) {
 		LOG_INFO("Unable to open file %s", file_name_path);
 		return script_general_error;
 	}
-	
+
 	memset(line_buffer, 0, sizeof(line_buffer));
-	
+
 	line_number++;
-	fgets(line_buffer, sizeof(line_buffer) - 1, fd);
-	
+	char *retval = fgets(line_buffer, sizeof(line_buffer) - 1, fd);
+
 	tmp = strlen(SCRIPT_FILE_TAG);
 	line_buffer[tmp] = 0;
 	tmp = strncmp(SCRIPT_FILE_TAG, line_buffer, tmp);
-	
-	if(tmp != 0) {
+
+	if(!retval || tmp) {
 		cPtr = script_error_string(script_non_script_file, line_number, line_buffer);
 		LOG_INFO("%s", cPtr);
 		fclose(fd);
 		return script_non_script_file;
 	}
-	
+
 	while(1) {
 		if(ferror(fd) || feof(fd)) break;
-		
+
 		memset(line_buffer, 0, sizeof(line_buffer));
 		line_number++;
 		fgets(line_buffer, sizeof(line_buffer) - 1, fd);
-		
+
 #ifdef TESTING
 		printf("Reading: %s", line_buffer);
 #endif
-		
+
 		error_code = remove_crlf_comments(line_buffer, &line_buffer[sizeof(line_buffer)], count);
-		
+
 		if(count < 1) {
 			continue;
 		}
-		
+
 #ifdef TESTING
 		printf("remove_crlf_comments(%s)\n", line_buffer);
 #endif
-		
+
 		if(error_code >= script_no_errors)
 			error_code = parse_single_command(line_buffer, sizeof(line_buffer) - 1);
-		
+
 		if(error_code != script_no_errors) {
 			LOG_INFO("%s", script_error_string(error_code, line_number, line_buffer));
 			log_error = true;
 		}
 	}
-	
+
 	fclose(fd);
-	
+
 	if(log_error) {
 		return script_general_error;
 	}
-	
+
 	return script_no_errors;
 }
 

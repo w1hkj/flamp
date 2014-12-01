@@ -170,7 +170,7 @@ bool cAmpGlobal::remove(cAmp *src_amp)
 	if(src_amp) {
 		int index = 0;
 		int count = amp_array.size();
-		int ret = 0;
+
 
 		for(index = 0; index < count; index++) {
 			if(src_amp == amp_array[index]) {

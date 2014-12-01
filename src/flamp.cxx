@@ -828,7 +828,6 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
 }
 
-
 /** ********************************************************
  *
  ***********************************************************/
@@ -1443,6 +1442,10 @@ void show_selected_rcv(int n)
 /** ********************************************************
  *
  ***********************************************************/
+static const char *cancel = "Cancel";
+static const char *yes = "Yes";
+static const char *cont = "You are about to transmit! Continue?";
+
 void send_missing_report()
 {
 	string fname = txt_rx_filename->value();
@@ -1464,9 +1467,7 @@ void send_missing_report()
 	if(progStatus.use_tx_on_report) {
 		if (!bConnected) connect_to_fldigi(0);
 		if (!bConnected) return;
-		int results = fl_choice("%s",
-								(const char *)"Cancel", (const char *)"Yes", (const char *)0,
-								(void *) "You are about transmit!. Continue?");
+		int results = fl_choice("%s", cancel, yes, (const char *)0, cont);
 		if(results < 1) return;
 		send_via_fldigi(report);
 	} else {
@@ -1561,9 +1562,7 @@ void send_relay_data()
 		relay_data.serial_data = amp->tx_relay_string(progStatus.my_call, missing_blocks);
 	}
 
-	results = fl_choice("%s",
-						(const char *)"Cancel", (const char *)"Yes", (const char *)0,
-						(void *) "You are about transmit!. Continue?");
+	results = fl_choice("%s", cancel, yes, (const char *)0, cont);
 
 	if(results < 1) return;
 
@@ -1601,8 +1600,9 @@ void tx_removefile(bool all)
 		return;
 	}
 
-	int n = 0;
-	int count = tx_queue->size();
+	size_t n = 0;
+	size_t count = tx_queue->size();
+
 	if(count != tx_amp.size())
 		return;
 
@@ -2005,7 +2005,7 @@ void process_missing_stream(void)
 	char hash[5];
 	int len = 0;
 	int conv = 0;
-	int count = 0;
+	size_t count = 0;
 	string txrx_hash;
 	size_t i = 0;
 	cAmp *ctmp = (cAmp *)0;
@@ -2055,10 +2055,10 @@ void process_data_stream(void)
 	char crc[5];
 	char hash[5];
 	int len;
-	int conv;
+	size_t conv;
 	cAmp *tmp = 0;
 	size_t i = 0;
-	int count = rx_amp.size();
+	size_t count = rx_amp.size();
 
 	retbuff.assign(tmp_buffer);
 

@@ -33,16 +33,18 @@ typedef unsigned char byte;
 
 class base64 {
 #define LINELEN 64
+
 private:
-	string output;
-	size_t iolen;
-	size_t iocp;
 	bool ateof;
+	bool crlf;
 	byte dtable[256];
 	byte etable[256];
 	int linelength;
-	bool crlf;
+	size_t iocp;
+	size_t iolen;
+	string output;
 	void init();
+
 public:
 	base64(bool t = false) {crlf = t; init(); };
 	~base64(){};

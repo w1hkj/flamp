@@ -22,18 +22,18 @@
 //
 // =====================================================================
 
-extern pthread_t *watch_dog_thread;
-extern time_t watch_dog_seconds;
-extern bool continuous_exception;
-extern bool event_timer_on;
-extern time_t ztime_current;
-extern time_t ztime_end;
-extern bool exit_watch_dog;
+extern bool  continuous_exception;
+extern bool  event_timer_on;
+extern bool  exit_watch_dog;
 extern float tx_time_g;
 
-extern bool exit_watch_dog;
-extern void *watch_dog_loop(void *p);
-extern void ztimer(void* first_call);
-//extern time_t parse_repeat_times(bool delete_flag, unsigned int zt);
-extern bool parse_repeat_times(bool delete_flag, unsigned int zt, int mode);
+extern time_t watch_dog_seconds;
+extern time_t ztime_current;
+extern time_t ztime_end;
+
+extern pthread_t * watch_dog_thread;
+extern void      * watch_dog_loop(void *p);
+
 extern void stop_events(void);
+extern void ztimer(void* first_call);
+extern bool parse_repeat_times(bool delete_flag, unsigned int zt, int mode);

@@ -116,14 +116,13 @@ static int process_auto_load_queue(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_base(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_blocks(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_callfrom(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
-static int process_callto(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_clear_missing(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_clear_rx_queue(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_clear_tx_queue(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_compression(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_event_forever(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
-static int process_event_times(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_event_timed(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+static int process_event_times(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_event_type(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_event(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_file(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
@@ -131,13 +130,11 @@ static int process_hamcast_modem(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_hamcast(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_header_modem(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_header_repeat(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
-static int process_header(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_info(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_inhibit_header(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_load_txdir(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_modem(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
-static int process_proto(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_queue_filepath(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_reset(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_rx_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
@@ -148,6 +145,12 @@ static int process_unproto_markers(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_warn_user(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 static int process_xmit_repeat(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
 
+#if 0 // Unsued fuctions
+static int process_callto(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+static int process_header(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+static int process_path(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+static int process_proto(ScriptParsing *sp, SCRIPT_COMMANDS *sc);
+#endif
 
 typedef struct _call_script {
 	char filename[FL_PATH_MAX];
@@ -182,8 +185,8 @@ static COMMAND_FUNCS callback_functions[] = {
 	{ (char *) CMD_CLEAR_TXQ,       process_clear_tx_queue },
 	{ (char *) CMD_COMP,            process_compression },
 	{ (char *) CMD_EVENT_FOREVER,   process_event_forever },
-	{ (char *) CMD_EVENT_TIMES,     process_event_times },
 	{ (char *) CMD_EVENT_TIMED,     process_event_timed },
+	{ (char *) CMD_EVENT_TIMES,     process_event_times },
 	{ (char *) CMD_EVENT_TYPE,      process_event_type },
 	{ (char *) CMD_EVENT,           process_event },
 	{ (char *) CMD_FILE,            process_file },
@@ -207,12 +210,70 @@ static COMMAND_FUNCS callback_functions[] = {
 	{ (char *) CMD_XMIT_REPEAT,     process_xmit_repeat },
 #if 0 // Currently not used at this level
 	{ (char *) CMD_CALLTO,          process_callto }, // Handled in the GUI code
-	{ (char *) CMD_HEADER,          process_header }, // Handed in HEADER MODEM COMMAND
+	{ (char *) CMD_HEADER,          process_header }, // Handled in HEADER MODEM COMMAND
 	{ (char *) CMD_PATH,            process_path },   // Handled internally
 	{ (char *) CMD_PROTO,           process_proto },  // Handled in the GUI code
 #endif
 	{ (char *) 0, 0}
 };
+
+#if 0 // Unused Functions, Do not remove code.
+/** ********************************************************
+ * \brief Enable/Disable protocol use (AMP-2).
+ * \param sp Access to ScritpParsing members.
+ * \param sc Access to SCRIPT_COMMANDS structure variables.
+ * \return 0 (no error) Other (error)
+ ***********************************************************/
+static int process_proto(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
+{
+	bool flag = sp->proto(); // Logic inverted for syntax reasons.
+
+	if(flag) {
+		btn_enable_tx_unproto->value(false);
+		progStatus.enable_tx_unproto = false;
+	} else {
+		btn_enable_tx_unproto->value(true);
+		progStatus.enable_tx_unproto = true;
+	}
+
+	return 0;
+}
+
+/** ********************************************************
+ * \brief Not used.
+ * \param sp Access to ScritpParsing members.
+ * \param sc Access to SCRIPT_COMMANDS structure variables.
+ * \return 0 (no error) Other (error)
+ ***********************************************************/
+static int process_header(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
+{
+	btn_enable_header_modem->value(sp->header_modem_enable());
+	progStatus.use_header_modem = sp->header_modem_enable();
+
+	return 0;
+}
+
+/** ********************************************************
+ * \brief Assign Call to.
+ * \param sp Access to ScritpParsing members.
+ * \param sc Access to SCRIPT_COMMANDS structure variables.
+ * \return 0 (no error) Other (error)
+ * \par Note:
+ * This string storage can be assigned to anything. User
+ * should follow the limitations imposed by the rules
+ * of the host country.
+ ***********************************************************/
+static int process_callto(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
+{
+	return 0; // Leave this in place. cAmp panel data update conflict.
+
+	if(!sp->call_to().empty()) {
+		txt_tx_send_to->value(sp->call_to().c_str());
+	}
+
+	return 0;
+}
+#endif // #if 0 Unused Functions, Do not remove code.
 
 /** ********************************************************
  * \brief Trim leading and trailing spaces from string.
@@ -220,11 +281,11 @@ static COMMAND_FUNCS callback_functions[] = {
  * \return s modified string.
  ***********************************************************/
 static inline std::string &trim(std::string &s) {
-	long count = s.size();
 	char *buffer = (char *)0;
-	char *src = (char *)0;
-	char *dst = (char *)0;
-	char *end = (char *)0;
+	char *dst    = (char *)0;
+	char *end    = (char *)0;
+	char *src    = (char *)0;
+	long count   = s.size();
 
 	buffer = new char[count + 1];
 	if(!buffer) return s;
@@ -283,9 +344,9 @@ static int process_base(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
 	return 0; // Leave this in place. cAmp panel data update conflict.
 
+	char *base_string = (char *)0;
 	int base = sp->base();
 	int index = 0;
-	char *base_string = (char *)0;
 
 	switch(base) {
 		case 64:
@@ -350,27 +411,6 @@ static int process_callfrom(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	if(!sp->call_from().empty()) {
 		txt_tx_mycall->value(sp->call_from().c_str());
 		progStatus.my_call.assign(sp->call_from());
-	}
-
-	return 0;
-}
-
-/** ********************************************************
- * \brief Assign Call to.
- * \param sp Access to ScritpParsing members.
- * \param sc Access to SCRIPT_COMMANDS structure variables.
- * \return 0 (no error) Other (error)
- * \par Note:
- * This string storage can be assigned to anything. User
- * should follow the limitations imposed by the rules
- * of the host country.
- ***********************************************************/
-static int process_callto(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
-{
-	return 0; // Leave this in place. cAmp panel data update conflict.
-
-	if(!sp->call_to().empty()) {
-		txt_tx_send_to->value(sp->call_to().c_str());
 	}
 
 	return 0;
@@ -650,20 +690,6 @@ static int process_hamcast(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 }
 
 /** ********************************************************
- * \brief Not used.
- * \param sp Access to ScritpParsing members.
- * \param sc Access to SCRIPT_COMMANDS structure variables.
- * \return 0 (no error) Other (error)
- ***********************************************************/
-static int process_header(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
-{
-	btn_enable_header_modem->value(sp->header_modem_enable());
-	progStatus.use_header_modem = sp->header_modem_enable();
-
-	return 0;
-}
-
-/** ********************************************************
  * \brief Enable/Disable Header modem and select the header
  * modem used for transmitting.
  * \param sp Access to ScritpParsing members.
@@ -774,27 +800,6 @@ static int process_modem(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 		cbo_modes->put_value(sp->modem().c_str());
 		progStatus.selected_mode = cbo_modes->index();
 		cbo_modes->do_callback();
-	}
-
-	return 0;
-}
-
-/** ********************************************************
- * \brief Enable/Disable protocol use (AMP-2).
- * \param sp Access to ScritpParsing members.
- * \param sc Access to SCRIPT_COMMANDS structure variables.
- * \return 0 (no error) Other (error)
- ***********************************************************/
-static int process_proto(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
-{
-	bool flag = sp->proto(); // Logic inverted for syntax reasons.
-
-	if(flag) {
-		btn_enable_tx_unproto->value(false);
-		progStatus.enable_tx_unproto = false;
-	} else {
-		btn_enable_tx_unproto->value(true);
-		progStatus.enable_tx_unproto = true;
 	}
 
 	return 0;
@@ -947,9 +952,9 @@ static int process_reset(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 static int process_rx_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
+	int max   = cnt_rx_internval_secs->maximum();
+	int min   = cnt_rx_internval_secs->minimum();
 	int value = sp->rx_interval();
-	int min = cnt_rx_internval_secs->minimum();
-	int max = cnt_rx_internval_secs->maximum();
 
 	if(value > max) value = max;
 	if(value < min) value = min;
@@ -1012,16 +1017,15 @@ static int process_sync_with(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 static int process_tx_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
+	int max   = cnt_tx_internval_mins->maximum();
+	int min   = cnt_tx_internval_mins->minimum();
 	int value = sp->tx_interval();
-	int min = cnt_tx_internval_mins->minimum();
-	int max = cnt_tx_internval_mins->maximum();
 
 	if(value > max) value = max;
 	if(value < min) value = min;
 
 	cnt_tx_internval_mins->value(value);
 	progStatus.tx_interval_minutes = value;
-
 
 	return 0;
 }
@@ -1077,8 +1081,8 @@ static int process_warn_user(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 static int process_xmit_repeat(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-	int min   = cnt_repeat_nbr->minimum();
 	int max   = cnt_repeat_nbr->maximum();
+	int min   = cnt_repeat_nbr->minimum();
 	int value = sp->xmit_repeat();
 
 	if(value > max) value = max;
@@ -1098,11 +1102,11 @@ static int process_xmit_repeat(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 void script_execute(const char *filename, bool queue_flag)
 {
-	int index = 0;
 	int count = 0;
-	static std::string script_filename = "";
-	ScriptParsing *sp = 0;
+	int index = 0;
 	SCRIPT_CODES error = script_no_errors;
+	ScriptParsing *sp = 0;
+	static std::string script_filename = "";
 
 	if(!filename) {
 		LOG_INFO("Script file name (path) null pointer");
@@ -1136,9 +1140,9 @@ void script_execute(const char *filename, bool queue_flag)
 		count++;
 	}
 
-	// Currently each command requires code to make use of these "valid parameters"
-	sp->assign_valid_parameters("MODEM", (const char **) s_modes, count);
-	sp->assign_valid_parameters("HEADER MODEM", (const char **) s_modes, count);
+	// Assign "validation parameters" to the following functions.
+	sp->assign_valid_parameters("MODEM",         (const char **) s_modes, count);
+	sp->assign_valid_parameters("HEADER MODEM",  (const char **) s_modes, count);
 	sp->assign_valid_parameters("HAMCAST MODEM", (const char **) s_modes, count);
 
 	// Limit command set depending on queue_flag
@@ -1149,7 +1153,7 @@ void script_execute(const char *filename, bool queue_flag)
 		sp->file_type(SCRIPT_COMMAND);
 	}
 
-	//LOG_INFO("Executing Script:%s", script_filename.c_str());
+	// LOG_INFO("Executing Script:%s", script_filename.c_str());
 
 	error = sp->parse_commands((char *) script_filename.c_str());
 
@@ -1171,9 +1175,9 @@ void cb_scripts(bool reset_path = false)
 {
 	pthread_mutex_lock(&mutex_script_io);
 
-	std::string new_path = "";
-	static char script_filename[FL_PATH_MAX + 1];
 	static bool first_time = true;
+	static char script_filename[FL_PATH_MAX + 1];
+	std::string new_path = "";
 
 	if(reset_path || first_time) {
 		memset(script_filename, 0, sizeof(script_filename));
@@ -1191,7 +1195,8 @@ void cb_scripts(bool reset_path = false)
 		first_time = false;
 	}
 
-	const char *p = FSEL::select((char *)"Script Files", (char *)"*.txt", script_filename);
+	const char *p = FSEL::select((char *)"Script Files", (char *)"*.txt", \
+		script_filename);
 
 	if(p) {
 		memset(script_filename, 0, sizeof(script_filename));

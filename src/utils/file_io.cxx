@@ -81,16 +81,16 @@
 
 using namespace std;
 
-Socket *tcpip = (Socket *)0;
+Socket *tcpip      = (Socket *)0;
 Address *localaddr = (Address *)0;
-bool bConnected = false;
+bool bConnected    = false;
 
-const char *b64_start = "[b64:start]";
-const char *b64_end = "\n[b64:end]";
+const char *b64_start  = "[b64:start]";
+const char *b64_end    = "\n[b64:end]";
 const char *b128_start = "[b128:start]";
-const char *b128_end = "\n[b128:end]";
+const char *b128_end   = "\n[b128:end]";
 const char *b256_start = "[b256:start]";
-const char *b256_end = "\n[b256:end]";
+const char *b256_end   = "\n[b256:end]";
 
 string errtext;
 
@@ -99,17 +99,20 @@ base128 b128;
 base256 b256;
 
 string inptext = "";
-string wtext = "";
-string check = "";
-string wrap_outfilename = "";
-string wrap_inpfilename = "";
+string wtext   = "";
+string check   = "";
+string wrap_outfilename  = "";
+string wrap_inpfilename  = "";
 string wrap_inpshortname = "";
 string wrap_outshortname = "";
-string wrap_foldername = "";
+string wrap_foldername   = "";
 
-pthread_mutex_t mutex_comp_data = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_comp_data   = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_decomp_data = PTHREAD_MUTEX_INITIALIZER;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void base64encode(string &inptext)
 {
 	string outtext;
@@ -121,6 +124,9 @@ static void base64encode(string &inptext)
 	inptext.append(b64_end);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void base128encode(string &inptext)
 {
 	string outtext;
@@ -132,6 +138,9 @@ static void base128encode(string &inptext)
 	inptext.append(b128_end);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void base256encode(string &inptext)
 {
 	string outtext;
@@ -143,6 +152,11 @@ static void base256encode(string &inptext)
 	inptext.append(b256_end);
 }
 
+
+#if 0  // Unused function(s)
+/** ********************************************************
+ *
+ ***********************************************************/
 static void convert2crlf(string &s)
 {
 	size_t p = s.find('\n', 0);
@@ -153,6 +167,9 @@ static void convert2crlf(string &s)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static bool convert2lf(string &s)
 {
 	bool converted = false;
@@ -165,9 +182,13 @@ static bool convert2lf(string &s)
 	}
 	return converted;
 }
+#endif
 
 #define LZMA_STR "\1LZMA"
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void compress_maybe(string& input, int encode_with, bool try_compress)
 {
 	// allocate 110% of the original size for the output buffer
@@ -229,6 +250,9 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
 	return;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void decompress_maybe(string& input)
 {
 	pthread_mutex_lock(&mutex_decomp_data);
@@ -332,6 +356,9 @@ void decompress_maybe(string& input)
 	pthread_mutex_unlock(&mutex_decomp_data);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void connect_to_fldigi(void *)
 {
 	pthread_mutex_lock(&mutex_file_io);
@@ -350,6 +377,9 @@ void connect_to_fldigi(void *)
 	pthread_mutex_unlock(&mutex_file_io);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void send_via_fldigi(string tosend)
 {
 	pthread_mutex_lock(&mutex_file_io);
@@ -376,6 +406,9 @@ void send_via_fldigi(string tosend)
 
 string rx_buff;
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int rx_fldigi(std::string &retbuff)
 {
 	int buff_length = 0;
@@ -405,6 +438,9 @@ int rx_fldigi(std::string &retbuff)
 	return buff_length;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 int rx_fldigi(char *buffer, int limit)
 {
 	int buff_length = 0;
@@ -453,6 +489,9 @@ int not_allowed[256] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1  // 256
 };
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool binary(std::string &s)
 {
 	for (size_t n = 0; n < s.length(); n++) {
@@ -462,6 +501,9 @@ bool binary(std::string &s)
 	return false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool c_binary(int c)
 {
 	if (not_allowed[c & 0xFF])
@@ -470,12 +512,15 @@ bool c_binary(int c)
 		return false;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool isPlainText(std::string &_buffer)
 {
 	int count = 0;
 	int index = 0;
 	int data = 0;
-	
+
 	count = _buffer.size();
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
@@ -486,13 +531,16 @@ bool isPlainText(std::string &_buffer)
 	return true;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 bool isPlainText(char *_buffer, size_t count)
 {
 	size_t index = 0;
 	int data = 0;
-	
+
 	if(!_buffer || count) return false;
-	
+
 	for(index = 0; index < count; index++) {
 		data = _buffer[index];
 		if(c_binary(data) || (data & 0x80)) {

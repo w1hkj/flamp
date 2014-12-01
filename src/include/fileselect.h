@@ -19,11 +19,11 @@ class Fl_File_Chooser;
 
 namespace FSEL {
 
+	const char* dir_select(const char* title, const char* filter, const char* def = 0);
+	const char* saveas(const char* title, const char* filter, const char* def = 0);
+	const char* select(const char* title, const char* filter, const char* def = 0);
 	void create(void);
 	void destroy(void);
-	const char* select(const char* title, const char* filter, const char* def = 0);
-	const char* saveas(const char* title, const char* filter, const char* def = 0);
-	const char* dir_select(const char* title, const char* filter, const char* def = 0);
 
 }
 

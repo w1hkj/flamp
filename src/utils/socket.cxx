@@ -62,6 +62,9 @@ using namespace std;
 //
 
 #if HAVE_GETADDRINFO
+/** ********************************************************
+ *
+ ***********************************************************/
 static void copy_addrinfo(struct addrinfo** info, const struct addrinfo* src)
 {
 	struct addrinfo* p = *info;
@@ -97,6 +100,9 @@ static void copy_addrinfo(struct addrinfo** info, const struct addrinfo* src)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void free_addrinfo(struct addrinfo* ai)
 {
 	for (struct addrinfo *next, *p = ai; p; p = next) {
@@ -109,6 +115,9 @@ static void free_addrinfo(struct addrinfo* ai)
 
 #else
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void copy_charpp(char*** dst, const char* const* src)
 {
 	if (src == NULL) {
@@ -125,6 +134,9 @@ static void copy_charpp(char*** dst, const char* const* src)
 	(*dst)[n] = NULL;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void copy_hostent(struct hostent* dst, const struct hostent* src)
 {
 	if (src->h_name)
@@ -149,6 +161,9 @@ static void copy_hostent(struct hostent* dst, const struct hostent* src)
 		dst->h_addr_list = NULL;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void copy_servent(struct servent* dst, const struct servent* src)
 {
 	if (src->s_name)
@@ -163,6 +178,9 @@ static void copy_servent(struct servent* dst, const struct servent* src)
 		dst->s_proto = NULL;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void free_charpp(char** pp)
 {
 	if (!pp)
@@ -172,6 +190,9 @@ static void free_charpp(char** pp)
 	delete [] pp;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void free_hostent(struct hostent* hp)
 {
 	free(const_cast<char*>(hp->h_name));
@@ -183,6 +204,9 @@ static void free_hostent(struct hostent* hp)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 static void free_servent(struct servent* sp)
 {
 	free(const_cast<char*>(sp->s_name));
@@ -196,6 +220,9 @@ static void free_servent(struct servent* sp)
 // Address class
 //
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Address::Address(const char* host, int port, const char* proto_name)
 : node(host), copied(false)
 {
@@ -216,6 +243,9 @@ Address::Address(const char* host, int port, const char* proto_name)
 	lookup(proto_name);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Address::Address(const char* host, const char* port_name, const char* proto_name)
 : node(host), service(port_name), copied(false)
 {
@@ -229,6 +259,9 @@ Address::Address(const char* host, const char* port_name, const char* proto_name
 	lookup(proto_name);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Address::Address(const Address& addr)
 {
 #if HAVE_GETADDRINFO
@@ -241,6 +274,9 @@ Address::Address(const Address& addr)
 	*this = addr;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Address::~Address()
 {
 #if HAVE_GETADDRINFO
@@ -256,6 +292,9 @@ Address::~Address()
 #endif
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Address& Address::operator=(const Address& rhs)
 {
 	if (this == &rhs)
@@ -286,6 +325,9 @@ Address& Address::operator=(const Address& rhs)
 	return *this;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void Address::lookup(const char* proto_name)
 {
 	int proto;
@@ -357,10 +399,10 @@ void Address::lookup(const char* proto_name)
 #endif
 }
 
-///
-/// Returns the number of addresses available for
-/// the node and service
-///
+/** ********************************************************
+ * Returns the number of addresses available for
+ * the node and service
+ ***********************************************************/
 size_t Address::size(void) const
 {
 	size_t n = 0;
@@ -378,10 +420,10 @@ size_t Address::size(void) const
 	return n;
 }
 
-///
-/// Returns an address from the list of those available
-/// for the node and service
-///
+/** ********************************************************
+ * Returns an address from the list of those available
+ * for the node and service
+ ***********************************************************/
 const addr_info_t* Address::get(size_t n) const
 {
 #if HAVE_GETADDRINFO
@@ -410,9 +452,9 @@ const addr_info_t* Address::get(size_t n) const
 #endif
 }
 
-///
-/// Returns the string representation of an address
-///
+/** ********************************************************
+ * Returns the string representation of an address
+ ***********************************************************/
 string Address::get_str(const addr_info_t* addr)
 {
 	if (!addr)
@@ -435,16 +477,12 @@ string Address::get_str(const addr_info_t* addr)
 #endif
 }
 
-//
-// Socket class
-//
-
-/// Constructs a Socket object and associates the address addr with it.
-/// This address will be used by subsequent calls to the bind() or connect()
-/// methods
-///
-/// @param addr An Address object
-///
+/** ********************************************************
+ * Constructs a Socket object and associates the address addr with it.
+ * This address will be used by subsequent calls to the bind() or connect()
+ * methods
+ * @param addr An Address object
+ ***********************************************************/
 Socket::Socket(const Address& addr)
 {
 	buffer = new char[BUFSIZ];
@@ -455,10 +493,10 @@ Socket::Socket(const Address& addr)
 	open(addr);
 }
 
-/// Constructs a Socket object from a file descriptor
-///
-/// @param fd A file descriptor
-///
+/** ********************************************************
+ * Constructs a Socket object from a file descriptor
+ * @param fd A file descriptor
+ ***********************************************************/
 Socket::Socket(int fd)
 : sockfd(fd)
 {
@@ -481,9 +519,9 @@ Socket::Socket(int fd)
 	autoclose = true;
 }
 
-///
-/// Constructs a Socket object by copying another instance
-///
+/** ********************************************************
+ * Constructs a Socket object by copying another instance
+ ***********************************************************/
 Socket::Socket(const Socket& s)
 : sockfd(s.sockfd), address(s.address), anum(s.anum),
 nonblocking(s.nonblocking), autoclose(true)
@@ -494,6 +532,9 @@ nonblocking(s.nonblocking), autoclose(true)
 	s.set_autoclose(false);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Socket::~Socket()
 {
 	delete [] buffer;
@@ -501,6 +542,9 @@ Socket::~Socket()
 		close();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 Socket& Socket::operator=(const Socket& rhs)
 {
 	if (this == &rhs)
@@ -519,14 +563,12 @@ Socket& Socket::operator=(const Socket& rhs)
 	return *this;
 }
 
-///
-/// Associates the Socket with an address
-///
-/// This address will be used by subsequent calls to the bind() or connect
-/// methods.
-///
-/// @params addr An address object
-///
+/** ********************************************************
+ * Associates the Socket with an address
+ * This address will be used by subsequent calls to the bind() or connect
+ * methods.
+ * @params addr An address object
+ ***********************************************************/
 void Socket::open(const Address& addr)
 {
 	address = addr;
@@ -544,21 +586,20 @@ void Socket::open(const Address& addr)
 	set_close_on_exec(true);
 }
 
-///
-/// Shuts down the socket
-///
+/** ********************************************************
+ * Shuts down the socket
+ ***********************************************************/
 void Socket::close(void)
 {
 	::close(sockfd);
 }
 
-///
-/// Waits for the socket file descriptor to become ready for I/O
-///
-/// @params dir Specifies the I/O direction. 0 is input, 1 is output.
-///
-/// @return True if the file descriptor became ready within the timeout
-///         period, false otherwise. @see Socket::set_timeout
+/** ********************************************************
+ * Waits for the socket file descriptor to become ready for I/O
+ * @params dir Specifies the I/O direction. 0 is input, 1 is output.
+ * @return True if the file descriptor became ready within the timeout
+ *         period, false otherwise. @see Socket::set_timeout
+ ***********************************************************/
 bool Socket::wait(int dir)
 {
 	fd_set fdset;
@@ -579,10 +620,10 @@ bool Socket::wait(int dir)
 	return r;
 }
 
-///
-/// Binds the socket to the address associated with the object
-/// @see Socket::open
-///
+/** ********************************************************
+ * Binds the socket to the address associated with the object
+ * @see Socket::open
+ ***********************************************************/
 void Socket::bind(void)
 {
 	int r = 1;
@@ -592,28 +633,24 @@ void Socket::bind(void)
 		throw SocketException(errno, "bind");
 }
 
-///
-/// Calls listen(2) on the socket file desriptor
-///
-/// The socket must already have been bound to an address via a call to the bind
-/// method.
-///
-/// @params backlog The maximum number of pending connections (default SOMAXCONN)
-///
+/** ********************************************************
+ * Calls listen(2) on the socket file desriptor
+ * The socket must already have been bound to an address via a call to the bind
+ * method.
+ * @params backlog The maximum number of pending connections (default SOMAXCONN)
+ ***********************************************************/
 void Socket::listen(int backlog)
 {
 	if (::listen(sockfd, backlog) == -1)
 		throw SocketException(errno, "listen");
 }
 
-///
-/// Accepts a connection
-///
-/// The socket must already have been bound to an address via a call to the bind
-/// method.
-///
-/// @return A Socket instance for the accepted connection
-///
+/** ********************************************************
+ * Accepts a connection
+ * The socket must already have been bound to an address via a call to the bind
+ * method.
+ * @return A Socket instance for the accepted connection
+ ***********************************************************/
 Socket Socket::accept(void)
 {
 	listen();
@@ -631,12 +668,11 @@ Socket Socket::accept(void)
 	return Socket(r);
 }
 
-///
-/// Accepts a single connection and then closes the listening socket
-/// @see Socket::accept
-///
-/// @return A Socket instance for the accepted connection
-///
+/** ********************************************************
+ * Accepts a single connection and then closes the listening socket
+ * @see Socket::accept
+ * @return A Socket instance for the accepted connection
+ ***********************************************************/
 Socket Socket::accept1(void)
 {
 	bind();
@@ -647,9 +683,9 @@ Socket Socket::accept1(void)
 	return s;
 }
 
-///
-/// Connects the socket to the address that is associated with the object
-///
+/** ********************************************************
+ * Connects the socket to the address that is associated with the object
+ ***********************************************************/
 void Socket::connect(void)
 {
 	LOG_DEBUG("Connecting to %s", address.get_str(ainfo).c_str());
@@ -657,11 +693,10 @@ void Socket::connect(void)
 		throw SocketException(errno, "connect");
 }
 
-///
-/// Connects the socket to an address
-///
-/// @param addr The address to connect to
-///
+/** ********************************************************
+ * Connects the socket to an address
+ * @param addr The address to connect to
+ ***********************************************************/
 void Socket::connect(const Address& addr)
 {
 	close();
@@ -669,15 +704,13 @@ void Socket::connect(const Address& addr)
 	connect();
 }
 
-///
-/// Sends a buffer
-///
-/// @param buf
-/// @param len
-///
-/// @return The amount of data that was sent. This may be less than len
-///         if the socket is non-blocking.
-///
+/** ********************************************************
+ * Sends a buffer
+ * @param buf
+ * @param len
+ * @return The amount of data that was sent. This may be less than len
+ *         if the socket is non-blocking.
+ ***********************************************************/
 size_t Socket::send(const void* buf, size_t len)
 {
 	// if we have a nonblocking socket and a nonzero timeout,
@@ -698,27 +731,24 @@ size_t Socket::send(const void* buf, size_t len)
 	return r;
 }
 
-///
-/// Sends a string
-///
-/// @param buf
-///
-/// @return The amount of data that was sent. This may be less than len
-///         if the socket is non-blocking.
-///
+/** ********************************************************
+ * Sends a string
+ * @param buf
+ * @return The amount of data that was sent. This may be less than len
+ *         if the socket is non-blocking.
+ ***********************************************************/
 size_t Socket::send(const string& buf)
 {
 	return send(buf.data(), buf.length());
 }
 
-///
-/// Receives data into a buffer
-///
-/// @arg buf
-/// @arg len The maximum number of bytes to write to buf.
-///
-/// @return The amount of data that was received. This may be less than len
-///         if the socket is non-blocking.
+/** ********************************************************
+ * Receives data into a buffer
+ * @arg buf
+ * @arg len The maximum number of bytes to write to buf.
+ * @return The amount of data that was received. This may be less than len
+ *         if the socket is non-blocking.
+ ***********************************************************/
 size_t Socket::recv(void* buf, size_t len)
 {
 	// if we have a nonblocking socket and a nonzero timeout,
@@ -739,13 +769,11 @@ size_t Socket::recv(void* buf, size_t len)
 	return r;
 }
 
-///
-/// Receives all available data and appends it to a string.
-///
-/// @arg buf
-///
-/// @return The amount of data that was received.
-///
+/** ********************************************************
+ * Receives all available data and appends it to a string.
+ * @arg buf
+ * @return The amount of data that was received.
+ ***********************************************************/
 size_t Socket::recv(string& buf)
 {
 	size_t n = 0;
@@ -759,11 +787,10 @@ size_t Socket::recv(string& buf)
 	return n;
 }
 
-///
-/// Retrieves the socket's receive or send buffer size
-///
-/// @param dir Specifies the I/O direction. 0 is input, 1 is output.
-///
+/** ********************************************************
+ * Retrieves the socket's receive or send buffer size
+ * @param dir Specifies the I/O direction. 0 is input, 1 is output.
+ ***********************************************************/
 int Socket::get_bufsize(int dir)
 {
 	int len;
@@ -772,23 +799,21 @@ int Socket::get_bufsize(int dir)
 	return len;
 }
 
-///
-/// Sets the socket's receive or send buffer size
-///
-/// @param dir Specifies the I/O direction. 0 is input, 1 is output.
-/// @param len Specifies the new buffer size
-///
+/** ********************************************************
+ * Sets the socket's receive or send buffer size
+ * @param dir Specifies the I/O direction. 0 is input, 1 is output.
+ * @param len Specifies the new buffer size
+ ***********************************************************/
 void Socket::set_bufsize(int dir, int len)
 {
 	if (::set_bufsize(sockfd, dir, len) == -1)
 		throw SocketException(errno, "set_bufsize");
 }
 
-///
-/// Sets the socket's blocking mode
-///
-/// @param v If true, the socket is set to non-blocking
-///
+/** ********************************************************
+ * Sets the socket's blocking mode
+ * @param v If true, the socket is set to non-blocking
+ ***********************************************************/
 void Socket::set_nonblocking(bool v)
 {
 	if (set_nonblock(sockfd, v) == -1)
@@ -796,49 +821,49 @@ void Socket::set_nonblocking(bool v)
 	nonblocking = v;
 }
 
-///
-/// Enables the use of Nagle's algorithm for the socket
-///
-/// @param v If true, Nagle's algorithm is disabled.
-///
+/** ********************************************************
+ * Enables the use of Nagle's algorithm for the socket
+ * @param v If true, Nagle's algorithm is disabled.
+ ***********************************************************/
 void Socket::set_nodelay(bool v)
 {
 	if (::set_nodelay(sockfd, v) == -1)
 		throw SocketException(errno, "set_nodelay");
 }
 
-///
-/// Sets the timeout associated with non-blocking operations
-///
-/// @param t
-///
+/** ********************************************************
+ * Sets the timeout associated with non-blocking operations
+ * @param t
+ ***********************************************************/
 void Socket::set_timeout(const struct timeval& t)
 {
 	timeout.tv_sec = t.tv_sec;
 	timeout.tv_usec = t.tv_usec;
 }
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void Socket::set_timeout(double t)
 {
 	timeout.tv_sec = (time_t)floor(t);
 	timeout.tv_usec = (suseconds_t)((t - timeout.tv_sec) * 1e6);
 }
 
-///
-/// Sets the socket's autoclose mode.
-///
-/// If autoclose is disabled, the socket file descriptor will not be closed when
-/// the Socket object is destructed.
-///
-/// @param v If true, the socket will be closed by the destructor
-///
+/** ********************************************************
+ * Sets the socket's autoclose mode.
+ * If autoclose is disabled, the socket file descriptor will not be closed when
+ * the Socket object is destructed.
+ * @param v If true, the socket will be closed by the destructor
+ ***********************************************************/
 void Socket::set_autoclose(bool v) const
 {
 	autoclose = v;
 }
 
-///
-/// Sets the socket's close-on-exec flag
-///
+/** ********************************************************
+ * Sets the socket's close-on-exec flag
+ ***********************************************************/
 void Socket::set_close_on_exec(bool v, int fd)
 {
 	if (fd == -1)
@@ -847,13 +872,11 @@ void Socket::set_close_on_exec(bool v, int fd)
 		throw SocketException(errno, "set_cloexec");
 }
 
-///
-/// Returns the Socket's file descriptor.
-///
-/// The descriptor should only be used for reading and writing.
-///
-/// @return the socket file descriptor
-///
+/** ********************************************************
+ * Returns the Socket's file descriptor.
+ * The descriptor should only be used for reading and writing.
+ * @return the socket file descriptor
+ ***********************************************************/
 int Socket::fd(void)
 {
 	return sockfd;

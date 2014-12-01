@@ -3,7 +3,7 @@
 //
 //  Author(s):
 //	Dave Freese, W1HKJ, Copyright (C) 2010, 2011, 2012, 2013
-//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2014
 //
 // This file is part of FLAMP.
 //
@@ -77,9 +77,9 @@
 
 pthread_mutex_t mutex_tx_data = PTHREAD_MUTEX_INITIALIZER;
 
-bool active_data_io = false;
-bool transmit_queue = false;
-int last_selected_tx_file = 0;
+bool active_data_io         = false;
+bool transmit_queue         = false;
+int last_selected_tx_file   = 0;
 int tx_thread_running_count = 0;
 
 /** ********************************************************
@@ -165,7 +165,6 @@ std::string tx_string(cAmp *tx, std::string t_string)
 
 	return auto_send;
 }
-
 #endif
 
 // Create time table for the various modes
@@ -188,12 +187,12 @@ void * create_tx_table(void *ptr)
 
 	in_use = true;
 
-	int index = 0;
-	int mode = 0;
+	int end_mode   = 0;
+	int index      = 0;
+	int mode       = 0;
 	int start_mode = 0;
-	int end_mode = 0;
 
-	double overhead = 0.0;
+	double overhead     = 0.0;
 	double time_seconds = 0;
 
 	char filename[256];
@@ -366,17 +365,17 @@ void * create_tx_table(void *ptr)
  ***********************************************************/
 double measure_tx_time(int character_to_send, double *over_head)
 {
-	double duration = 0;
-	unsigned int s = 0;
-	unsigned int sr = 0;
-	unsigned int oh = 0;
+	double duration  = 0;
 	double retun_val = 0.0;
+	unsigned int oh  = 0;
+	unsigned int s   = 0;
+	unsigned int sr  = 0;
 
 	std::string tx_duration;
 
 	set_xmlrpc_timeout(8.0);
 	tx_duration = get_char_timing(character_to_send);
-	// tx_duration = get_tx_char_n_timing(character_to_send, 0);
+
 	set_xmlrpc_timeout_default();
 
 	if(tx_duration.size() < 1) {
@@ -405,6 +404,7 @@ double measure_tx_time(int character_to_send, double *over_head)
 
 	return duration;
 }
+
 /** ********************************************************
  *
  ***********************************************************/
@@ -523,14 +523,14 @@ void * transmit_serial_current(void *ptr)
 	float tx_time = 0;
 
 	cAmp *tx = 0;
-	string temp = "";
-	string temp2 = "";
 	string autosend = "";
-	string send_to = "";
+	string send_to  = "";
+	string temp     = "";
+	string temp2    = "";
 
-	temp.clear();
 	autosend.clear();
 	send_to.clear();
+	temp.clear();
 
 	active_data_io = true;
 
@@ -608,12 +608,13 @@ void * transmit_serial_queued(void *ptr)
 		send_new_modem(thread->modem.c_str());
 
 	cAmp *tx;
-	string temp = "";
-	string autosend = "";
-	string terminator = "";
+	string autosend    = "";
 	string null_string = "";
-	temp.clear();
+	string temp        = "";
+	string terminator  = "";
+
 	autosend.clear();
+	temp.clear();
 
 	unsigned int count = (unsigned int) tx_amp.size();
 
@@ -693,17 +694,17 @@ void turn_rsid_off()
  ***********************************************************/
 void * transmit_serial_relay(void *ptr)
 {
-	void * ret = 0;
-	TX_FLDIGI_THREAD *t_ptr = (TX_FLDIGI_THREAD *) ptr;
 	float tx_time = 0;
 	RELAY_DATA *relay_data = (RELAY_DATA *) 0;
 	static bool in_use = false;
+	TX_FLDIGI_THREAD *t_ptr = (TX_FLDIGI_THREAD *) ptr;
+	void * ret = 0;
 
 	cAmp *tx = 0;
-	string temp = "";
-	string temp2 = "";
 	string autosend = "";
-	string send_to = "";
+	string send_to  = "";
+	string temp     = "";
+	string temp2    = "";
 
 	if(in_use) {
 		return run_in_thread_destroy(t_ptr, 3, 0);
@@ -789,16 +790,15 @@ void * transmit_relay_interval(void * ptr)
 	}
 
 	cAmp *tx = (cAmp *)0;
-	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
-	RELAY_DATA *relay_data = (RELAY_DATA *) 0;
 	int vector_data_count = 0;
 	int vector_header_count = 0;
-	std::string temp;
-	std::string tail;
+	RELAY_DATA *relay_data = (RELAY_DATA *) 0;
 	std::string send_to = "";
+	std::string tail;
+	std::string temp;
 	std::vector<std::string> vector_data;
 	std::vector<std::string> vector_header_data;
-
+	TX_FLDIGI_THREAD *thread_ptr = (TX_FLDIGI_THREAD *)ptr;
 
 	pthread_mutex_lock(&thread_ptr->mutex);
 	thread_ptr->thread_running = 1;
@@ -972,6 +972,7 @@ void * transmit_interval(void * ptr)
 			delete tx;
 			return run_in_thread_destroy(thread_ptr, 3, &in_use);
 		}
+
 		temp.assign(tx->xmt_buffer());
 		compress_maybe(temp, tx->tx_base_conv_index(), (tx->compress() | tx->forced_compress()));//true);
 
@@ -1087,7 +1088,8 @@ void * transmit_interval(void * ptr)
 /** ********************************************************
  *
  ***********************************************************/
-bool send_vector_to_fldigi(std::string modem, std::string &tail, std::vector<std::string> vector_data, int mode, cAmp *tx)
+bool send_vector_to_fldigi(std::string modem, std::string &tail,
+	std::vector<std::string> vector_data, int mode, cAmp *tx)
 {
 	std::string temp;
 	std::string send;
@@ -1234,7 +1236,8 @@ bool send_vector_to_fldigi(std::string modem, std::string &tail, std::vector<std
 /** ********************************************************
  *
  ***********************************************************/
-bool check_block_tx_time(std::vector<std::string> &header, std::vector<std::string> &data, TX_FLDIGI_THREAD *thread_ptr)
+bool check_block_tx_time(std::vector<std::string> &header,
+	std::vector<std::string> &data, TX_FLDIGI_THREAD *thread_ptr)
 {
 	int index = 0;
 	int count = 0;
@@ -1366,7 +1369,8 @@ void wait_seconds(int seconds)
 /** ********************************************************
  *
  ***********************************************************/
-TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode, bool queued, bool event_driven, RELAY_DATA *relay_data)
+TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode,
+	bool queued, bool event_driven, RELAY_DATA *relay_data)
 {
 	TX_FLDIGI_THREAD *tx_thread = (TX_FLDIGI_THREAD *)0;
 	int count = 0;
@@ -1430,7 +1434,8 @@ TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode, bool queued, b
 /** ********************************************************
  *
  ***********************************************************/
-void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level, bool *in_use_flag)
+void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level,
+	bool *in_use_flag)
 {
 	if(in_use_flag)
 		*in_use_flag = false;

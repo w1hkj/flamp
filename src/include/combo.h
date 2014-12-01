@@ -78,22 +78,22 @@ class Fl_ComboBox : public Fl_Group  {
 	friend class Fl_PopBrowser;
 
 protected:
+	datambr			**datalist;
 	Fl_Button		*Btn;
 	Fl_Input		*Output;
 	Fl_PopBrowser	*Brwsr;
-	datambr			**datalist;
 	int				listsize;
-	int				maxsize;
 	int				listtype;
+	int				maxsize;
 	int				numrows_;
 
 private:
-	int				width;
-	int				height;
-	void			*retdata;
-	int				idx;
-	retvals			R;
 	Fl_Color _color;
+	int				height;
+	int				idx;
+	int				width;
+	retvals			R;
+	void			*retdata;
 
 public:
 
@@ -101,25 +101,25 @@ public:
 	~Fl_ComboBox();
 
 	const char *value ();
-	void value (const char *);
-	void put_value( const char *);
 	void fl_popbrwsr(Fl_Widget *);
+	void put_value( const char *);
+	void value (const char *);
 
-	void type (int = 0);
+	int  index ();
+	int  lsize() { return listsize; }
+	int  numrows() { return numrows_; }
+	void *data ();
 	void add (const char *s, void *d = 0);
 	void clear ();
-	void sort ();
-	int  index ();
+	void color (Fl_Color c);
 	void index (int i);
-	void *data ();
+	void numrows(int n) { numrows_ = n; }
+	void readonly();
+	void sort ();
+	void textcolor (Fl_Color c);
 	void textfont (int);
 	void textsize (uchar);
-	void textcolor (Fl_Color c);
-	void color (Fl_Color c);
-	void readonly();
-	int  numrows() { return numrows_; }
-	void numrows(int n) { numrows_ = n; }
-	int  lsize() { return listsize; }
+	void type (int = 0);
 };
 
 #endif

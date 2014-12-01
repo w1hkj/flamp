@@ -31,13 +31,14 @@ protected:
 	cAmp *amp;                 //!< @brief Current selected receive cAmp pointer
 	std::vector<cAmp *> amp_array;
 	pthread_mutex_t mutex_amp; //!< @brief Mutex locks for pointer cAmp pointer access
-	bool locked;
+	int locked;
 
 public:
 	cAmpGlobal();
 	~cAmpGlobal();
 
-	bool is_locked(void) { return locked; }
+	bool is_locked(void) { if(locked) return true; return false; }
+	int lock_count(void) { return locked; }
 
 	//! Access method for transmit cAmp pointer
 	//! @param none (void)
@@ -67,12 +68,12 @@ public:
 	size_t count(void) { return size(); }
 
 	void lock() {
-		locked = true;
+		locked++;
 		pthread_mutex_lock(&mutex_amp);
 	}
 
 	void unlock() {
-		locked = false;
+		locked--;
 		pthread_mutex_unlock(&mutex_amp);
 	}
 };

@@ -73,12 +73,12 @@ public:
 	Fl_Calendar (int x, int y, int w = (7*20), int h = (8*20),
 				 const char *l = 0);
 
-	void today ();
-	void previous_month ();
 	void next_month ();
-	void previous_year ();
 	void next_year ();
+	void previous_month ();
+	void previous_year ();
 	void setDate (int, int, int);
+	void today ();
 
 	void update ();
 	void csize (int cx, int cy, int cw, int ch);
@@ -87,11 +87,11 @@ public:
 protected:
 	//  Fl_Button * weekdays[7];
 	//  Fl_Button * caption;
-	Fl_Box * weekdays[7];
 	Fl_Box * caption;
+	Fl_Box * weekdays[7];
 	Fl_Button * nxt_month;
-	Fl_Button * prv_month;
 	Fl_Button * nxt_year;
+	Fl_Button * prv_month;
 	Fl_Button * prv_year;
 };
 
@@ -107,13 +107,13 @@ protected:
 public:
 	Fl_PopCal (int x, int y, int w, int h, Fl_Input2 *inp = 0);
 	~Fl_PopCal ();
-	void popposition (int, int);
-	void popshow ();
-	void pophide ();
+	int  handle (int);
+	int  popcalfmt ();
 	void popcal_cb_i (Fl_Widget *, long);
 	void popcalfmt (int);
-	int  popcalfmt ();
-	int  handle (int);
+	void pophide ();
+	void popposition (int, int);
+	void popshow ();
 	void setDate (int, int, int);
 };
 
@@ -133,17 +133,17 @@ protected:
 public:
 	Fl_DateInput (int x, int y, int w, int h, const char * = 0);
 
-	void format (int);
 	const char *value ();
-	void value (const char *);
-	void textfont (int);
-	void textsize (int);
-	void labelfont (int);
-	void labelsize (int);
-	void labelcolor (int);
 	void align (Fl_Align);
 	void fl_popcal();
+	void format (int);
+	void labelcolor (int);
+	void labelfont (int);
+	void labelsize (int);
 	void take_focus();
+	void textfont (int);
+	void textsize (int);
+	void value (const char *);
 
 };
 

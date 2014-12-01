@@ -69,28 +69,28 @@ public:
 	Date();
 	Date( int m, int d, int y );
 
-	void setDate( int, int, int );      // set the date
+	int Day();
+	int Month();
+	int Year();
+	void Day( int );
+	void Month( int );
 	void setDate( Date & );
+	void setDate( int, int, int );      // set the date
 	void setFormat (int);
 	void today();                       // set date to the present day
 	void Year( int );
-	int Year();
-	void Month( int );
-	int Month();
-	void Day( int );
-	int Day();
 
-	void previous_month ();
 	void next_month ();
-	void previous_year ();
 	void next_year ();
+	void previous_month ();
+	void previous_year ();
 
 	bool endOfMonth( int );
 
-	bool leapYear (int);
-	bool leapYear () { return leapYear (year); }
-	bool isleapyear (int year) { return leapYear (year); }
 	bool isleapyear () { return isleapyear (year); }
+	bool isleapyear (int year) { return leapYear (year); }
+	bool leapYear () { return leapYear (year); }
+	bool leapYear (int);
 
 	int daysinmonth (int, int);
 	int daysinmonth ()

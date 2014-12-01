@@ -32,14 +32,15 @@ using namespace std;
 class base256 {
 #define LINELEN 64
 private:
-	string output;
-	size_t iolen;
-	size_t iocp;
 	bool ateof;
 	int linelength;
-	void init();
-	void escape(string &, bool encode = true);
+	size_t iocp;
+	size_t iolen;
+	string output;
+
 	void addlf(string &);
+	void escape(string &, bool encode = true);
+	void init();
 	void remlf(string &);
 public:
 	base256() { init(); };

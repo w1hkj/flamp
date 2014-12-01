@@ -91,11 +91,11 @@ bool tx_ztimer_flag = false;
  * \return s modified string.
  ***********************************************************/
 static inline std::string &trim(std::string &s) {
-	long count = s.size();
 	char *buffer = (char *)0;
-	char *src = (char *)0;
-	char *dst = (char *)0;
-	char *end = (char *)0;
+	char *dst    = (char *)0;
+	char *end    = (char *)0;
+	char *src    = (char *)0;
+	long count   = s.size();
 
 	buffer = new char[count + 1];
 	if(!buffer) return s;
@@ -128,6 +128,7 @@ static inline std::string &trim(std::string &s) {
 
 	return s;
 }
+
 /** ********************************************************
  *
  ***********************************************************/
@@ -137,7 +138,6 @@ void turn_off_events(void *ptr)
 	do_events_flag = 0;
 	cb_do_events((Fl_Light_Button *)0, (void*)0);
 }
-
 
 /** ********************************************************
  * \brief Stop currently running events.
@@ -159,21 +159,21 @@ void stop_events(void)
  ***********************************************************/
 time_t parse_repeat_times(bool delete_flag, unsigned int zt)
 {
-	char ttime[10];
-	char etime[10];
 	bool local_flag = false;
+	char etime[10];
+	char ttime[10];
 
-	time_t time_end     = 0;
-	time_t time_start   = 0;
-	time_t time_seconds = 0;
 	time_t diff         = 0;
-	time_t e_h          = 0;
-	time_t e_m          = 0;
-	time_t s_h          = 0;
-	time_t s_m          = 0;
 	time_t diff_hs      = 0;
 	time_t diff_ms      = 0;
+	time_t e_h          = 0;
+	time_t e_m          = 0;
 	time_t hm_zt        = 0;
+	time_t s_h          = 0;
+	time_t s_m          = 0;
+	time_t time_end     = 0;
+	time_t time_seconds = 0;
+	time_t time_start   = 0;
 
 	snprintf(ttime, sizeof(ttime), "%06d", zt);
 
@@ -588,22 +588,22 @@ void ztimer(void* first_call)
 					if (flag)
 						Fl::awake(transmit_queue_main_thread, (void *)0);
 					break;
-					
+
 				case 7 : // One time scheduled
 					flag = parse_repeat_times(true, ztime, progStatus.repeat_every);
 					if (flag)
 						Fl::awake(transmit_queue_main_thread, (void *)0);
 					break;
-					
+
 				default : // do nothing
 					break;
 			}
 		} else if(progStatus.repeat_at_times && (progStatus.repeat_every == 8)) {
-			
+
 			ztime_current = time_check();
-			
+
 			ztime_end = parse_repeat_times(false, ztime, progStatus.repeat_every);
-			
+
 			if(ztime_end == 0) {
 				continuous_exception = false;
 				event_bail_flag = true;
@@ -611,7 +611,7 @@ void ztimer(void* first_call)
 				continuous_exception = true;
 				event_bail_flag = false;
 			}
-			
+
 			if(continuous_exception) {
 				try {
 					Fl::awake(transmit_queue_main_thread, (void *)0);

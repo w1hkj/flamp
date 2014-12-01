@@ -39,11 +39,17 @@ const char * searchTags[] = {
 	(char *)0
 };
 
+/** ********************************************************
+ *
+ ***********************************************************/
 TagSearch::TagSearch()
 {
 
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 TagSearch::TagSearch(int (*_data_stream)(void *), int (*_process_que)(void *))
 {
 	search_tag_count = (sizeof(searchTags)/sizeof(char *)) - 1;
@@ -51,11 +57,17 @@ TagSearch::TagSearch(int (*_data_stream)(void *), int (*_process_que)(void *))
 	setUp(18, _process_que, _data_stream, tag_search_parser);
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 TagSearch::~TagSearch()
 {
 	delete [] patternMatchList;
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void TagSearch::stringMatchingList(const char *mList[], int mlCount)
 {
 	int size = 0;
@@ -89,6 +101,9 @@ void TagSearch::stringMatchingList(const char *mList[], int mlCount)
 	}
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
 void * tag_search_parser(void *ptr)
 {
 	TagSearch *ts_ptr = (TagSearch *)ptr;
@@ -167,24 +182,24 @@ void * tag_search_parser(void *ptr)
 
 				if(matchTo != match)
 					continue;
-				
+
 				read_count = 0;
-				
+
 				if(ts_ptr->inhibitDataOut == CQUE_RESUME) {
 					offset = (ts_ptr->matchFound)((void *)ts_ptr);
 					break;
 				}
 			}
 		}
-		
+
 		if(read_count > 0)
 			ts_ptr->adjustReadQueIndex(read_count);
-		
+
 		ts_ptr->milliSleep(50);
-		
+
 	}
-	
+
 	ts_ptr->thread_running = 0;
-	
+
 	return ptr;
 }
