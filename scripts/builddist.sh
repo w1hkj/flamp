@@ -1,13 +1,4 @@
-# build file to generate the distribution binary tarball
-myscripts/cleanup
-
 autoreconf
-
-./configure --prefix=/tmp/flamp-build --enable-static
-make install-strip
-tar czf flamp-$1.bin.tgz -C /tmp/flamp-build .
-
-make clean
 
 ./configure \
   $PKGCFG \
@@ -24,7 +15,6 @@ mv src/*setup*exe .
 
 make clean
 
-# build the distribution tarball
 ./configure
 make distcheck
 make clean
