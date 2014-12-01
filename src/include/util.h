@@ -205,6 +205,10 @@ extern void strip_leading_zeros(std::string &);
 extern void strip_lfs(std::string &);
 extern std::string wordwrap(std::string &s, int cnt);
 
+#ifndef HAVE_STRNLEN
+extern int strnlen (const char *c, int limit);
+#endif
+
 #endif /* UTIL_H */
 
 /*

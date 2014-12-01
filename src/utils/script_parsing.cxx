@@ -121,6 +121,8 @@
  if executed.
  *******************************************************************/
 
+#include "config.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -196,18 +198,6 @@ static const SCRIPT_COMMANDS default_script_command_table[] = {
 	{ CMD_WARN_USER,       SCRIPT_COMMAND,                 0,  1, {0}, { p_string },                 0, 0, 0, 0 },
 	{ CMD_XMIT_REPEAT,     SCRIPT_COMMAND,                 0,  1, {0}, { p_unsigned_int },           0, 0, 0, 0 }
 };
-
-#ifdef __WIN32__
-inline int strnlen(char *cPtr, int limit)
-{
-	int count = 0;
-
-	if(!cPtr || limit < 1) return 0;
-
-	while((limit-- > 0) && *cPtr++) count++;
-	return count;
-}
-#endif
 
 /** **************************************************************
  * \brief Assign a list of valid parameters for verification checks.

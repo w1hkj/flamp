@@ -327,4 +327,14 @@ std::string wordwrap(std::string &s, int cnt)
 	return nustr;
 }
 
+#ifndef HAVE_STRNLEN
 
+int strnlen(const char *cPtr, int limit)
+{
+	int count = 0;
+	if(!cPtr || limit < 1) return 0;
+	while((limit-- > 0) && *cPtr++) count++;
+	return count;
+}
+
+#endif

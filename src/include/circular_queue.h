@@ -30,16 +30,14 @@
 #include <cstring>
 #include <time.h>
 
+#include "util.h"
+
 #define CQUE_HOLD   1
 #define CQUE_RESUME 0
 #define CQUE_SLEEP_TIME 10
 
 #define TIME_SET 1
 #define TIME_COUNT 2
-
-#ifndef HAVE_STRNLEN
-#define strnlen(a,b) (strlen(a) > (b) ? (b) : strlen(a))
-#endif
 
 class CircQueException : public std::exception
 {
