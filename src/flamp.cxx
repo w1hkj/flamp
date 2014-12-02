@@ -2767,7 +2767,7 @@ void open_url(const char* url)
  ***********************************************************/
 void show_help()
 {
-	open_url("http://www.w1hkj.com/flamp2.1-help/index.html");
+	open_url("http://www.w1hkj.com/flamp-help/index.html");
 }
 
 /** ********************************************************
