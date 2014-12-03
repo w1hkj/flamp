@@ -97,7 +97,7 @@ extern void	update_rx_missing_blocks(void);
 extern void abort_and_id(void);
 extern void abort_request(void);
 extern void activate_button(void *ptr);
-extern void addfile(std::string, void *, bool, char *);
+extern void addfile(std::string, void *, bool, char *, char *);
 extern void amp_mark_all_for_update(void);
 extern void amp_update_all(void);
 extern void amp_update(cAmp *amp);

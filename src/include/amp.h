@@ -239,13 +239,12 @@ public:
 	void xmt_full_path_fname(string fname);
 	std::string xmt_string(bool use_locks);
 
-	std::string xmt_descrip(void);
-
 	int xmt_vector_string(bool header_modem, bool unproto_markers);
 	std::vector<std::string> &xmt_vector_header(void);
 	std::vector<std::string> &xmt_vector_data(void);
 
 	void xmt_descrip(std::string desc);
+	std::string xmt_descrip(void);
 
 	void xmt_tosend_clear(void);
 	void xmt_tosend(std::string str) ;

@@ -1974,8 +1974,10 @@ bool cAmp::xmt_file_modified(void)
 	struct stat cur_stat;
 	if(xmtfilename_fullpath.size() > 0) {
 		stat(xmtfilename_fullpath.c_str(), &cur_stat);
-		if(cur_stat.st_mtime == tx_statbuf.st_mtime)
+		if(cur_stat.st_mtime == tx_statbuf.st_mtime) {
+			unlock();
 			return false;
+		}
 	}
 	unlock();
 	return true;
