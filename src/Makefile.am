@@ -44,18 +44,18 @@ CLEAN_LOCAL =
 if MINGW32
 if HAVE_WINDRES
 .rc.o:
-	$(WINDRES) -I$(srcdir)/include -I$(srcdir)/../data/win32 $< -O coff $@
+	$(WINDRES) -Iinclude -I../data/win32 $< -O coff $@
 endif
 endif
 
 install-data-local:
-	if test -f $(srcdir)/../data/flamp.xpm; then \
+	if test -f ../data/flamp.xpm; then \
 	    $(mkinstalldirs) $(DESTDIR)/$(datadir)/pixmaps; \
-	    $(INSTALL_DATA) $(srcdir)/../data/flamp.xpm $(DESTDIR)/$(datadir)/pixmaps; \
+	    $(INSTALL_DATA) ../data/flamp.xpm $(DESTDIR)/$(datadir)/pixmaps; \
 	fi
-	if test -f $(srcdir)/../data/flamp.desktop; then \
+	if test -f ../data/flamp.desktop; then \
 	    $(mkinstalldirs) $(DESTDIR)/$(datadir)/applications; \
-	    $(INSTALL_DATA) $(srcdir)/../data/flamp.desktop $(DESTDIR)/$(datadir)/applications; \
+	    $(INSTALL_DATA) ../data/flamp.desktop $(DESTDIR)/$(datadir)/applications; \
 	fi
 
 uninstall-local:
@@ -66,7 +66,7 @@ uninstall-local:
 
 if HAVE_FLUID
 flgen: $(FL_SRC)
-	(cd $(srcdir)/include; \
+	(cd include; \
 	for f in $(FL_SRC); do \
 	    c=$${f%.fl}.cxx; \
 		h=$${f%.fl}.h; \
@@ -82,13 +82,13 @@ APPBUNDLE_NOLIBS=$(APPBUNDLE)-nolibs
 
 if HAVE_NSIS
 nsisinst: $(bin_PROGRAMS)
-	sh $(srcdir)/../scripts/mknsisinst.sh "$(srcdir)/../data" .
+	sh ../scripts/mknsisinst.sh "../data" .
     CLEANFILES += $(INSTALLER_FILE)
 endif
 
 if DARWIN
 appbundle: $(bin_PROGRAMS)
-	sh $(srcdir)/../scripts/mkappbundle.sh "$(srcdir)/../data" .
+	sh ../scripts/mkappbundle.sh "../data" .
     CLEAN_LOCAL += $(APPBUNDLE_NOLIBS) $(APPBUNDLE) $(APPBUNDLE)*.dmg
 endif
 
@@ -97,177 +97,177 @@ clean-local:
 
 # Sources that we build. It is OK to have headers here.
 flamp_SOURCES += \
-	$(srcdir)/flamp.cxx \
-	$(srcdir)/flamp_dialog.cxx \
-	$(srcdir)/lzma/Alloc.h \
-	$(srcdir)/lzma/Alloc.c \
-	$(srcdir)/lzma/LzFind.c \
-	$(srcdir)/lzma/LzFind.h \
-	$(srcdir)/lzma/LzHash.h \
-	$(srcdir)/lzma/LzmaDec.c \
-	$(srcdir)/lzma/LzmaDec.h \
-	$(srcdir)/lzma/LzmaEnc.c \
-	$(srcdir)/lzma/LzmaEnc.h \
-	$(srcdir)/lzma/LzmaLib.c \
-	$(srcdir)/lzma/LzmaLib.h \
-	$(srcdir)/lzma/Types.h \
-	$(srcdir)/utils/amp.cxx \
-	$(srcdir)/utils/base64.cxx \
-	$(srcdir)/utils/base128.cxx \
-	$(srcdir)/utils/base256.cxx \
-	$(srcdir)/utils/debug.cxx \
-	$(srcdir)/utils/socket.cxx \
-	$(srcdir)/utils/status.cxx \
-	$(srcdir)/utils/timeops.cxx \
-	$(srcdir)/utils/util.cxx \
-	$(srcdir)/utils/file_io.cxx \
-	$(srcdir)/utils/xml_io.cxx \
-	$(srcdir)/utils/global_amp.cxx \
-	$(srcdir)/utils/circular_queue.cxx \
-	$(srcdir)/utils/tagSearch.cxx \
-	$(srcdir)/utils/time_table.cxx \
-	$(srcdir)/utils/transmit_camp.cxx \
-	$(srcdir)/utils/ztimer.cxx \
-	$(srcdir)/utils/script_parsing.cxx \
-	$(srcdir)/utils/run_scripts.cxx \
-	$(srcdir)/widgets/calendar.cxx \
-	$(srcdir)/widgets/combo.cxx \
-	$(srcdir)/widgets/date.cxx \
-	$(srcdir)/widgets/fileselect.cxx \
-	$(srcdir)/widgets/flinput2.cxx \
-	$(srcdir)/widgets/flslider2.cxx \
-	$(srcdir)/widgets/Fl_BlockMap.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser.cxx \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
-	$(srcdir)/widgets/FTextView.cxx \
-	$(srcdir)/widgets/icons.cxx \
-	$(srcdir)/widgets/missing_strings.c \
-	$(srcdir)/widgets/pixmaps.cxx \
-	$(srcdir)/widgets/pixmaps_tango.cxx \
-	$(srcdir)/widgets/font_browser.cxx \
-	$(srcdir)/widgets/hamcast_group.cxx \
-	$(srcdir)/include/hamcast_group.h \
-	$(srcdir)/xmlrpcpp/XmlRpc.h \
-	$(srcdir)/xmlrpcpp/XmlRpcClient.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcClient.h \
-	$(srcdir)/xmlrpcpp/XmlRpcDispatch.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcDispatch.h \
-	$(srcdir)/xmlrpcpp/XmlRpcException.h \
-	$(srcdir)/xmlrpcpp/XmlRpcMutex.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcMutex.h \
-	$(srcdir)/xmlrpcpp/XmlRpcServer.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcServer.h \
-	$(srcdir)/xmlrpcpp/XmlRpcServerConnection.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcServerConnection.h \
-	$(srcdir)/xmlrpcpp/XmlRpcServerMethod.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcServerMethod.h \
-	$(srcdir)/xmlrpcpp/XmlRpcSocket.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcSocket.h \
-	$(srcdir)/xmlrpcpp/XmlRpcSource.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcSource.h \
-	$(srcdir)/xmlrpcpp/XmlRpcThread.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcThread.h \
-	$(srcdir)/xmlrpcpp/XmlRpcThreadedServer.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcThreadedServer.h \
-	$(srcdir)/xmlrpcpp/XmlRpcUtil.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcUtil.h \
-	$(srcdir)/xmlrpcpp/XmlRpcValue.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcValue.h \
-	$(srcdir)/xmlrpcpp/base64.h
+	flamp.cxx \
+	flamp_dialog.cxx \
+	lzma/Alloc.h \
+	lzma/Alloc.c \
+	lzma/LzFind.c \
+	lzma/LzFind.h \
+	lzma/LzHash.h \
+	lzma/LzmaDec.c \
+	lzma/LzmaDec.h \
+	lzma/LzmaEnc.c \
+	lzma/LzmaEnc.h \
+	lzma/LzmaLib.c \
+	lzma/LzmaLib.h \
+	lzma/Types.h \
+	utils/amp.cxx \
+	utils/base64.cxx \
+	utils/base128.cxx \
+	utils/base256.cxx \
+	utils/debug.cxx \
+	utils/socket.cxx \
+	utils/status.cxx \
+	utils/timeops.cxx \
+	utils/util.cxx \
+	utils/file_io.cxx \
+	utils/xml_io.cxx \
+	utils/global_amp.cxx \
+	utils/circular_queue.cxx \
+	utils/tagSearch.cxx \
+	utils/time_table.cxx \
+	utils/transmit_camp.cxx \
+	utils/ztimer.cxx \
+	utils/script_parsing.cxx \
+	utils/run_scripts.cxx \
+	widgets/calendar.cxx \
+	widgets/combo.cxx \
+	widgets/date.cxx \
+	widgets/fileselect.cxx \
+	widgets/flinput2.cxx \
+	widgets/flslider2.cxx \
+	widgets/Fl_BlockMap.cxx \
+	widgets/Fl_Native_File_Chooser.cxx \
+	widgets/Fl_Text_Buffer_mod.cxx \
+	widgets/Fl_Text_Editor_mod.cxx \
+	widgets/Fl_Text_Display_mod.cxx \
+	widgets/FTextView.cxx \
+	widgets/icons.cxx \
+	widgets/missing_strings.c \
+	widgets/pixmaps.cxx \
+	widgets/pixmaps_tango.cxx \
+	widgets/font_browser.cxx \
+	widgets/hamcast_group.cxx \
+	include/hamcast_group.h \
+	xmlrpcpp/XmlRpc.h \
+	xmlrpcpp/XmlRpcClient.cpp \
+	xmlrpcpp/XmlRpcClient.h \
+	xmlrpcpp/XmlRpcDispatch.cpp \
+	xmlrpcpp/XmlRpcDispatch.h \
+	xmlrpcpp/XmlRpcException.h \
+	xmlrpcpp/XmlRpcMutex.cpp \
+	xmlrpcpp/XmlRpcMutex.h \
+	xmlrpcpp/XmlRpcServer.cpp \
+	xmlrpcpp/XmlRpcServer.h \
+	xmlrpcpp/XmlRpcServerConnection.cpp \
+	xmlrpcpp/XmlRpcServerConnection.h \
+	xmlrpcpp/XmlRpcServerMethod.cpp \
+	xmlrpcpp/XmlRpcServerMethod.h \
+	xmlrpcpp/XmlRpcSocket.cpp \
+	xmlrpcpp/XmlRpcSocket.h \
+	xmlrpcpp/XmlRpcSource.cpp \
+	xmlrpcpp/XmlRpcSource.h \
+	xmlrpcpp/XmlRpcThread.cpp \
+	xmlrpcpp/XmlRpcThread.h \
+	xmlrpcpp/XmlRpcThreadedServer.cpp \
+	xmlrpcpp/XmlRpcThreadedServer.h \
+	xmlrpcpp/XmlRpcUtil.cpp \
+	xmlrpcpp/XmlRpcUtil.h \
+	xmlrpcpp/XmlRpcValue.cpp \
+	xmlrpcpp/XmlRpcValue.h \
+	xmlrpcpp/base64.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
-	$(srcdir)/config.h \
-	$(srcdir)/utils/mingw.c \
-	$(srcdir)/utils/time_table.dat \
-	$(srcdir)/widgets/flnfc_common.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_FLTK.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_MAC.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_WIN32.cxx \
-	$(srcdir)/include/amp.h \
-	$(srcdir)/include/ascii.h \
-	$(srcdir)/include/base64.h \
-	$(srcdir)/include/base128.h \
-	$(srcdir)/include/base256.h \
-	$(srcdir)/include/calendar.h \
-	$(srcdir)/include/combo.h \
-	$(srcdir)/include/compat.h \
-	$(srcdir)/include/compat-mingw.h \
-	$(srcdir)/include/crc16.h \
-	$(srcdir)/include/date.h \
-	$(srcdir)/include/debug.h \
-	$(srcdir)/include/dirent-check.h \
-	$(srcdir)/include/fileselect.h \
-	$(srcdir)/include/fl_lock.h \
-	$(srcdir)/include/flmisc.h \
-	$(srcdir)/include/flamp_config.h \
-	$(srcdir)/include/flamprc.h \
-	$(srcdir)/include/flinput2.h \
-	$(srcdir)/include/flslider2.h \
-	$(srcdir)/include/font_browser.h \
-	$(srcdir)/include/gettext.h \
-	$(srcdir)/include/icons.h \
-	$(srcdir)/include/flamp.h \
-	$(srcdir)/include/flamp_dialog.h \
-	$(srcdir)/include/missing_strings.h \
-	$(srcdir)/include/socket.h \
-	$(srcdir)/include/mingw.h \
-	$(srcdir)/include/pixmaps.h \
-	$(srcdir)/include/status.h \
-	$(srcdir)/include/threads.h \
-	$(srcdir)/include/timeops.h \
-	$(srcdir)/include/util.h \
-	$(srcdir)/include/file_io.h \
-	$(srcdir)/include/xml_io.h \
-	$(srcdir)/include/global_amp.h \
-	$(srcdir)/include/circular_queue.h \
-	$(srcdir)/include/tagSearch.h \
-	$(srcdir)/include/time_table.h \
-	$(srcdir)/include/transmit_camp.h \
-	$(srcdir)/include/ztimer.h \
-	$(srcdir)/include/script_parsing.h \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser_WIN32.H \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_3.cxx \
-	$(srcdir)/include/Fl_BlockMap.h \
-	$(srcdir)/include/Fl_Text_Buffer_mod.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_3.H \
-	$(srcdir)/include/Fl_Text_Display_mod.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_3.H \
-	$(srcdir)/include/Fl_Text_Editor_mod.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_3.H \
-	$(srcdir)/include/FTextView.h
+	config.h \
+	utils/mingw.c \
+	utils/time_table.dat \
+	widgets/flnfc_common.cxx \
+	widgets/Fl_Native_File_Chooser_FLTK.cxx \
+	widgets/Fl_Native_File_Chooser_MAC.cxx \
+	widgets/Fl_Native_File_Chooser_WIN32.cxx \
+	include/amp.h \
+	include/ascii.h \
+	include/base64.h \
+	include/base128.h \
+	include/base256.h \
+	include/calendar.h \
+	include/combo.h \
+	include/compat.h \
+	include/compat-mingw.h \
+	include/crc16.h \
+	include/date.h \
+	include/debug.h \
+	include/dirent-check.h \
+	include/fileselect.h \
+	include/fl_lock.h \
+	include/flmisc.h \
+	include/flamp_config.h \
+	include/flamprc.h \
+	include/flinput2.h \
+	include/flslider2.h \
+	include/font_browser.h \
+	include/gettext.h \
+	include/icons.h \
+	include/flamp.h \
+	include/flamp_dialog.h \
+	include/missing_strings.h \
+	include/socket.h \
+	include/mingw.h \
+	include/pixmaps.h \
+	include/status.h \
+	include/threads.h \
+	include/timeops.h \
+	include/util.h \
+	include/file_io.h \
+	include/xml_io.h \
+	include/global_amp.h \
+	include/circular_queue.h \
+	include/tagSearch.h \
+	include/time_table.h \
+	include/transmit_camp.h \
+	include/ztimer.h \
+	include/script_parsing.h \
+	include/FL/Fl_Native_File_Chooser_FLTK.H \
+	include/FL/Fl_Native_File_Chooser_MAC.H \
+	include/FL/Fl_Native_File_Chooser.H \
+	include/FL/Fl_Native_File_Chooser_WIN32.H \
+	widgets/Fl_Text_Buffer_mod_1_1.cxx \
+	widgets/Fl_Text_Buffer_mod_1_3.cxx \
+	widgets/Fl_Text_Display_mod_1_1.cxx \
+	widgets/Fl_Text_Display_mod_1_3.cxx \
+	widgets/Fl_Text_Editor_mod_1_1.cxx \
+	widgets/Fl_Text_Editor_mod_1_3.cxx \
+	include/Fl_BlockMap.h \
+	include/Fl_Text_Buffer_mod.H \
+	include/Fl_Text_Buffer_mod_1_1.H \
+	include/Fl_Text_Buffer_mod_1_3.H \
+	include/Fl_Text_Display_mod.H \
+	include/Fl_Text_Display_mod_1_1.H \
+	include/Fl_Text_Display_mod_1_3.H \
+	include/Fl_Text_Editor_mod.H \
+	include/Fl_Text_Editor_mod_1_1.H \
+	include/Fl_Text_Editor_mod_1_3.H \
+	include/FTextView.h
 
 # Additional non-source files that are distributed
 #EXTRA_DIST += \
-#	$(srcdir)/../data/template.rtf
-#	$(srcdir)/../flamp-doc/flamp-quick-guide.html
+#	../data/template.rtf
+#	../flamp-doc/flamp-quick-guide.html
 
 # Additional source files that support non-Linux cross compilation
 EXTRA_DIST += \
-	$(srcdir)/../ChangeLog \
-	$(srcdir)/../data/flamp.desktop \
-	$(srcdir)/../data/flamp.xpm \
-	$(srcdir)/../data/flamp.png \
-	$(srcdir)/../data/win32/fl_app.nsi \
-	$(srcdir)/../data/win32/flamp.ico \
-	$(srcdir)/../scripts/build4mingw.sh \
-	$(srcdir)/../scripts/builddist.sh \
-	$(srcdir)/../scripts/mkappbundle.sh \
-	$(srcdir)/../scripts/mknsisinst.sh \
-	$(srcdir)/../data/mac/Info.plist.in \
-	$(srcdir)/../data/mac/flamp.icns \
+	../ChangeLog \
+	../data/flamp.desktop \
+	../data/flamp.xpm \
+	../data/flamp.png \
+	../data/win32/fl_app.nsi \
+	../data/win32/flamp.ico \
+	../scripts/build4mingw.sh \
+	../scripts/builddist.sh \
+	../scripts/mkappbundle.sh \
+	../scripts/mknsisinst.sh \
+	../data/mac/Info.plist.in \
+	../data/mac/flamp.icns \
 	$(flamp_WIN32_SRC) \
 	$(flamp_FL_SRC)
