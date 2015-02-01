@@ -31,6 +31,14 @@
 #define MAX_READLINE_LENGTH (FILENAME_MAX+FILENAME_MAX)
 #define MAX_SUB_SCRIPTS 5
 
+#ifdef __WIN32__
+#define PATH_SEPERATOR "\\"
+#define PATH_CHAR_SEPERATOR '\\'
+#else
+#define PATH_SEPERATOR "/"
+#define PATH_CHAR_SEPERATOR '/'
+#endif
+
 #define SCRIPT_FILE_TAG ((char *)"FLAMP_CONFIG")
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
 
@@ -478,7 +486,7 @@ private:
 	SCRIPT_CODES check_numbers(char *, paramter_types p);
 
 	SCRIPT_COMMANDS * search_command(const char *command);
-	
+
 	void assign_func(size_t pos, calling_func func, size_t limit);
 	void to_uppercase(char *str, int limit);
 	void to_uppercase(std::string &str);

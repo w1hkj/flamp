@@ -123,6 +123,8 @@
 
 #include "config.h"
 #include "util.h"
+#include "nls.h"
+#include "gettext.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -538,7 +540,7 @@ SCRIPT_COMMANDS * ScriptParsing::search_command(const char *command)
 	cmd_buffer = new char [MAX_COMMAND_LENGTH];
 
 	if(!cmd_buffer) {
-		LOG_INFO("cmd_buffer allocation error near line %d", __LINE__);
+		LOG_INFO("%s %d", _("cmd_buffer allocation error near line"), __LINE__);
 		return found;
 	}
 
@@ -624,7 +626,7 @@ int ScriptParsing::assign_callback(const char *scriptCommand, int (*cb)(ScriptPa
 	cmd_buffer = new char[MAX_COMMAND_LENGTH];
 
 	if(!cmd_buffer) {
-		LOG_INFO("cmd_buffer allocation error near line %d", __LINE__);
+		LOG_INFO("%s %d", _("cmd_buffer allocation error near line"), __LINE__);
 		return 0;
 	}
 
@@ -638,7 +640,7 @@ int ScriptParsing::assign_callback(const char *scriptCommand, int (*cb)(ScriptPa
 		diff = strncmp(cmd_buffer, _script_command_table[index].command, MAX_COMMAND_LENGTH);
 		if(diff == 0) {
 			if(_script_command_table[index].cb)
-				LOG_INFO("Over writing call back funcion for \"%s\"", cmd_buffer);
+				LOG_INFO("%s \"%s\"", _("Over writing call back funcion for"), cmd_buffer);
 			_script_command_table[index].cb = cb;
 			break;
 		}
@@ -955,7 +957,8 @@ SCRIPT_CODES ScriptParsing::sc_base_encode(struct script_cmds *cmd)
 				break;
 
 			default:
-				LOG_INFO("%s Valid Parameters: 64, 128, or 256.", cmd->command);
+				LOG_INFO("%s %s", cmd->command, \
+					_("%s Valid Parameters: 64, 128, or 256."));
 				return script_invalid_parameter;
 		}
 
@@ -992,7 +995,7 @@ SCRIPT_CODES ScriptParsing::sc_block_count(struct script_cmds *cmd)
 			this->blocks(value);
 		}
 		else {
-			LOG_INFO("%s Parameters are modulus 16 values (16, 32,..., 2048).", cmd->command);
+			LOG_INFO(_("%s Parameters are modulus 16 values (16, 32,..., 2048)."), cmd->command);
 			return script_invalid_parameter;
 		}
 	}
@@ -1446,7 +1449,7 @@ SCRIPT_CODES ScriptParsing::sc_hamcast_modem(struct script_cmds *cmd)
 			pos = atoi(cmd->args[0]);
 
 		if(pos < 1 || pos > 4) {
-			LOG_INFO("Parameter 1 out of range. (1, 2, 3, or 4)");
+			LOG_INFO("%s", _("Parameter 1 out of range. (1, 2, 3, or 4)"));
 			return script_invalid_parameter;
 		}
 
@@ -1459,8 +1462,8 @@ SCRIPT_CODES ScriptParsing::sc_hamcast_modem(struct script_cmds *cmd)
 
 			to_uppercase(value);
 
-			on_diff  = strncmp(value.c_str(), "ON",  MAX_PARAMETER_LENGTH);
-			off_diff = strncmp(value.c_str(), "OFF", MAX_PARAMETER_LENGTH);
+			on_diff  = strncmp(value.c_str(), _("ON"),  MAX_PARAMETER_LENGTH);
+			off_diff = strncmp(value.c_str(), _("OFF"), MAX_PARAMETER_LENGTH);
 
 			if(on_diff == 0 || off_diff == 0) {
 				if(on_diff == 0) flag = true;
@@ -1506,7 +1509,7 @@ SCRIPT_CODES ScriptParsing::sc_hamcast_modem(struct script_cmds *cmd)
 						return script_no_errors;
 					}
 				}
-				LOG_INFO("Non-matching/unavailable modem ID string (%s).", value.c_str());
+				LOG_INFO("%s (%s).", _("Non-matching/unavailable modem ID string"), value.c_str());
 				return script_invalid_parameter;
 			}
 
@@ -1641,7 +1644,7 @@ SCRIPT_CODES ScriptParsing::sc_header_modem(struct script_cmds *cmd)
 					return script_no_errors;
 				}
 			}
-			LOG_INFO("Non-matching/unavailable modem ID string (%s).", value.c_str());
+			LOG_INFO("%s (%s).", _("Non-matching/unavailable modem ID string"), value.c_str());
 			return script_invalid_parameter;
 		}
 	}
@@ -1926,7 +1929,7 @@ SCRIPT_CODES ScriptParsing::sc_modem(struct script_cmds *cmd)
 					return script_no_errors;
 				}
 			}
-			LOG_INFO("Non-matching/available modem ID string used (%s).", value.c_str());
+			LOG_INFO("%s (%s).", _("Non-matching/available modem ID string used"), value.c_str());
 			return script_invalid_parameter;
 		}
 
@@ -2343,90 +2346,90 @@ char * ScriptParsing::script_error_string(SCRIPT_CODES error_no, int line_number
 
 	switch(error_no) {
 		case script_command_not_found:
-			es =  (char *) "Command Not Found";
+			es =  (char *) _("Command Not Found");
 			break;
 
 		case script_non_script_file:
-			es = (char *) "Not a script file/tag not found";
+			es = (char *) _("Not a script file/tag not found");
 			break;
 
 		case script_parameter_error:
-			es = (char *) "Invalid parameter";
+			es = (char *) _("Invalid parameter");
 			break;
 
 		case script_function_parameter_error:
-			es = (char *) "Invalid function parameter (internal non-script error)";
+			es = (char *) _("Invalid function parameter (internal non-script error)");
 			break;
 
 		case script_mismatched_quotes:
-			es = (char *) "Missing paired quotes (\")";
+			es = (char *) _("Missing paired quotes (\")");
 			break;
 
 		case script_general_error:
-			es = (char *) "General Error";
+			es = (char *) _("General Error");
 			break;
 
 		case script_no_errors:
-			es = (char *) "No Errors";
+			es = (char *) _("No Errors");
 			break;
 
 		case script_char_match_not_found:
-			es = (char *) "Character searched not found";
+			es = (char *) _("Character searched not found");
 			break;
 
 		case script_end_of_line_reached:
-			es = (char *) "End of line reached";
+			es = (char *) _("End of line reached");
 			break;
 
 		case script_file_not_found:
-			es = (char *) "File not found";
+			es = (char *) _("File not found");
 			break;
 
 		case script_path_not_found:
-			es = (char *) "Directory path not found";
+			es = (char *) _("Directory path not found");
 			break;
 
 		case script_args_eol:
-			es = (char *) "Unexpected end of parameter (args[]) list found";
+			es = (char *) _("Unexpected end of parameter (args[]) list found");
 			break;
 
 		case script_param_check_eol:
-			es = (char *) "Unexpected end of parameter check list found";
+			es = (char *) _("Unexpected end of parameter check list found");
 			break;
 
 		case script_paramter_exceeds_length:
-			es = (char *) "Character count in args[] parameter exceeds expectations";
+			es = (char *) _("Character count in args[] parameter exceeds expectations");
 			break;
 
 		case script_memory_allocation_error:
-			es = (char *) "Memory Allocation Error (internal non-script error)";
+			es = (char *) _("Memory Allocation Error (internal non-script error)");
 			break;
 
 		case script_incorrectly_assigned_value:
-			es = (char *) "Passed parameter is not of the expected type.";
+			es = (char *) _("Passed parameter is not of the expected type.");
 			break;
 
 		case script_invalid_parameter:
-			es = (char *) "Parameter is not valid.";
+			es = (char *) _("Parameter is not valid.");
 			break;
 
 		case script_command_seperator_missing:
-			es = (char *) "Command missing ':'.";
+			es = (char *) _("Command missing ':'.");
 			break;
 
 		case script_max_sub_script_reached:
-			es = (char *) "Maximum open subscripts reached.";
+			es = (char *) _("Maximum open subscripts reached.");
 			break;
 
 		case script_subscript_exec_fail:
-			es = (char *) "Subscript execution fail (internal).";
+			es = (char *) _("Subscript execution fail (internal).");
 			break;
 
 		default:
-			es = (char *) "Undefined error";
+			es = (char *) _("Undefined error");
 	}
 
-	snprintf(error_buffer, sizeof(error_buffer)-1, "Line: %d Error:%d %s (%s)",
+	snprintf(error_buffer, sizeof(error_buffer)-1, _("Line: %d Error:%d %s (%s)"),
 			 line_number, error_no, es, error_cmd_buffer);
 
 	return error_buffer;
@@ -2941,7 +2944,8 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 
 	buffer = new char [allocated_buffer_size];
 	if(!buffer) {
-		LOG_INFO("Buffer allocation Error near File: %s Line %d", __FILE__, __LINE__);
+		LOG_INFO("%s %s %s %d", _("Buffer allocation Error near File:"), \
+			__FILE__, _("Line:"), __LINE__);
 		return script_memory_allocation_error;
 	}
 
@@ -2973,12 +2977,13 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 				if(_script_command_table[index].cb) {
 					callback_error = call_callback(&_script_command_table[index]);
 					if(callback_error < 0)
-						LOG_INFO("Call back for script command %s reported an Error", _script_command_table[index].command);
+						LOG_INFO("%s %s %s %s", _("Call back for script command"), \
+						_script_command_table[index].command, \
+						_("reported an Error"), \
+						_script_command_table[index].command);
 				}
 			} else {
-				LOG_INFO("Command %s ignored, not supported in current file type:", buffer);
-				if(file_type() & QUEUE_COMMAND)  LOG_INFO("Queue.");
-				if(file_type() & SCRIPT_COMMAND) LOG_INFO("Script.");
+				LOG_INFO("%s %s %s", _("Command"), buffer, _("ignored, not supported"));
 			}
 			break;
 		}
@@ -3006,14 +3011,14 @@ SCRIPT_CODES ScriptParsing::parse_commands(char *file_name_path)
 	size_t tmp      = 0;
 
 	if(!file_name_path) {
-		LOG_INFO("Invalid function parameter 'char *file_name_path' (null)");
+		LOG_INFO("%s", _("Invalid function parameter 'char *file_name_path' (null)"));
 		return script_general_error;
 	}
 
 	fd = fopen(file_name_path, "r");
 
 	if(!fd) {
-		LOG_INFO("Unable to open file %s", file_name_path);
+		LOG_INFO("%s %s", _("Unable to open file"), file_name_path);
 		return script_general_error;
 	}
 

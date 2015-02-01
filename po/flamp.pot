@@ -1,0 +1,1195 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Dave Freese, Stelios Bounanos, Leigh Klotz, and others
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: flamp 2.2.00AC\n"
+"Report-Msgid-Bugs-To: w1hkj AT w1hkj DOT com\n"
+"POT-Creation-Date: 2015-01-31 00:52-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/flamp.cxx:690
+msgid "Could not make directory"
+msgstr ""
+
+#: src/flamp.cxx:723 src/flamp.cxx:849
+#, c-format
+msgid "could not open read/binary %s"
+msgstr ""
+
+#: src/flamp.cxx:729 src/flamp.cxx:855
+msgid "fsize error"
+msgstr ""
+
+#: src/flamp.cxx:736 src/flamp.cxx:862
+msgid "read error"
+msgstr ""
+
+#: src/flamp.cxx:826 src/flamp.cxx:936
+#, c-format
+msgid "File added to transmit queue: %s"
+msgstr ""
+
+#: src/flamp.cxx:843 src/flamp.cxx:1667
+msgid "Only completed files can be transfered"
+msgstr ""
+
+#: src/flamp.cxx:892
+msgid "Suggest using compression on this file"
+msgstr ""
+
+#: src/flamp.cxx:996
+msgid "filename parameter null"
+msgstr ""
+
+#: src/flamp.cxx:1002
+msgid "No file name in variable."
+msgstr ""
+
+#: src/flamp.cxx:1009
+#, c-format
+msgid "File %s not Found"
+msgstr ""
+
+#: src/flamp.cxx:1018
+#, c-format
+msgid "File %s contains not data"
+msgstr ""
+
+#: src/flamp.cxx:1037
+#, c-format
+msgid "File removed from transmit queue: %s"
+msgstr ""
+
+#: src/flamp.cxx:1063 src/flamp.cxx:1171
+msgid "TX Queue access in progress, Auto load aborted"
+msgstr ""
+
+#: src/flamp.cxx:1079
+#, c-format
+msgid "%s directoy not found or empty"
+msgstr ""
+
+#: src/flamp.cxx:1087
+msgid "Internal memory allocation Error"
+msgstr ""
+
+#: src/flamp.cxx:1169
+msgid "Memory Allocation Error"
+msgstr ""
+
+#: src/flamp.cxx:1170
+msgid "First line in Queue List must be "
+msgstr ""
+
+#: src/flamp.cxx:1186
+msgid "Auto Queue file name/path not set"
+msgstr ""
+
+#: src/flamp.cxx:1206
+#, c-format
+msgid "Auto Queue file name/path not found (%s)"
+msgstr ""
+
+#: src/flamp.cxx:1282
+#, c-format
+msgid "Error in reading file %s"
+msgstr ""
+
+#: src/flamp.cxx:1306
+msgid "Empty Line Found in Queue List (end of list reached)"
+msgstr ""
+
+#: src/flamp.cxx:1356
+msgid "Open file"
+msgstr ""
+
+#: src/flamp.cxx:1399
+msgid ""
+"Data appears to be binary\n"
+"\n"
+"Save and view with appropriate software"
+msgstr ""
+
+#: src/flamp.cxx:1468 src/widgets/font_browser.cxx:142
+msgid "Cancel"
+msgstr ""
+
+#: src/flamp.cxx:1469 src/flamp.cxx:1615 src/flamp.cxx:1745 src/flamp.cxx:2141
+#: src/flamp.cxx:2715 src/utils/run_scripts.cxx:563
+#: src/utils/run_scripts.cxx:569
+msgid "Yes"
+msgstr ""
+
+#: src/flamp.cxx:1470
+msgid "You are about to transmit! Continue?"
+msgstr ""
+
+#: src/flamp.cxx:1608
+msgid "Unable to remove TX queue item while being accessed."
+msgstr ""
+
+#: src/flamp.cxx:1615 src/flamp.cxx:2141
+#, c-format
+msgid "Remove file %s from queue?"
+msgstr ""
+
+#: src/flamp.cxx:1615 src/flamp.cxx:1745 src/flamp.cxx:2141 src/flamp.cxx:2715
+#: src/utils/run_scripts.cxx:563 src/utils/run_scripts.cxx:569
+msgid "No"
+msgstr ""
+
+#: src/flamp.cxx:1689
+msgid "Save file"
+msgstr ""
+
+#: src/flamp.cxx:1700
+#, c-format
+msgid "could not open write/binary %s"
+msgstr ""
+
+#: src/flamp.cxx:1710
+msgid "write error"
+msgstr ""
+
+#: src/flamp.cxx:1745
+msgid "Terminate Current Transmission?"
+msgstr ""
+
+#: src/flamp.cxx:2117
+#, c-format
+msgid "New Amp instance: %s"
+msgstr ""
+
+#: src/flamp.cxx:2222
+#, c-format
+msgid "%d bytes / %d secs"
+msgstr ""
+
+#: src/flamp.cxx:2225
+#, c-format
+msgid "%d bytes / %d m %d s"
+msgstr ""
+
+#: src/flamp.cxx:2311 src/flamp.cxx:2346
+#, c-format
+msgid "%d secs"
+msgstr ""
+
+#: src/flamp.cxx:2443 src/flamp.cxx:2461 src/flamp.cxx:2480 src/flamp.cxx:2498
+#, c-format
+msgid "%s Invalid parameter %s"
+msgstr ""
+
+#: src/flamp.cxx:2687
+msgid "pthread_create: ztimer watch dog not started"
+msgstr ""
+
+#: src/flamp.cxx:2714
+msgid "KISS interface active! Switch FLDIGI to ARQ?"
+msgstr ""
+
+#: src/flamp.cxx:2733
+msgid "Update Callsign and Info"
+msgstr ""
+
+#: src/flamp.cxx:2733
+msgid "Okay"
+msgstr ""
+
+#: src/flamp.cxx:2770
+#, c-format
+msgid ""
+"Could not run a web browser:\n"
+"%s\n"
+"\n"
+"Open this URL manually:\n"
+"%s"
+msgstr ""
+
+#: src/flamp.cxx:2776
+#, c-format
+msgid ""
+"Could not open url:\n"
+"%s\n"
+msgstr ""
+
+#: src/flamp_dialog.cxx:277
+msgid "5 min"
+msgstr ""
+
+#: src/flamp_dialog.cxx:278
+msgid "15 min"
+msgstr ""
+
+#: src/flamp_dialog.cxx:279
+msgid "30 min"
+msgstr ""
+
+#: src/flamp_dialog.cxx:280
+msgid "Hourly"
+msgstr ""
+
+#: src/flamp_dialog.cxx:281
+msgid "Even hours"
+msgstr ""
+
+#: src/flamp_dialog.cxx:282
+msgid "Odd hours"
+msgstr ""
+
+#: src/flamp_dialog.cxx:283
+msgid "Repeated at"
+msgstr ""
+
+#: src/flamp_dialog.cxx:284
+msgid "One time at"
+msgstr ""
+
+#: src/flamp_dialog.cxx:285
+msgid "Continuous at"
+msgstr ""
+
+#: src/flamp_dialog.cxx:472
+msgid "&File"
+msgstr ""
+
+#: src/flamp_dialog.cxx:473
+msgid "&Folders"
+msgstr ""
+
+#: src/flamp_dialog.cxx:474
+msgid "E&xit"
+msgstr ""
+
+#: src/flamp_dialog.cxx:476
+msgid "&Script"
+msgstr ""
+
+#: src/flamp_dialog.cxx:477
+msgid "&Execute Script"
+msgstr ""
+
+#: src/flamp_dialog.cxx:478
+msgid "Execute &Script (FLAMP Dir)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:480
+msgid "&Help"
+msgstr ""
+
+#: src/flamp_dialog.cxx:481
+msgid "&Debug log"
+msgstr ""
+
+#: src/flamp_dialog.cxx:482
+msgid "On Line help"
+msgstr ""
+
+#: src/flamp_dialog.cxx:483
+msgid "Command line parameters"
+msgstr ""
+
+#: src/flamp_dialog.cxx:484
+msgid "About"
+msgstr ""
+
+#: src/flamp_dialog.cxx:613 src/flamp_dialog.cxx:848 src/flamp_dialog.cxx:1521
+msgid "Start Events"
+msgstr ""
+
+#: src/flamp_dialog.cxx:845
+msgid "Stop Events"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1161
+msgid "Receive"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1164
+msgid "File:"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1168
+msgid "Date time:"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1172
+msgid "Save"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1176
+msgid "Description:"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1180 src/flamp_dialog.cxx:1386
+msgid "Remove"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1184
+msgid "Call/info"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1189
+msgid "# bytes"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1191
+msgid "# of data bytes"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1193
+msgid "Nbr blks"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1197 src/flamp_dialog.cxx:1274
+msgid "Blk size"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1201
+msgid "To TxQ"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1205
+msgid "Missing"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1207
+msgid "Blocks not yet received"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1209
+msgid "Report"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1211
+msgid "Confirmation report-->fldigi"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1213
+msgid "Blocks"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1219
+msgid ""
+"Ascii Text\n"
+"Data type message"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1225
+msgid "Relay"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1227
+msgid "Relay missing blocks"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1230 src/flamp_dialog.cxx:1374
+msgid "Fetch"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1232 src/flamp_dialog.cxx:1376
+msgid "Fetch & parse fldigi block reports"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1235 src/flamp_dialog.cxx:1369
+msgid "blocks"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1237 src/flamp_dialog.cxx:1371
+msgid ""
+"Clear for all\n"
+"Comma separated block #s"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1241
+msgid "Receive Queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1255
+msgid "Transmit"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1259
+msgid "Send to"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1261
+msgid "QST (or blank) / Enumerated callsigns"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1265
+msgid "File"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1269
+msgid "Descrip"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1271
+msgid "Short description of file contents"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1281
+msgid "Maximum size of each data block"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1283
+msgid "Xmt Rpt"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1290
+msgid "Repeat transmission specified # times"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1292
+msgid "Hdr Rpt"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1299
+msgid "Repeat header #-times/transmission"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1303
+msgid "Transfer size in blocks"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1311
+msgid "Encode after compression"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1319 src/flamp_dialog.cxx:1564
+#: src/flamp_dialog.cxx:1590 src/flamp_dialog.cxx:1616
+#: src/flamp_dialog.cxx:1642 src/flamp_dialog.cxx:1761
+msgid "fldigi modem type"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1331
+msgid "Transfer size / time"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1336
+msgid "Comp"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1337
+msgid "Data will be sent compressed"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1344 src/flamp_dialog.cxx:1353
+msgid "Transmit unproto (plain text, 7bit ASCII)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1352
+msgid "TX Unproto (7 bit)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1360
+msgid "Missing Only (xmt all)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1361
+msgid "Tx missing queue list fills only (xmit all)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1380
+msgid "Transmit this file"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1382
+msgid "Xmt All"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1384
+msgid "Transmit entire queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1388
+msgid "Remove highlighted file from transmit queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1390
+msgid "Add"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1392
+msgid "Select file to add to queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1403
+msgid "drag and drop tx queue files here ..."
+msgstr ""
+
+#: src/flamp_dialog.cxx:1408
+msgid "Transmit Queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1423
+msgid "Events"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1430
+msgid "Timed"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1446
+msgid "Timed Events"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1451
+msgid "Scheduled times of TX"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1466
+msgid "Xmt times (HHMM)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1468
+msgid "Space/comma delimited times"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1474
+msgid "Auto Load TX Queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1482
+msgid "Load from TX Dir."
+msgstr ""
+
+#: src/flamp_dialog.cxx:1489
+msgid "Load Queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1491
+msgid "Load queue with a file list"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1493
+msgid "Path to Load Queue File List"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1495
+msgid "Path to the file containing a list of files"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1502
+msgid "Continuous repeat"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1507
+msgid "Continuous repeat of transmission"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1529
+msgid "Hamcast"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1537
+msgid "Hamcast modem rotation / Queue Transmit Time (on Timed Events)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1542
+msgid "Enable modem rotation"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1550 src/flamp_dialog.cxx:1576
+#: src/flamp_dialog.cxx:1602 src/flamp_dialog.cxx:1628
+#: src/flamp_dialog.cxx:1654
+msgid "Transfer time"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1553
+msgid "Enable Modem 1"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1579
+msgid "Enable Modem 2"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1605
+msgid "Enable Modem 3"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1627 src/flamp_dialog.cxx:1653
+msgid "Time: "
+msgstr ""
+
+#: src/flamp_dialog.cxx:1631
+msgid "Enable Modem 4"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1668
+msgid "Configure"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1672
+msgid "Callsign"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1674
+msgid "Callsign of transmitting station"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1677 src/utils/debug.cxx:71
+msgid "Info"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1679
+msgid "QTH etc. of transmitting station"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1684
+msgid "Auto sync fldigi to flamp mode selector"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1692
+msgid "Auto sync flamp to fldigi mode selector"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1700
+msgid "Change fldigi mode just prior to transmit"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1708
+msgid "Enable Tx on Report"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1717
+msgid "Warn User when removing files from Queue"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1725
+msgid "Clear Missing Blocks on Non-Canceled Transmit(s)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1734
+msgid "Inhibit header modem on block fills"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1742
+msgid "Mark start/end of unproto data"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1750
+msgid "Enable header modem (Sync flamp to fldigi ignored)"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1773
+msgid "Enable TX/RX Interval"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1780
+msgid "Tx Duration Mins"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1787
+msgid "Transmit Duration in Minutes"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1789
+msgid "Rx Duration Secs"
+msgstr ""
+
+#: src/flamp_dialog.cxx:1796
+msgid "Receive Duration in Seconds"
+msgstr ""
+
+#: src/utils/amp.cxx:184
+msgid "Unknown.txt"
+msgstr ""
+
+#: src/utils/amp.cxx:920
+#, c-format
+msgid "Datablock not for %s"
+msgstr ""
+
+#: src/utils/amp.cxx:924
+#, c-format
+msgid ""
+"%s\n"
+"cannot convert %s to block #"
+msgstr ""
+
+#: src/utils/amp.cxx:945
+#, c-format
+msgid ""
+"file: %s  block %d\n"
+"%s"
+msgstr ""
+
+#: src/utils/amp.cxx:1000 src/utils/amp.cxx:1036
+msgid "not this file"
+msgstr ""
+
+#: src/utils/amp.cxx:1123
+#, c-format
+msgid "corrupt length %d"
+msgstr ""
+
+#: src/utils/amp.cxx:1129
+#, c-format
+msgid "incomplete header %s"
+msgstr ""
+
+#: src/utils/amp.cxx:1287 src/utils/amp.cxx:1289
+#, c-format
+msgid "%s missing: %s"
+msgstr ""
+
+#: src/utils/circular_queue.cxx:87
+msgid "Null Calling Function(s)"
+msgstr ""
+
+#: src/utils/circular_queue.cxx:97
+msgid "Cannot allocate buffer"
+msgstr ""
+
+#: src/utils/circular_queue.cxx:116
+msgid "Cannot create thread"
+msgstr ""
+
+#: src/utils/debug.cxx:71
+msgid "Quiet"
+msgstr ""
+
+#: src/utils/debug.cxx:71
+msgid "Error"
+msgstr ""
+
+#: src/utils/debug.cxx:71
+msgid "Warning"
+msgstr ""
+
+#: src/utils/debug.cxx:71
+msgid "Debug"
+msgstr ""
+
+#: src/utils/debug.cxx:109
+msgid "Debug log"
+msgstr ""
+
+#: src/utils/debug.cxx:114
+msgid "Change log level"
+msgstr ""
+
+#: src/utils/file_io.cxx:220
+msgid "Lzma could not compress data"
+msgstr ""
+
+#: src/utils/file_io.cxx:224
+#, c-format
+msgid "Lzma Compress failed: %s"
+msgstr ""
+
+#: src/utils/file_io.cxx:336
+#, c-format
+msgid "Refusing to decompress data (> 32 MiB)\n"
+msgstr ""
+
+#: src/utils/file_io.cxx:350
+#, c-format
+msgid "Lzma Uncompress failed: %s\n"
+msgstr ""
+
+#: src/utils/file_io.cxx:371
+#, c-format
+msgid "Connected to %d"
+msgstr ""
+
+#: src/utils/file_io.cxx:390
+msgid "Not connected to fldigi"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:361
+#, c-format
+msgid "Unknown base encoder selected (%d)"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:562
+msgid ""
+"Enable Events?\n"
+"IMMEDIATE TRANSMISSION WILL OCCUR!"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:568
+msgid ""
+"Enable Events?\n"
+"Immediate Transmission is possible!"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1105
+msgid "Script file name (path) null pointer"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1112
+msgid "Script file name (path) invalid"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1119
+#, c-format
+msgid "ScriptParsing Class Allocation Fail (%s)"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1154
+#, c-format
+msgid "Error(s) in processing script file: %s"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1155
+msgid ""
+"Script File contains Error(s)\n"
+"See Log file for details."
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1191
+msgid "Script Files"
+msgstr ""
+
+#: src/utils/run_scripts.cxx:1224
+msgid "Queue Load file list (path) not assigned"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:543 src/utils/script_parsing.cxx:629
+#, c-format
+msgid "cmd_buffer allocation error near line %d"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:643
+#, c-format
+msgid "Over writing call back funcion for \"%s\""
+msgstr ""
+
+#: src/utils/script_parsing.cxx:960
+#, c-format
+msgid "%s Valid Parameters: 64, 128, or 256."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:997
+#, c-format
+msgid "%s Parameters are modulus 16 values (16, 32,..., 2048)."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:1451
+msgid "Parameter 1 out of range. (1, 2, 3, or 4)"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:1511 src/utils/script_parsing.cxx:1646
+#, c-format
+msgid "Non-matching/unavailable modem ID string (%s)."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:1931
+#, c-format
+msgid "Non-matching/available modem ID string used (%s)."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2348
+msgid "Command Not Found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2352
+msgid "Not a script file/tag not found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2356
+msgid "Invalid parameter"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2360
+msgid "Invalid function parameter (internal non-script error)"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2364
+msgid "Missing paired quotes (\")"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2368
+msgid "General Error"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2372
+msgid "No Errors"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2376
+msgid "Character searched not found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2380
+msgid "End of line reached"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2384
+msgid "File not found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2388
+msgid "Directory path not found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2392
+msgid "Unexpected end of parameter (args[]) list found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2396
+msgid "Unexpected end of parameter check list found"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2400
+msgid "Character count in args[] parameter exceeds expectations"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2404
+msgid "Memory Allocation Error (internal non-script error)"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2408
+msgid "Passed parameter is not of the expected type."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2412
+msgid "Parameter is not valid."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2416
+msgid "Command missing ':'."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2420
+msgid "Maximum open subscripts reached."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2424
+msgid "Subscript execution fail (internal)."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2428
+msgid "Undefined error"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2431
+#, c-format
+msgid "Line: %d Error:%d %s (%s)"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2946
+#, c-format
+msgid "Buffer allocation Error near File: %s Line %d"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2978
+#, c-format
+msgid "Call back for script command %s reported an Error"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2981
+#, c-format
+msgid "Command %s ignored, not supported in current file type:"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2982
+msgid "Queue."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:2983
+msgid "Script."
+msgstr ""
+
+#: src/utils/script_parsing.cxx:3011
+msgid "Invalid function parameter 'char *file_name_path' (null)"
+msgstr ""
+
+#: src/utils/script_parsing.cxx:3018
+#, c-format
+msgid "Unable to open file %s"
+msgstr ""
+
+#: src/utils/time_table.cxx:186 src/utils/time_table.cxx:204
+msgid "String Ref Error"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:241
+msgid "time_table-xx.txt files reached count limit, delete some."
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:250
+#, c-format
+msgid "Table Gen filename %s"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:272
+#, c-format
+msgid "Processing Modem %s"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:285
+#, c-format
+msgid "Mode %s overhead=%f"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:337
+#, c-format
+msgid "Charater '%d (%X)' Transmit time in seconds=%f"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:339
+#, c-format
+msgid "Charater '%c' Transmit time in seconds=%f"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:363
+msgid "File open Error"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:389
+msgid "No Data returned."
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:397
+#, c-format
+msgid "Returned parameter error. Count = %d should be 3"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:846 src/utils/transmit_camp.cxx:1007
+msgid "Empty xmt_vector_string"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:863 src/utils/transmit_camp.cxx:1052
+#, c-format
+msgid "vector_header_count = %d"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:867 src/utils/transmit_camp.cxx:1067
+#, c-format
+msgid "Header Modem Sent to FLDGI. (%s)"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:887 src/utils/transmit_camp.cxx:1095
+#, c-format
+msgid "vector_data_count = %d"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:996
+msgid "Empty xmt_buffer"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:1313
+#, c-format
+msgid ""
+"Header Section Modem: %s\n"
+"Required Block Tx time: %3.1f Mins.\n"
+"Use Faster Mode, Increase Interval Time,\n"
+"or decrease block size."
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:1341
+#, c-format
+msgid ""
+"Data Section Modem: %s\n"
+"Required Block Tx time: %3.1f Mins.\n"
+"Use Faster Mode, Increase Interval Time,\n"
+"or decrease block size."
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:1418 src/utils/transmit_camp.cxx:1454
+#, c-format
+msgid "SEC: %f DELAY"
+msgstr ""
+
+#: src/utils/transmit_camp.cxx:1519
+msgid "Thread creation error: run_in_thread()"
+msgstr ""
+
+#: src/utils/xml_io.cxx:137
+msgid "Server fault response!"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:44
+msgid "Undo"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:45 src/widgets/FTextView.cxx:642
+msgid "Cut"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:46 src/widgets/FTextView.cxx:478
+#: src/widgets/FTextView.cxx:643
+msgid "Copy"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:47 src/widgets/FTextView.cxx:644
+msgid "Paste"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:48
+msgid "Delete"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:49 src/widgets/FTextView.cxx:479
+#: src/widgets/FTextView.cxx:645
+msgid "Clear"
+msgstr ""
+
+#: src/widgets/flinput2.cxx:50 src/widgets/FTextView.cxx:480
+msgid "Select All"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:53
+msgid "Font color"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:123
+msgid "Font:"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:128
+msgid "Size:"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:138
+msgid "&OK"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:146
+msgid "Color"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:151
+msgid ""
+"That crazy fox jumped over the dog again!\n"
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n"
+"!\"#$%&'()*+,-./:;<=>?@@[\\]^_`{|}~"
+msgstr ""
+
+#: src/widgets/font_browser.cxx:287
+msgid "Reading fonts..."
+msgstr ""
+
+#: src/widgets/FTextView.cxx:294
+msgid "Insert text"
+msgstr ""
+
+#: src/widgets/FTextView.cxx:349
+msgid "Save text as"
+msgstr ""
+
+#: src/widgets/FTextView.cxx:481
+msgid "Save as..."
+msgstr ""
+
+#: src/widgets/FTextView.cxx:482 src/widgets/FTextView.cxx:647
+msgid "Word wrap"
+msgstr ""
+
+#: src/widgets/FTextView.cxx:646
+msgid "Insert file..."
+msgstr ""

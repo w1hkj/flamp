@@ -31,6 +31,8 @@
 
 #include "util.h"
 #include "circular_queue.h"
+#include "nls.h"
+#include "gettext.h"
 
 using namespace std;
 
@@ -82,7 +84,7 @@ void Circular_queue::setUp(
 {
 
 	if(!_matchFound || !_readDataFrom || !_queueParser) {
-		throw CircQueException("Null Calling Function(s)");
+		throw CircQueException(_("Null Calling Function(s)"));
 	}
 
 	matchFound = _matchFound;
@@ -92,7 +94,7 @@ void Circular_queue::setUp(
 	buffer_size = (1 << po2);
 	buffer = new char[buffer_size];
 	if (!buffer) {
-		throw CircQueException("Cannot allocate buffer");
+		throw CircQueException(_("Cannot allocate buffer"));
 	}
 
 	memset(buffer, 0, buffer_size);
@@ -111,7 +113,7 @@ void Circular_queue::setUp(
 
 	int perr = pthread_create(&thread, 0, queueParser, this);
 	if (perr) {
-		throw CircQueException(perr, "Cannot create thread");
+		throw CircQueException(perr, _("Cannot create thread"));
 	}
 
 	inhibitDataOut = CQUE_RESUME;

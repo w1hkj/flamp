@@ -25,6 +25,8 @@
 
 #include <string.h>
 #include "icons.h"
+#include "util.h"
+#include "nls.h"
 #include "gettext.h"
 
 class Fl_Native_File_Chooser {
@@ -58,7 +60,7 @@ private:
     Fl_File_Chooser *file_chooser;
 
     int exist_dialog() {
-	return(fl_choice2(_("File exists. Are you sure you want to overwrite?"), 
+	return(fl_choice2("%s" _("File exists. Are you sure you want to overwrite?"),
 			 _("Cancel"), _("OK"), NULL));
     }
     void load_system_icons() {

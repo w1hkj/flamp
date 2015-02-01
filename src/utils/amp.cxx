@@ -30,6 +30,9 @@
 #include "debug.h"
 #include "status.h"
 #include "time_table.h"
+#include "util.h"
+#include "nls.h"
+#include "gettext.h"
 
 #define nuline "\n"
 
@@ -178,7 +181,7 @@ cAmp::cAmp(std::string str, std::string fname)
 	use_forced_compression = false;
 	use_unproto = false;
 
-	if (xmtfilename.empty()) xmtfilename.assign("Unknown.txt");
+	if (xmtfilename.empty()) xmtfilename.assign(_("Unknown.txt"));
 	repeat_header = 1;
 	xmt_repeat = 1;
 	xmtbase = "base64";
@@ -482,19 +485,17 @@ std::string cAmp::xmt_string(bool use_locks = true)
 	fileline.assign(file_header());
 	statsline.assign(size_header());
 
-	for (int i = 0; i < repeat_header; i++) {
-		fstring.append(fileline);
-		fstring.append(idline);
-		fstring.append(statsline);
-	}
-
-	if (!xmtdesc.empty()) {
-		fstring.append(desc_header());
-	}
-
 	xmt_calc_numblocks();
 
 	if (tosend.empty()) {
+		for (int i = 0; i < repeat_header; i++) {
+			fstring.append(fileline);
+			fstring.append(idline);
+			fstring.append(statsline);
+			if (!xmtdesc.empty()) {
+				fstring.append(desc_header());
+			}
+		}
 		for (int i = 0; i < xmtnumblocks; i++) {
 			fstring.append(data_block(i + 1));
 		}
@@ -503,10 +504,20 @@ std::string cAmp::xmt_string(bool use_locks = true)
 		int bnbr;
 		while (!blocks.empty()) {
 			if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
-				if (bnbr > 0 && bnbr <= xmtnumblocks) {
+				if(bnbr == 0) {
+					for (int i = 0; i < repeat_header; i++) {
+						fstring.append(fileline);
+						fstring.append(idline);
+						fstring.append(statsline);
+						if (!xmtdesc.empty()) {
+							fstring.append(desc_header());
+						}
+					}
+				} else 	if (bnbr > 0 && bnbr <= xmtnumblocks) {
 					fstring.append(data_block(bnbr));
 				}
 			}
+
 			while (!blocks.empty() && isdigit(blocks[0]))
 				blocks.erase(0,1);
 			while (!blocks.empty() && !isdigit(blocks[0]))
@@ -621,14 +632,14 @@ void cAmp::unproto_markers(bool unproto_markers)
 {
 	lock();
 	_unproto_markers = unproto_markers;
-	_xmt_unproto();
+	_xmt_unproto(true);
 	unlock();
 }
 
 /** ********************************************************
  * Non thread locking version
  ***********************************************************/
-void cAmp::_xmt_unproto(void)
+void cAmp::_xmt_unproto(bool data_repeat_inhibit = false)
 {
 	size_t pos = 0;
 	int appendFlag = 0;
@@ -669,7 +680,14 @@ void cAmp::_xmt_unproto(void)
 
 	xmtunproto.clear();
 
-	for(index = 0; index < xmt_repeat; index++) {
+	int repeat_count = 0;
+
+	if(data_repeat_inhibit)
+		repeat_count = 1;
+	else
+		repeat_count = xmt_repeat;
+
+	for(index = 0; index < repeat_count; index++) {
 		xmtunproto.append("\n").append(call_from_to);
 
 		if(_unproto_markers)
@@ -688,7 +706,7 @@ void cAmp::_xmt_unproto(void)
 /** ********************************************************
  *
  ***********************************************************/
-int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
+int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers, bool data_repeat_inhibit)
 {
 	lock();
 
@@ -699,6 +717,9 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 	int j = 0;
 	int i = 0;
 	int no_of_elements = 0;
+	int xmit_repeat_count = 0;
+	bool preamble_flag = true;
+	bool data_flag = true;
 
 	if(xmtcallto.empty())
 		xmtcallto.assign("QST");
@@ -723,7 +744,7 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 		int length = 0;
 		int stride = xmtblocksize;
 
-		_xmt_unproto();
+		_xmt_unproto(data_repeat_inhibit);
 		count = (int) xmtunproto.size();
 		index = 0;
 		data_string_array.push_back(call_from_to);
@@ -743,61 +764,112 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 		} while(index < count);
 
 	} else {
-		if(header_modem) {
-			header_string_array.push_back(call_from_to);
-
-			for (i = 0; i < repeat_header; i++) {
-				header_string_array.push_back(program_header());
-				header_string_array.push_back(file_header());
-				header_string_array.push_back(id_header());
-				header_string_array.push_back(size_header());
-
-				if (!xmtdesc.empty()) {
-					header_string_array.push_back(desc_header());
-				}
-			}
-		} else { // !progStatus.use_header_modem
-			data_string_array.push_back(call_from_to);
-
-			for (i = 0; i < repeat_header; i++) {
-				data_string_array.push_back(program_header());
-				data_string_array.push_back(file_header());
-				data_string_array.push_back(id_header());
-				data_string_array.push_back(size_header());
-
-				if (!xmtdesc.empty()) {
-					data_string_array.push_back(desc_header());
-				}
-			}
-		}
-
-
-		for (i = 0; i < xmt_repeat; i++) {
-			if (tosend.empty()) {
-				for (j = 0; j < xmtnumblocks; j++) {
-					up_string = data_block(j + 1);
-					data_string_array.push_back(up_string);
-				}
-			} else {
-				std::string blocks;
-				int bnbr;
-				blocks.assign(tosend);
-				while (!blocks.empty()) {
-					if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
-						if (bnbr > 0 && bnbr <= xmtnumblocks) {
-							data_string_array.push_back(data_block(bnbr));
-						}
+		if(!tosend.empty()) {
+			std::string blocks;
+			int bnbr;
+			blocks.assign(tosend);
+			preamble_flag = false;
+			data_flag = false;
+			while (!blocks.empty()) {
+				if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
+					if (bnbr == 0) {
+						preamble_flag = true;
+					} else if(bnbr > 0) {
+						data_flag = true;
 					}
+
+					if(data_flag && preamble_flag)
+						break;
+
 					while (!blocks.empty() && isdigit(blocks[0]))
 						blocks.erase(0,1);
 					while (!blocks.empty() && !isdigit(blocks[0]))
 						blocks.erase(0,1);
 				}
 			}
-			data_string_array.push_back(data_eof());
 		}
 
-		data_string_array.push_back(data_eot());
+		if((preamble_flag || data_flag) && header_modem)
+			if(progStatus.disable_header_modem_on_block_fills)
+				header_modem = false;
+
+		if(header_modem) {
+			header_string_array.push_back(call_from_to);
+			if(tosend.empty() || preamble_flag) {
+				for (i = 0; i < repeat_header; i++) {
+					header_string_array.push_back(program_header());
+					header_string_array.push_back(file_header());
+					header_string_array.push_back(id_header());
+					header_string_array.push_back(size_header());
+
+					if (!xmtdesc.empty()) {
+						header_string_array.push_back(desc_header());
+					}
+
+					if(!data_flag) {
+						header_string_array.push_back(data_eof());
+					}
+				}
+
+				if(!data_flag) {
+					header_string_array.push_back(data_eot());
+				}
+			}
+		} else { // !progStatus.use_header_modem
+			data_string_array.push_back(call_from_to);
+			if(tosend.empty() || preamble_flag) {
+				for (i = 0; i < repeat_header; i++) {
+					data_string_array.push_back(program_header());
+					data_string_array.push_back(file_header());
+					data_string_array.push_back(id_header());
+					data_string_array.push_back(size_header());
+
+					if (!xmtdesc.empty()) {
+						data_string_array.push_back(desc_header());
+					}
+				}
+			}
+		}
+
+		if(data_repeat_inhibit)
+			xmit_repeat_count = 1;
+		else
+			xmit_repeat_count = xmt_repeat;
+
+		for (i = 0; i < xmit_repeat_count; i++) {
+			if (tosend.empty()) {
+				for (j = 0; j < xmtnumblocks; j++) {
+					up_string = data_block(j + 1);
+					data_string_array.push_back(up_string);
+				}
+			} else {
+				if(data_flag) {
+					std::string blocks;
+					int bnbr;
+					blocks.assign(tosend);
+					while (!blocks.empty()) {
+						if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
+							if (bnbr > 0 && bnbr <= xmtnumblocks) {
+								data_string_array.push_back(data_block(bnbr));
+							}
+						}
+						while (!blocks.empty() && isdigit(blocks[0]))
+							blocks.erase(0,1);
+						while (!blocks.empty() && !isdigit(blocks[0]))
+							blocks.erase(0,1);
+					}
+				}
+			}
+
+			if(data_flag) {
+				data_string_array.push_back(data_eof());
+			}
+
+		}
+
+		if(data_flag) {
+			data_string_array.push_back(data_eot());
+		}
 	}
 
 	unlock();
@@ -845,13 +917,12 @@ void cAmp::rx_add_data(string data)
 	int blknbr;
 
 	if (rxhash != data.substr(1,4)) {
-		LOG_DEBUG("Datablock not for %s", rxfilename.c_str());
+		LOG_DEBUG("%s %s", _("Datablock not for"), rxfilename.c_str());
 		return;
 	}
 	if (sscanf(data.substr(6).c_str(), "%d", &blknbr) != 1) {
-		LOG_ERROR("%s\ncannot convert %s to block #",
-				  rxfilename.c_str(),
-				  data.substr(6,3).c_str());
+		LOG_ERROR("%s\n %s %s %s", rxfilename.c_str(), _("cannot convert"), \
+			data.substr(6,3).c_str(),  _("to block #"));
 		return ;
 	}
 
@@ -870,7 +941,8 @@ void cAmp::rx_add_data(string data)
 		rxDataHeader.insert(AMPmap::value_type(blknbr, std::string(temp_buffer)));
 
 		rx_rcvd.append(nstr).append(" ");
-		LOG_INFO("file: %s  block %d\n%s", rxfilename.c_str(), blknbr, data.substr(sp+1).c_str());
+		LOG_INFO("%s %s %s %d %s", _("file:"),  rxfilename.c_str(), \
+			_("block"), blknbr, data.substr(sp+1).c_str());
 		rx_ok_blocks++;
 	}
 }
@@ -925,7 +997,7 @@ std::string cAmp::rx_parse_hash_line(string data)
 	if (sscanf(data.c_str(), "{%4s}*", hashval) != 1) return empty;
 
 	if (rxhash != hashval) {
-		LOG_ERROR("%s", "not this file");
+		LOG_ERROR("%s", _("not this file"));
 		return empty;
 	}
 	size_t sp = data.find("}");
@@ -961,7 +1033,7 @@ void cAmp::rx_parse_size(string data)
 	if (sscanf(data.c_str(), "{%4s}%d %d %d", hashval, &fs, &nb, &bs) != 4)
 		return;
 	if (rxhash != hashval) {
-		LOG_ERROR("%s", "not this file");
+		LOG_ERROR("%s", _("not this file"));
 		return;
 	}
 	rxfilesize = fs;
@@ -1018,9 +1090,11 @@ bool cAmp::rx_parse_line(int ltype, char *crc, std::string data)
 			snprintf(temp_buffer, temp_buffer_local_size, "<ID %d %s>", count, local_crc.c_str());
 			_rx_raw_id.assign(temp_buffer).append(data);
 			break;
+
 		case _CNTL:
 			snprintf(temp_buffer, temp_buffer_local_size, "<CNTL %d %s>", count, local_crc.c_str());
 			_rx_raw_cntl.assign(temp_buffer).append(data);
+
 		default:;
 	}
 
@@ -1046,13 +1120,14 @@ void cAmp::rx_parse_buffer()
 			if (sscanf(rxbuffer.substr(strlen(ltypes[n])).c_str(), "%d %4s", &len, crc) == 2) {
 				if (len > 2048 + 6) { // exceeds maximum allowable length
 					rxbuffer.erase(0,1);
-					LOG_INFO("corrupt length %d", len);
+					LOG_INFO("%s %d",  _("corrupt length"), len);
 					unlock();
 					return;
 				}
 				p1 = rxbuffer.find(">", strlen(ltypes[n]));
 				if (p1 == std::string::npos) {
-					LOG_INFO("incomplete header %s", rxbuffer.substr(0,15).c_str());
+					LOG_INFO("%s %s", _("incomplete header"), \
+						rxbuffer.substr(0,15).c_str());
 					if (rxbuffer.length() > 15)
 						rxbuffer.erase(0,1);
 					unlock();
@@ -1210,10 +1285,9 @@ void cAmp::tx_parse_report(void)
 							} else {
 								tosend.append(" ").append(data.substr(6));
 								if(cAmp_type == TX_AMP)
-									LOG_INFO("%s missing: %s", xmtfilename.c_str(), tosend.c_str());
+									LOG_INFO("%s %s %s", xmtfilename.c_str(), _("missing:"), tosend.c_str());
 								else
-									LOG_INFO("%s missing: %s", rxfilename.c_str(), tosend.c_str());
-
+									LOG_INFO("%s %s %s", rxfilename.c_str(), _("missing:"), tosend.c_str());
 							}
 						}
 					}
@@ -1264,10 +1338,14 @@ std::string cAmp::reformat_missing_blocks(std::string &missing_blocks)
 	iblocks.sort();
 	to_send_local.clear();
 	char szblock[10];
+
+	_missing_block_count = 0;
+
 	for (pblock = iblocks.begin(); pblock != iblocks.end(); pblock++) {
 		snprintf(szblock, sizeof(szblock), "%d", *pblock);
 		if (to_send_local.empty()) to_send_local.append(szblock);
 		else to_send_local.append(",").append(szblock);
+		_missing_block_count++;
 	}
 
 	return to_send_local;

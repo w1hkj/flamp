@@ -10,8 +10,8 @@ const char *copyright[] = {
 	" FLAMP "  VERSION, // flamp.cxx
 	"",
 	" Author(s):",
-	"    Robert Stiles, KK5VD, Copyright (C) 2013, 2014",
-	"    Dave Freese, W1HKJ, Copyright (C) 2012, 2013",
+	"    Robert Stiles, KK5VD, Copyright (C) 2013, 2014, 2015",
+	"    Dave Freese, W1HKJ, Copyright (C) 2012, 2013, 2014, 2015",
 	"",
 	" This is free software; you can redistribute it and/or modify",
 	" it under the terms of the GNU General Public License as published by",
@@ -65,6 +65,7 @@ const char *copyright[] = {
 
 #include "debug.h"
 #include "util.h"
+#include "nls.h"
 #include "gettext.h"
 #include "flinput2.h"
 #include "date.h"
@@ -644,7 +645,6 @@ bool assign_bc_modem_list(void)
 	return false;
 }
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 /** ********************************************************
  *
  ***********************************************************/
@@ -660,8 +660,6 @@ int default_handler(int event)
 
 	return 0;
 }
-
-#endif
 
 /** ********************************************************
  *
@@ -722,20 +720,20 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 
 	FILE *dfile = fopen(xmt_fname.c_str(), "rb");
 	if (!dfile) {
-		LOG_ERROR("could not open read/binary %s", xmt_fname.c_str());
+		LOG_ERROR("%s %s", _("could not open read/binary"), xmt_fname.c_str());
 		exit (1);
 	}
 	fseek(dfile, 0, SEEK_END);
 	size_t fsize = ftell(dfile);
 	if (fsize <= 0) {
-		LOG_ERROR("%s", "fsize error");
+		LOG_ERROR("%s", _("fsize error"));
 		return;
 	}
 	fseek(dfile, 0, SEEK_SET);
 	tx_buffer.resize(fsize);
 	size_t r = fread((void *)tx_buffer.c_str(), 1, fsize, dfile);
 	if (r != fsize) {
-		LOG_ERROR("%s", "read error");
+		LOG_ERROR("%s", _("read error"));
 		return;
 	}
 
@@ -825,13 +823,14 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 	tx_amp.add(nu);
 	tx_queue->add(xmt_fname.c_str());
 
-	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
+	LOG_INFO("%s %s", _("File added to transmit queue:"), xmtfname.c_str());
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (char *)0, char *callto = (char *)0)
+void addfile(std::string xmtfname, void *rx, bool useCompression, \
+             char *desc = (char *)0, char *callto = (char *)0)
 {
 	xmt_fname = xmtfname;
 	string xmt_fname2 = xmtfname;
@@ -841,26 +840,26 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (
 	int use_forced_comp_on_file = 0;
 
 	if(rx > 0 && !rAmp->rx_completed()) {
-		fl_alert2("Only completed files can be transfered");
+		fl_alert2("%s", _("Only completed files can be transfered"));
 		return;
 	}
 
 	FILE *dfile = fopen(xmt_fname.c_str(), "rb");
 	if (!dfile) {
-		LOG_ERROR("could not open read/binary %s", xmt_fname.c_str());
+		LOG_ERROR("%s %s", _("could not open read/binary"), xmt_fname.c_str());
 		exit (1);
 	}
 	fseek(dfile, 0, SEEK_END);
 	size_t fsize = ftell(dfile);
 	if (fsize <= 0) {
-		LOG_ERROR("%s", "fsize error");
+		LOG_ERROR("%s", _("fsize error"));
 		return;
 	}
 	fseek(dfile, 0, SEEK_SET);
 	tx_buffer.resize(fsize);
 	size_t r = fread((void *)tx_buffer.c_str(), 1, fsize, dfile);
 	if (r != fsize) {
-		LOG_ERROR("%s", "read error");
+		LOG_ERROR("%s", _("read error"));
 		return;
 	}
 
@@ -890,7 +889,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (
 	}
 
 	if(use_comp_on_file)
-		fl_alert2("Suggest using compression on this file");
+		fl_alert2("%s", _("Suggest using compression on this file"));
 
 
 	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
@@ -934,7 +933,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (
 	nu->amp_update();
 	nu->file_hash();
 
-	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
+	LOG_INFO("%s %s", _("File added to transmit queue:"), xmtfname.c_str());
 
 	if(rx > 0) {
 		cAmp *rAmp = (cAmp *) rx;
@@ -994,20 +993,20 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc = (char *)
 	std::string _desc;
 
 	if(!filename) {
-		LOG_DEBUG("filename parameter null");
+		LOG_DEBUG("%s", _("filename parameter null"));
 		return;
 	}
 
 	count = strnlen(filename, FILENAME_MAX);
 	if(count < 1) {
-		LOG_DEBUG("No file name in variable.");
+		LOG_DEBUG("%s", _("No file name in variable."));
 		return;
 	}
 
 	FILE *fd = fopen(filename, "r");
 
 	if(!fd) {
-		LOG_INFO("File %s not Found", filename);
+		LOG_INFO("%s %s", _("File %s not Found"), filename);
 		return;
 	}
 
@@ -1016,7 +1015,7 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc = (char *)
 	fclose(fd);
 
 	if (fsize < 1) {
-		LOG_INFO("File %s contains not data", filename);
+		LOG_INFO("%s %s", _("File %s contains not data"), filename);
 		return;
 	}
 
@@ -1035,7 +1034,7 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc = (char *)
 				compress = tx->compress();
 				_desc.assign(tx->xmt_descrip());
 				_callto.assign(tx->callto());
-				LOG_INFO("File removed from transmit queue: %s", cPtr);
+				LOG_INFO("%s %s", _("File removed from transmit queue: %s"), cPtr);
 				tx_amp.set(tx);
 				tx_removefile(false);
 				break;
@@ -1061,7 +1060,7 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc = (char *)
  ***********************************************************/
 void auto_load_tx_queue_from_tx_directory(void)
 {
-	char *eMsg = (char *) "TX Queue access in progress, Auto load aborted";
+	char *eMsg = (char *) _("TX Queue access in progress, Auto load aborted");
 	char *filepath = (char *)0;
 	struct dirent **list = 0;
 	int count = 0;
@@ -1077,7 +1076,7 @@ void auto_load_tx_queue_from_tx_directory(void)
 	count = fl_filename_list(flamp_xmt_dir.c_str(), &list);
 
 	if (!count) {
-		LOG_INFO("%s directoy not found or empty", flamp_xmt_dir.c_str());
+		LOG_INFO("%s %s",  flamp_xmt_dir.c_str(), _("directory not found or empty"));
 		fl_filename_free_list(&list, count);
 		return;
 	}
@@ -1085,7 +1084,7 @@ void auto_load_tx_queue_from_tx_directory(void)
 	filepath = new char[FILENAME_MAX+1];
 
 	if(!filepath) {
-		LOG_ERROR("Internal memory allocation Error");
+		LOG_ERROR("%s", _("Internal memory allocation Error"));
 		fl_filename_free_list(&list, count);
 		return;
 	}
@@ -1167,10 +1166,10 @@ void auto_load_tx_queue_from_list(void)
 	char *comp     = (char *) 0;
 
 	char *cPtr     = (char *) 0;
-	char *eMsg     = (char *) "Memory Allocation Error";
-	char *eMsg2    = (char *) "First line in Queue List must be ";
-	char *eMsg3    = (char *) "TX Queue access in progress, Auto load aborted";
-	char *QueueTag = (char *) "FLAMPTXQUEUE";
+	char *eMsg     = (char *) _("Memory Allocation Error");
+	char *eMsg2    = (char *) _("First line in Queue List must be ");
+	char *eMsg3    = (char *) _("TX Queue access in progress, Auto load aborted");
+	char *QueueTag = (char *) "FLAMP_CONFIG";
 
 	int size  = 0;
 	int i     = 0;
@@ -1184,7 +1183,7 @@ void auto_load_tx_queue_from_list(void)
 	}
 
 	if(progStatus.auto_load_queue_path.size() < 1) {
-		LOG_INFO("Auto Queue file name/path not set");
+		LOG_INFO("%s", _("Auto Queue file name/path not set"));
 		return;
 	}
 
@@ -1204,7 +1203,7 @@ void auto_load_tx_queue_from_list(void)
 	fd = fopen(srcpath, "r");
 
 	if(!fd) {
-		LOG_INFO("Auto Queue file name/path not found (%s)", srcpath);
+		LOG_INFO("%s (%s)", _("Auto Queue file name/path not found"), srcpath);
 		goto EXIT_AUTO_LOAD;
 	}
 
@@ -1280,7 +1279,7 @@ void auto_load_tx_queue_from_list(void)
 	while(1) {
 
 		if(ferror(fd)) {
-			LOG_INFO("Error in reading file %s", bname);
+			LOG_INFO("%s %s", _("Error in reading file"), bname);
 		}
 
 		if(feof(fd))   break;
@@ -1304,7 +1303,7 @@ void auto_load_tx_queue_from_list(void)
 		size = strnlen(bname, FILENAME_MAX);
 
 		if(size < 1) {
-			LOG_INFO("Empty Line Found in Queue List (end of list reached)");
+			LOG_INFO("%s", _("Empty Line Found in Queue List (end of list reached)"));
 			break;
 		}
 
@@ -1353,6 +1352,7 @@ void readfile()
 {
 	string xmtfname;
 	xmtfname.clear();
+	xmtfname = flampHomeDir;
 	const char *p = FSEL::select(_("Open file"), "*.*",
 								 xmtfname.c_str());
 	if (!p) return;
@@ -1396,7 +1396,7 @@ void show_rx_amp()
 		string data = amp->rx_recvd_string();
 		decompress_maybe(data);
 		if (isbinary(data))
-			txt_rx_output->addstr("Data appears to be binary\n\nSave and view with appropriate software");
+			txt_rx_output->addstr(_("Data appears to be binary\n\nSave and view with appropriate software"));
 		else
 			txt_rx_output->addstr(data.c_str());
 	}
@@ -1465,9 +1465,9 @@ void show_selected_rcv(int n)
 /** ********************************************************
  *
  ***********************************************************/
-static const char *cancel = "Cancel";
-static const char *yes = "Yes";
-static const char *cont = "You are about to transmit! Continue?";
+static const char *cancel = _("Cancel");
+static const char *yes = _("Yes");
+static const char *cont = _("You are about to transmit! Continue?");
 
 void send_missing_report()
 {
@@ -1605,14 +1605,14 @@ void send_relay_data()
 void tx_removefile(bool all)
 {
 	if(active_data_io) {
-		LOG_INFO("Unable to remove TX queue item while being accessed.");
+		LOG_INFO("%s", _("Unable to remove TX queue item while being accessed."));
 		return;
 	}
 
 	int flag = 0;
 
 	if(progStatus.enable_delete_warning && !all) {
-		flag = fl_choice("Remove file %s from queue?", (const char *)"No", (const char *)"Yes", (const char *)0, txt_tx_filename->value());
+		flag = fl_choice("%s (%s)", _("Remove file from queue?"), (const char *)_("No"), (const char *)_("Yes"), (const char *)0, txt_tx_filename->value());
 		if(flag < 1) return;
 	}
 
@@ -1664,39 +1664,41 @@ void writefile(int xfrFlag)
 	size_t fsize = amp->rx_size();
 
 	if(xfrFlag && !amp->rx_completed()) {
-		fl_alert2("Only completed files can be transfered");
+		fl_alert2("%s", _("Only completed files can be transfered"));
 		return;
 	}
 
 	if (!fsize || amp->get_rx_fname().empty()) return;
 
-	static char rx_filename[FILENAME_MAX];
+	static char rx_filename[FL_PATH_MAX];
 	std::string rx_directory;
 	std::string rx_fname;
-	std::string file_path_name;
 
 	rx_directory.assign(flamp_rcv_dir);
 	rx_fname.assign(amp->get_rx_fname());
 
-	file_path_name.assign(flamp_rcv_dir).append(PATH_SEP).append(rx_fname);
+	char test_char = rx_directory[rx_directory.size() - 1];
 
-	memset(rx_filename, 0, FILENAME_MAX);
-	strncpy(rx_filename, rx_fname.c_str(), FILENAME_MAX);
+	rx_fname.assign(rx_directory);
 
-	rx_fname.assign(flamp_rcv_dir).append(PATH_SEP).append(amp->get_rx_fname());
+	if(test_char != PATH_CHAR_SEP)
+		rx_fname.append(PATH_SEP);
+
+	rx_fname.append(amp->get_rx_fname());
+
 	const char *p = FSEL::saveas(_("Save file"), "file\t*.*",
 								 rx_fname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
 
-	memset(rx_filename, 0, FILENAME_MAX);
-	strncpy(rx_filename, p, FILENAME_MAX - 1);
+	memset(rx_filename, 0, FL_PATH_MAX);
+	strncpy(rx_filename, p, FL_PATH_MAX - 1);
 
 	FILE *dfile = fopen(rx_filename, "wb");
 
 	if (!dfile) {
-		LOG_ERROR("could not open write/binary %s", rx_fname.c_str());
-		exit (1);
+		LOG_ERROR("%s %s", _("could not open write/binary"), rx_fname.c_str());
+		return;
 	}
 
 	string data = amp->rx_recvd_string();
@@ -1705,7 +1707,7 @@ void writefile(int xfrFlag)
 	size_t r = fwrite((void *)data.c_str(), 1, data.length(), dfile);
 
 	if (r != data.length()) {
-		LOG_ERROR("%s", "write error");
+		LOG_ERROR("%s", _("write error"));
 		return;
 	}
 
@@ -1729,17 +1731,10 @@ double time_f(void)
 /** ********************************************************
  *
  ***********************************************************/
-void abort_and_id(void)
+void abort_tx(void)
 {
-	std::string idMessage;
 	send_abort();
 	send_abort();
-
-	if(!generate_time_table) {
-		// A number of non printable characters are required to overcome long interleave modems.
-		idMessage.assign("\n\n\n\n\n\n\n\n\n\n\nFILE TRANSFER ABORTED\n\nDE ").append(progStatus.my_call).append(" BK\n\n\n");
-		send_via_fldigi(idMessage);
-	}
 }
 
 /** ********************************************************
@@ -1747,14 +1742,15 @@ void abort_and_id(void)
  ***********************************************************/
 void abort_request(void)
 {
-	int response = fl_choice("Terminate Current Transmission?", "No", "Yes", NULL);
+	int response = fl_choice("%s", _("No"), _("Yes"), NULL,  \
+		_("Terminate Current Transmission?"));
 	if (response == 1) {
 		static int value = TX_BUTTON;
 		deactivate_button((void *) &value);
 		transmit_stop = true;
 		ztime_end = 0;
 		continuous_exception = false;
-		abort_and_id();
+		abort_tx();
 	}
 }
 
@@ -1806,7 +1802,7 @@ void transmit_queue_main_thread(void *ptr)
 		auto_load_tx_queue();
 	}
 
-	transmit_queued(true);
+	transmit_queued(true, false);
 }
 
 /** ********************************************************
@@ -2119,7 +2115,7 @@ void process_data_stream(void)
 			rx_amp.set(nu);
 			clear_rx_amp();
 			show_rx_amp();
-			LOG_INFO("New Amp instance: %s", nu->get_rx_fname().c_str());
+			LOG_INFO(_("New Amp instance: %s"), nu->get_rx_fname().c_str());
 
 		} else {
 
@@ -2143,7 +2139,7 @@ void process_data_stream(void)
 void receive_remove_from_queue(bool all)
 {
 	if(progStatus.enable_delete_warning && !all) {
-		int flag = fl_choice("Remove file %s from queue?", (const char *)"No", (const char *)"Yes", (const char *)0, txt_tx_filename->value());
+		int flag = fl_choice(_("Remove file %s from queue?"), (const char *)_("No"), (const char *)_("Yes"), (const char *)0, txt_tx_filename->value());
 		if(flag < 1) return;
 	}
 
@@ -2224,10 +2220,10 @@ void estimate(cAmp *amp, bool visable) {
 		xfr_time += oh;
 
 		if (xfr_time < 60)
-			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d secs",
+			snprintf(sz_xfr_size, sizeof(sz_xfr_size), _("%d bytes / %d secs"),
 					 transfer_size, (int)(xfr_time + 0.5));
 		else
-			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d bytes / %d m %d s",
+			snprintf(sz_xfr_size, sizeof(sz_xfr_size), _("%d bytes / %d m %d s"),
 					 transfer_size,
 					 (int)(xfr_time / 60), ((int)xfr_time) % 60);
 
@@ -2313,7 +2309,7 @@ void estimate_bc(void) {
 		xfr_time += oh;
 
 		if (xfr_time < 60)
-			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d secs",
+			snprintf(sz_xfr_size, sizeof(sz_xfr_size), _("%d secs"),
 					 (int)(xfr_time + 0.5));
 		else
 			snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d m %d s",
@@ -2348,7 +2344,7 @@ void estimate_bc(void) {
 	}
 
 	if (total_xfr_time < 60)
-		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d secs",
+		snprintf(sz_xfr_size, sizeof(sz_xfr_size), _("%d secs"),
 				 (int)(total_xfr_time + 0.5));
 	else
 		snprintf(sz_xfr_size, sizeof(sz_xfr_size), "%d m %d s",
@@ -2445,7 +2441,7 @@ int parse_args(int argc, char **argv, int& idx)
 				idx++;
 			} else {
 				progStatus.user_socket_addr.clear();
-				LOG_INFO("%s Invalid parameter %s\n", check_for, argv[idx]);
+				LOG_INFO("%s %s %s", check_for, _("Invalid parameter"), argv[idx]);
 			}
 		}
 
@@ -2463,7 +2459,7 @@ int parse_args(int argc, char **argv, int& idx)
 				idx++;
 			} else {
 				progStatus.user_socket_port.clear();
-				LOG_INFO("%s Invalid parameter %s\n", check_for, argv[idx]);
+				LOG_INFO("%s %s %s", check_for, _("Invalid parameter"), argv[idx]);
 			}
 		}
 
@@ -2482,7 +2478,7 @@ int parse_args(int argc, char **argv, int& idx)
 				idx++;
 			} else {
 				progStatus.user_xmlrpc_addr.clear();
-				LOG_INFO("%s Invalid parameter %s\n", check_for, argv[idx]);
+				LOG_INFO("%s %s %s", check_for, _("Invalid parameter"), argv[idx]);
 			}
 		}
 
@@ -2500,7 +2496,7 @@ int parse_args(int argc, char **argv, int& idx)
 				idx++;
 			} else {
 				progStatus.user_xmlrpc_port.clear();
-				LOG_INFO("%s Invalid parameter %s\n", check_for, argv[idx]);
+				LOG_INFO("%s %s %s", check_for, _("Invalid parameter"), argv[idx]);
 			}
 		}
 
@@ -2616,9 +2612,7 @@ int main(int argc, char *argv[])
 	main_window->resize( progStatus.mainX, progStatus.mainY, main_window->w(), main_window->h());
 	main_window->callback(exit_main);
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 	Fl::add_handler(default_handler);
-#endif
 
 	Fl_File_Icon::load_system_icons();
 	FSEL::create();
@@ -2691,7 +2685,7 @@ int main(int argc, char *argv[])
 	watch_dog_seconds = time(0);
 	watch_dog_thread = new pthread_t;
 	if (pthread_create(watch_dog_thread, NULL, watch_dog_loop, NULL)) {
-		perror("pthread_create: ztimer watch dog not started");
+		perror(_("pthread_create: ztimer watch dog not started"));
 	}
 
 	ztimer((void *)true);
@@ -2718,8 +2712,8 @@ void check_io_mode(void *v)
 	if(!io_mode.empty()) {
 		flag = strncmp(io_mode.c_str(), "ARQ", 3);
 		if(flag != 0) {
-			flag = fl_choice2(_("KISS interface active! Switch FLDIGI to ARQ?"),
-							  _("No"), _("Yes"), NULL);
+			flag = fl_choice2("%s", _("No"), _("Yes"), NULL, \
+				_("KISS interface active! Switch FLDIGI to ARQ?"));
 			if(flag == 1)
 				enable_arq();
 		}
@@ -2737,7 +2731,8 @@ void check_call_and_id(void *v)
 	if(progStatus.my_call.empty() || progStatus.my_info.empty()) {
 		if(tabs && Config_tab) {
 			tabs->value(Config_tab);
-			fl_choice2(_("Update Callsign and Info"), _("Okay"), NULL, NULL);
+			fl_choice2("%s", _("Okay"), NULL, NULL, \
+				_("Update Callsign and Info"));
 		}
 	}
 }
@@ -2774,13 +2769,12 @@ void open_url(const char* url)
 					execlp(browsers[i], browsers[i], url, (char*)0);
 			exit(EXIT_FAILURE);
 		case -1:
-			fl_alert2(_("Could not run a web browser:\n%s\n\n"
-						"Open this URL manually:\n%s"),
-					  strerror(errno), url);
+			fl_alert2("%s\n\n %s\n %s\n %s",  _("Could not run a web browser:"),
+					strerror(errno), _("Open this URL manually:\n"), url);
 	}
 #else
 	if ((int)ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL) <= 32)
-		fl_alert2(_("Could not open url:\n%s\n"), url);
+		fl_alert2("%s \n%s\n", _("Could not open url:"), url);
 #endif
 }
 

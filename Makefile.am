@@ -1,5 +1,5 @@
-ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src
+ACLOCAL_AMFLAGS = -I m4 -I m4/intl
+SUBDIRS = po src
 
 if HAVE_FLUID
 flgen:

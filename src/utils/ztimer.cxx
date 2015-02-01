@@ -54,6 +54,7 @@
 
 #include "debug.h"
 #include "util.h"
+#include "nls.h"
 #include "gettext.h"
 #include "flinput2.h"
 #include "status.h"
@@ -269,6 +270,10 @@ time_t parse_repeat_times(bool delete_flag, unsigned int zt)
 }
 #else
 
+
+/** ********************************************************
+ *
+ ***********************************************************/
 char *skip_spaces(char *cPtr, char *ePtr)
 {
 	if(!cPtr || !ePtr)
@@ -288,6 +293,10 @@ char *skip_spaces(char *cPtr, char *ePtr)
 	return cPtr;
 }
 
+
+/** ********************************************************
+ *
+ ***********************************************************/
 char *skip_numbers(char *cPtr, char *ePtr)
 {
 	if(!cPtr || !ePtr)

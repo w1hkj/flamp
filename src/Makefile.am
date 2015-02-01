@@ -2,7 +2,7 @@
 
 bin_PROGRAMS = flamp
 
-flamp_CPPFLAGS = @FLAMP_BUILD_CPPFLAGS@
+flamp_CPPFLAGS = -DLOCALEDIR=\"$(localedir)\" @FLAMP_BUILD_CPPFLAGS@
 flamp_CXXFLAGS = @FLAMP_BUILD_CXXFLAGS@
 flamp_CFLAGS = $(flamp_CXXFLAGS)
 flamp_LDFLAGS = @FLAMP_BUILD_LDFLAGS@
@@ -99,8 +99,8 @@ clean-local:
 flamp_SOURCES += \
 	$(srcdir)/flamp.cxx \
 	$(srcdir)/flamp_dialog.cxx \
-	$(srcdir)/lzma/Alloc.h \
 	$(srcdir)/lzma/Alloc.c \
+	$(srcdir)/lzma/Alloc.h \
 	$(srcdir)/lzma/LzFind.c \
 	$(srcdir)/lzma/LzFind.h \
 	$(srcdir)/lzma/LzHash.h \
@@ -112,43 +112,44 @@ flamp_SOURCES += \
 	$(srcdir)/lzma/LzmaLib.h \
 	$(srcdir)/lzma/Types.h \
 	$(srcdir)/utils/amp.cxx \
-	$(srcdir)/utils/base64.cxx \
 	$(srcdir)/utils/base128.cxx \
 	$(srcdir)/utils/base256.cxx \
+	$(srcdir)/utils/base64.cxx \
+	$(srcdir)/utils/circular_queue.cxx \
 	$(srcdir)/utils/debug.cxx \
+	$(srcdir)/utils/file_io.cxx \
+	$(srcdir)/utils/global_amp.cxx \
+	$(srcdir)/utils/nls.cxx \
+	$(srcdir)/utils/run_scripts.cxx \
+	$(srcdir)/utils/script_parsing.cxx \
 	$(srcdir)/utils/socket.cxx \
 	$(srcdir)/utils/status.cxx \
-	$(srcdir)/utils/timeops.cxx \
-	$(srcdir)/utils/util.cxx \
-	$(srcdir)/utils/file_io.cxx \
-	$(srcdir)/utils/xml_io.cxx \
-	$(srcdir)/utils/global_amp.cxx \
-	$(srcdir)/utils/circular_queue.cxx \
 	$(srcdir)/utils/tagSearch.cxx \
 	$(srcdir)/utils/time_table.cxx \
+	$(srcdir)/utils/timeops.cxx \
 	$(srcdir)/utils/transmit_camp.cxx \
+	$(srcdir)/utils/util.cxx \
+	$(srcdir)/utils/xml_io.cxx \
 	$(srcdir)/utils/ztimer.cxx \
-	$(srcdir)/utils/script_parsing.cxx \
-	$(srcdir)/utils/run_scripts.cxx \
 	$(srcdir)/widgets/calendar.cxx \
 	$(srcdir)/widgets/combo.cxx \
 	$(srcdir)/widgets/date.cxx \
 	$(srcdir)/widgets/fileselect.cxx \
-	$(srcdir)/widgets/flinput2.cxx \
-	$(srcdir)/widgets/flslider2.cxx \
 	$(srcdir)/widgets/Fl_BlockMap.cxx \
 	$(srcdir)/widgets/Fl_Native_File_Chooser.cxx \
 	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
 	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
+	$(srcdir)/widgets/flinput2.cxx \
+	$(srcdir)/widgets/flslider2.cxx \
+	$(srcdir)/widgets/font_browser.cxx \
 	$(srcdir)/widgets/FTextView.cxx \
+	$(srcdir)/widgets/hamcast_group.cxx \
 	$(srcdir)/widgets/icons.cxx \
 	$(srcdir)/widgets/missing_strings.c \
-	$(srcdir)/widgets/pixmaps.cxx \
 	$(srcdir)/widgets/pixmaps_tango.cxx \
-	$(srcdir)/widgets/font_browser.cxx \
-	$(srcdir)/widgets/hamcast_group.cxx \
-	$(srcdir)/include/hamcast_group.h \
+	$(srcdir)/widgets/pixmaps.cxx \
+	$(srcdir)/xmlrpcpp/Xmlbase64.h \
 	$(srcdir)/xmlrpcpp/XmlRpc.h \
 	$(srcdir)/xmlrpcpp/XmlRpcClient.cpp \
 	$(srcdir)/xmlrpcpp/XmlRpcClient.h \
@@ -174,81 +175,73 @@ flamp_SOURCES += \
 	$(srcdir)/xmlrpcpp/XmlRpcUtil.cpp \
 	$(srcdir)/xmlrpcpp/XmlRpcUtil.h \
 	$(srcdir)/xmlrpcpp/XmlRpcValue.cpp \
-	$(srcdir)/xmlrpcpp/XmlRpcValue.h \
-	$(srcdir)/xmlrpcpp/base64.h
+	$(srcdir)/xmlrpcpp/XmlRpcValue.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
 	$(srcdir)/config.h \
-	$(srcdir)/utils/mingw.c \
-	$(srcdir)/utils/time_table.dat \
-	$(srcdir)/widgets/flnfc_common.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_FLTK.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_MAC.cxx \
-	$(srcdir)/widgets/Fl_Native_File_Chooser_WIN32.cxx \
 	$(srcdir)/include/amp.h \
 	$(srcdir)/include/ascii.h \
-	$(srcdir)/include/base64.h \
 	$(srcdir)/include/base128.h \
 	$(srcdir)/include/base256.h \
+	$(srcdir)/include/base64.h \
 	$(srcdir)/include/calendar.h \
+	$(srcdir)/include/circular_queue.h \
 	$(srcdir)/include/combo.h \
-	$(srcdir)/include/compat.h \
 	$(srcdir)/include/compat-mingw.h \
+	$(srcdir)/include/compat.h \
 	$(srcdir)/include/crc16.h \
 	$(srcdir)/include/date.h \
 	$(srcdir)/include/debug.h \
 	$(srcdir)/include/dirent-check.h \
-	$(srcdir)/include/fileselect.h \
-	$(srcdir)/include/fl_lock.h \
-	$(srcdir)/include/flmisc.h \
-	$(srcdir)/include/flamp_config.h \
-	$(srcdir)/include/flamprc.h \
-	$(srcdir)/include/flinput2.h \
-	$(srcdir)/include/flslider2.h \
-	$(srcdir)/include/font_browser.h \
-	$(srcdir)/include/gettext.h \
-	$(srcdir)/include/icons.h \
-	$(srcdir)/include/flamp.h \
-	$(srcdir)/include/flamp_dialog.h \
-	$(srcdir)/include/missing_strings.h \
-	$(srcdir)/include/socket.h \
-	$(srcdir)/include/mingw.h \
-	$(srcdir)/include/pixmaps.h \
-	$(srcdir)/include/status.h \
-	$(srcdir)/include/threads.h \
-	$(srcdir)/include/timeops.h \
-	$(srcdir)/include/util.h \
 	$(srcdir)/include/file_io.h \
-	$(srcdir)/include/xml_io.h \
-	$(srcdir)/include/global_amp.h \
-	$(srcdir)/include/circular_queue.h \
-	$(srcdir)/include/tagSearch.h \
-	$(srcdir)/include/time_table.h \
-	$(srcdir)/include/transmit_camp.h \
-	$(srcdir)/include/ztimer.h \
-	$(srcdir)/include/script_parsing.h \
+	$(srcdir)/include/fileselect.h \
+	$(srcdir)/include/Fl_BlockMap.h \
+	$(srcdir)/include/fl_lock.h \
+	$(srcdir)/include/Fl_Text_Buffer_mod.H \
+	$(srcdir)/include/Fl_Text_Display_mod.H \
+	$(srcdir)/include/Fl_Text_Editor_mod.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_FLTK.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
-	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_WIN32.H \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_3.cxx \
-	$(srcdir)/include/Fl_BlockMap.h \
-	$(srcdir)/include/Fl_Text_Buffer_mod.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_3.H \
-	$(srcdir)/include/Fl_Text_Display_mod.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_3.H \
-	$(srcdir)/include/Fl_Text_Editor_mod.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_3.H \
-	$(srcdir)/include/FTextView.h
+	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \
+	$(srcdir)/include/flamp_config.h \
+	$(srcdir)/include/flamp_dialog.h \
+	$(srcdir)/include/flamp.h \
+	$(srcdir)/include/flamprc.h \
+	$(srcdir)/include/flinput2.h \
+	$(srcdir)/include/flmisc.h \
+	$(srcdir)/include/flslider2.h \
+	$(srcdir)/include/font_browser.h \
+	$(srcdir)/include/FTextView.h \
+	$(srcdir)/include/gettext.h \
+	$(srcdir)/include/global_amp.h \
+	$(srcdir)/include/hamcast_group.h \
+	$(srcdir)/include/icons.h \
+	$(srcdir)/include/mingw.h \
+	$(srcdir)/include/missing_strings.h \
+	$(srcdir)/include/nls.h \
+	$(srcdir)/include/pixmaps.h \
+	$(srcdir)/include/script_parsing.h \
+	$(srcdir)/include/socket.h \
+	$(srcdir)/include/status.h \
+	$(srcdir)/include/tagSearch.h \
+	$(srcdir)/include/threads.h \
+	$(srcdir)/include/time_table.h \
+	$(srcdir)/include/timeops.h \
+	$(srcdir)/include/transmit_camp.h \
+	$(srcdir)/include/util.h \
+	$(srcdir)/include/xml_io.h \
+	$(srcdir)/include/ztimer.h \
+	$(srcdir)/utils/mingw.c \
+	$(srcdir)/utils/time_table.dat \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_FLTK.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_MAC.cxx \
+	$(srcdir)/widgets/Fl_Native_File_Chooser_WIN32.cxx \
+	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
+	$(srcdir)/widgets/flnfc_common.cxx
 
 # Additional non-source files that are distributed
 #EXTRA_DIST += \

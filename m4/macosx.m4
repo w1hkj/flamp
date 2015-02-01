@@ -22,18 +22,26 @@ if test "x$target_darwin" = "xyes" && test "x$ac_cv_mac_universal" = "xyes"; the
       darwin8*)
         mac_arches="-arch i386 -arch ppc"
         mac_sysroot="-isysroot /Developer/SDKs/MacOSX10.4u.sdk"
+        mac_frameworks="-framework CoreFoundation"
         ;;
       darwin9*)
         mac_arches="-arch i386 -arch ppc -arch x86_64 -arch ppc64"
         mac_sysroot="-isysroot /Developer/SDKs/MacOSX10.5.sdk"
+        mac_frameworks="-framework CoreFoundation"
+       ;;
+      darwin10*)
+        mac_arches="-arch i386 -arch x86_64"
+        mac_sysroot="-isysroot /Developer/SDKs/MacOSX10.6.sdk"
+        mac_frameworks="-framework CoreFoundation"
         ;;
       *)
         mac_arches=""
         mac_sysroot=""
+        mac_frameworks="-framework CoreFoundation"
         ;;
     esac
-    MAC_UNIVERSAL_CFLAGS="$mac_arches $mac_sysroot $mac_minversion"
-    MAC_UNIVERSAL_LDFLAGS="$mac_arches"
+    MAC_UNIVERSAL_CFLAGS="$mac_arches $mac_sysroot $mac_minversion  $mac_frameworks"
+    MAC_UNIVERSAL_LDFLAGS="$mac_arches $mac_frameworks"
 fi
 AC_SUBST([MAC_UNIVERSAL_CFLAGS])
 AC_SUBST([MAC_UNIVERSAL_LDFLAGS])

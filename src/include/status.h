@@ -82,6 +82,8 @@ struct status {
 	bool enable_tx_unproto;
 	bool enable_unproto_markers;
 
+	bool queue_fills_only;
+	
 	bool auto_load_queue;
 	bool load_from_tx_folder;
 	string auto_load_queue_path;

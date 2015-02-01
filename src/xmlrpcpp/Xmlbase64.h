@@ -323,44 +323,44 @@ public:
 				// write to output 2 bytes
 				*_To = (byte_t) _3to4.get_0();
 				*_To = (byte_t) _3to4.get_1();
-
+				
 				++_First; // set position to next character
-
+				
 				return _First;
 			}
 			else
 				_3to4.b64_3(_Char);
-
-
+			
+			
 			// write to output 3 bytes
 			*_To = (byte_t) _3to4.get_0();
 			*_To = (byte_t) _3to4.get_1();
 			*_To = (byte_t) _3to4.get_2();
-
+			
 			++_First;
-
-
+			
+			
 		} // while(_First != _Last)
-
+		
 		return (_First);
 	}
-
+	
 protected:
-
+	
 	int _getCharType(int _Ch) const
 	{
 		if(_base64Chars[62] == _Ch)
 			return 62;
-
+		
 		if(_base64Chars[63] == _Ch)
 			return 63;
-
+		
 		if((_base64Chars[0] <= _Ch) && (_base64Chars[25] >= _Ch))
 			return _Ch - _base64Chars[0];
-
+		
 		if((_base64Chars[26] <= _Ch) && (_base64Chars[51] >= _Ch))
 			return _Ch - _base64Chars[26] + 26;
-
+		
 		if((_base64Chars[52] <= _Ch) && (_base64Chars[61] >= _Ch))
 			return _Ch - _base64Chars[52] + 52;
 		
@@ -370,7 +370,7 @@ protected:
 		return _UNKNOWN_CHAR;
 	}
 	
-	
+
 };
 
 

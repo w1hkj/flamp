@@ -134,7 +134,7 @@ static inline void execute(const char* name, const XmlRpcValue& param, XmlRpcVal
 			xmlrpc_errno = errno;
 
 			if(client->isFault())
-				LOG_DEBUG("Server fault response!");
+				LOG_DEBUG("%s", _("Server fault response!"));
 
 			throw XmlRpc::XmlRpcException(name);
 		}

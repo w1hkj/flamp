@@ -46,6 +46,8 @@
 
 #include "debug.h"
 #include "icons.h"
+#include "util.h"
+#include "nls.h"
 #include "gettext.h"
 #include "flamp.h"
 

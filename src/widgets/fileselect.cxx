@@ -4,6 +4,7 @@
 //
 // Copyright (C) 2008-2009
 //		Stelios Bounanos, M0GLD
+//		Dave Freese, 2015
 //
 // This file is part of FLAMP.
 //
@@ -28,12 +29,13 @@
 #include <cstdlib>
 #include <libgen.h>
 
-
-#include "icons.h"
-#include "debug.h"
-
 #include <FL/fl_ask.H>
+#include <FL/Fl_Native_File_Chooser.H>
+#include <FL/filename.H>
+#include "config.h"
+
 #include "fileselect.h"
+#include "debug.h"
 
 /**
  \class Fl_Native_File_Chooser
@@ -66,10 +68,10 @@
  "C Files\t*.{cxx,h,c}");
  fnfc.directory("/var/tmp");           // default directory to use
  // Show native chooser
- switch ( fnfc.show() ) {
- case -1: printf("ERROR: %s\n", fnfc.errmsg());    break;  // ERROR
- case  1: printf("CANCEL\n");                      break;  // CANCEL
- default: printf("PICKED: %s\n", fnfc.filename()); break;  // FILE CHOSEN
+	 switch ( fnfc.show() ) {
+		 case -1: printf("ERROR: %s\n", fnfc.errmsg());    break;  // ERROR
+		 case  1: printf("CANCEL\n");                      break;  // CANCEL
+		 default: printf("PICKED: %s\n", fnfc.filename()); break;  // FILE CHOSEN
  }
  \endcode
 
@@ -86,18 +88,18 @@
  \image latex Fl_Native_File_Chooser.png "The Fl_Native_File_Chooser on different platforms" width=14cm
 
  enum Type {
- BROWSE_FILE = 0,			///< browse files (lets user choose one file)
- BROWSE_DIRECTORY,			///< browse directories (lets user choose one directory)
- BROWSE_MULTI_FILE,			///< browse files (lets user choose multiple files)
- BROWSE_MULTI_DIRECTORY,		///< browse directories (lets user choose multiple directories)
- BROWSE_SAVE_FILE,			///< browse to save a file
- BROWSE_SAVE_DIRECTORY		///< browse to save a directory
+	 BROWSE_FILE = 0,			///< browse files (lets user choose one file)
+	 BROWSE_DIRECTORY,			///< browse directories (lets user choose one directory)
+	 BROWSE_MULTI_FILE,			///< browse files (lets user choose multiple files)
+	 BROWSE_MULTI_DIRECTORY,		///< browse directories (lets user choose multiple directories)
+	 BROWSE_SAVE_FILE,			///< browse to save a file
+	 BROWSE_SAVE_DIRECTORY		///< browse to save a directory
  };
  enum Option {
- NO_OPTIONS     = 0x0000,		///< no options enabled
- SAVEAS_CONFIRM = 0x0001,		///< Show native 'Save As' overwrite confirm dialog (if supported)
- NEW_FOLDER     = 0x0002,		///< Show 'New Folder' icon (if supported)
- PREVIEW        = 0x0004		///< enable preview mode
+	 NO_OPTIONS     = 0x0000,		///< no options enabled
+	 SAVEAS_CONFIRM = 0x0001,		///< Show native 'Save As' overwrite confirm dialog (if supported)
+	 NEW_FOLDER     = 0x0002,		///< Show 'New Folder' icon (if supported)
+	 PREVIEW        = 0x0004		///< enable preview mode
  };
 
  IMPORTANT NOTICE:
@@ -108,276 +110,249 @@
 
 using namespace std;
 
-#ifdef __WIN32__
-#define PATH_SEPERATOR "\\"
-#define PATH_CHAR_SEPERATOR '\\'
-#else
-#define PATH_SEPERATOR "/"
-#define PATH_CHAR_SEPERATOR '/'
-#endif
-
-#ifndef NATIVE_CHOOSER
-extern std::string NBEMS_dir;
-extern std::string flampHomeDir;
-extern std::string flamp_rcv_dir;
-extern std::string flamp_xmt_dir;
-extern std::string flamp_script_dir;
-extern std::string flamp_script_default_dir;
-#endif
-
 namespace FSEL {
 
-// MacOSX 10.9.5 Change the behaviour of the native browser. Resorting to the FLTK version.
+void create(void) {};
+void destroy(void) {};
 
-#ifdef NATIVE_CHOOSER
+string filename, stitle, sfilter, sdef, sdirectory;
+char dirbuf[FL_PATH_MAX + 1] = "";
+char msg[400];
 
-	string filename;
+/** ********************************************************
+ *
+ ***********************************************************/
+void pfile (const char *dir, const char *fname, const char *filt)
+{
+	char fn[FL_PATH_MAX+1];
 
-	void create(void) {};
-	void destroy(void) {};
-
-	string stitle, sfilter, sdef;
-
-	const char* select(const char* title, const char* filter, const char* def)
-	{
-		Fl_Native_File_Chooser native;
-
-		stitle.clear();
-		sfilter.clear();
-		sdef.clear();
-		if (title) stitle.assign(title);
-		if (filter) sfilter.assign(filter);
-		if (def) sdef.assign(def);
-		if (!sfilter.empty() && sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
-
-		if (!stitle.empty()) native.title(stitle.c_str());
-		native.type(Fl_Native_File_Chooser::BROWSE_FILE);
-		if (!sfilter.empty()) native.filter(sfilter.c_str());
-		native.options(Fl_Native_File_Chooser::PREVIEW);
-		if (!sdef.empty()) native.preset_file(sdef.c_str());
-
-		filename.clear();
-		switch ( native.show() ) {
-			case -1: fprintf(stderr, "ERROR: %s\n", native.errmsg()); break;	// ERROR
-			case  1: break;
-			default:
-				if ( native.filename() ) {
-					filename = native.filename();
-				} else {
-					filename = "";
-				}
-				break;
-		}
-
-		return filename.c_str();
-	}
-
-	const char* saveas(const char* title, const char* filter, const char* def)
-	{
-		Fl_Native_File_Chooser native;
-
-		stitle.clear();
-		sfilter.clear();
-		sdef.clear();
-		if (title) stitle.assign(title);
-		if (filter) sfilter.assign(filter);
-		if (def) sdef.assign(def);
-		if (!sfilter.empty() && sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
-
-		if (!stitle.empty()) native.title(stitle.c_str());
-		native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
-		if (!sfilter.empty()) native.filter(sfilter.c_str());
-		native.options(Fl_Native_File_Chooser::NEW_FOLDER || Fl_Native_File_Chooser::SAVEAS_CONFIRM);
-		if (!sdef.empty()) native.preset_file(sdef.c_str());
-
-		filename.clear();
-		switch ( native.show() ) {
-			case -1: fprintf(stderr, "ERROR: %s\n", native.errmsg()); break;	// ERROR
-			case  1: break;		// CANCEL
-			default:
-				if ( native.filename() ) {
-					filename = native.filename();
-				} else {
-					filename = "";
-				}
-				break;
-		}
-
-		return filename.c_str();
-
-	}
-
-	const char* dir_select(const char* title, const char* filter, const char* def)
-	{
-		Fl_Native_File_Chooser native;
-
-		stitle.clear();
-		sfilter.clear();
-		sdef.clear();
-		if (title) stitle.assign(title);
-		if (filter) sfilter.assign(filter);
-		if (def) sdef.assign(def);
-		if (!sfilter.empty() && sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
-
-		if (!stitle.empty()) native.title(stitle.c_str());
-		native.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
-		if (!sfilter.empty()) native.filter(sfilter.c_str());
-		native.options(Fl_Native_File_Chooser::NO_OPTIONS);
-		if (!sdef.empty()) native.directory(sdef.c_str());
-
-		filename.clear();
-		switch ( native.show() ) {
-			case -1: fprintf(stderr, "ERROR: %s\n", native.errmsg()); break;	// ERROR
-			case  1: break;		// CANCEL
-			default:
-				if ( native.filename() ) {
-					filename = native.filename();
-				} else {
-					filename = "";
-				}
-				break;
-		}
-
-		return filename.c_str();
-	}
+#ifdef __WIN32__
+	fl_filename_expand(fn, sizeof(fn) -1, "$USERPROFILE/");
 #else
-
-	static char sfilename[FL_PATH_MAX + 1];
-	static char sdef[FL_PATH_MAX + 1];
-	static char sfilter[FL_PATH_MAX + 1];
-	static char stitle[FL_PATH_MAX + 1];
-
-	void clear_defs(void) {
-		memset(stitle,    0, sizeof(stitle));
-		memset(sfilter,   0, sizeof(sfilter));
-		memset(sfilename, 0, sizeof(sfilename));
-		memset(sdef,      0, sizeof(sdef));
-	}
-
-	void create(void) {	clear_defs(); };
-	void destroy(void) {};
-
-	const char* select(const char* title, const char* filter, const char* def)
-	{
-		char *retstr = (char *)0;
-		strncpy(stitle,  "Open File", sizeof(stitle) - 1);
-
-		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
-		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
-		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
-
-		if(strnlen(sfilter, FL_PATH_MAX) < 1)
-			strncpy(sfilter,  "*.*", sizeof(sfilter) - 1);
-
-		if(strnlen(sdef, FL_PATH_MAX) < 1) {
-			strncpy(sdef,  flampHomeDir.c_str(), sizeof(sdef) - 1);
-			int len = strnlen(sdef, FL_PATH_MAX);
-
-			if(len > 0) {
-				len--;
-				if(sdef[len] == PATH_CHAR_SEPERATOR);
-				else strncat(sdef, PATH_SEPERATOR, FL_PATH_MAX);
-			} else {
-				return "";
-			}
-		}
-
-		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef,  sfilter, Fl_File_Chooser::SINGLE, stitle);
-		if(!fc) return (char *) "";
-
-		fc->show();
-
-		while(fc->shown()) {
-			Fl::wait();
-		}
-
-		if(fc->count()) {
-			memset(sdef,  0, sizeof(sdef));
-			strncpy(sdef, fc->value(1), FL_PATH_MAX);
-			strncpy(sfilename, sdef, FL_PATH_MAX);
-			retstr = sfilename;
-		}
-
-		if(fc)
-			delete fc;
-
-		return retstr;
-	}
-
-	const char* saveas(const char* title, const char* filter, const char* def)
-	{
-		char *retstr = (char *)0;
-		strncpy(stitle, "Save As", sizeof(stitle) - 1);
-
-		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
-		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
-		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
-
-		if(strnlen(sfilter, FL_PATH_MAX) < 1)
-			strncpy(sfilter,  "All\t*.*\n", sizeof(sfilter) - 1);
-
-		if(strnlen(sdef, FL_PATH_MAX) < 1)
-			strncpy(sdef,  flampHomeDir.c_str(), sizeof(sdef) - 1);
-
-		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef, sfilter, Fl_File_Chooser::CREATE, stitle);
-		if(!fc) return (char *) "";
-
-		fc->ok_label(fc->save_label);
-
-		fc->show();
-		while(fc->shown()) {
-			Fl::wait();
-		}
-
-		if(fc->count()) {
-			memset(sdef,  0, sizeof(sdef));
-			strncpy(sdef, fc->value(1), FL_PATH_MAX);
-			strncpy(sfilename, sdef, FL_PATH_MAX);
-			retstr = sfilename;
-		}
-
-		if(fc)
-			delete fc;
-
-		return retstr;
-	}
-
-	const char* dir_select(const char* title, const char* filter, const char* def)
-	{
-		char *retstr = (char *)0;
-		strncpy(stitle,  "Select Directory", sizeof(stitle) - 1);
-
-		if(title)  strncpy(stitle,  title,  sizeof(stitle)  - 1);
-		if(filter) strncpy(sfilter, filter, sizeof(sfilter) - 1);
-		if(def)	   strncpy(sdef,    def,    sizeof(sdef)    - 1);
-
-		if(strnlen(sfilter, FL_PATH_MAX) < 1)
-			strncpy(sfilter, "All\t*.*\n", sizeof(sfilter) - 1);
-		
-		if(strnlen(sdef, FL_PATH_MAX) < 1)
-			strncpy(sdef, flampHomeDir.c_str(), sizeof(sdef) - 1);
-		
-		Fl_File_Chooser * fc = new Fl_File_Chooser(sdef, sfilter, Fl_File_Chooser::DIRECTORY, stitle);
-		
-		if(!fc) return (char *) "";
-		
-		fc->show();
-		while(fc->shown()) {
-			Fl::wait();
-		}
-		
-		if(fc->count()) {
-			memset(sdef,  0, sizeof(sdef));
-			strncpy(sdef, fc->value(1), FL_PATH_MAX);
-			strncpy(sfilename, sdef, FL_PATH_MAX);
-			retstr = sfilename;
-		}
-		
-		if(fc)
-			delete fc;
-		
-		return retstr;
-	}
+	fl_filename_expand(fn, sizeof(fn) -1, "$HOME/");
 #endif
+
+	strcat(fn, "pfile.txt");
+	FILE *f = fopen(fn, "a");
+	fprintf(f,"\
+			dir:  %s\n\
+			file: %s\n\
+			filter: %s\n", dir, fname, filt);
+	fclose(f);
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void dosfname(string &s)
+{
+	for (size_t i = 0; i < s.length(); i++)
+		if (s[i] == '/') s[i] = '\\';
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+const char* select(const char* title, const char* filter, const char* def, int* fsel)
+{
+	if (strlen(dirbuf) == 0) {
+
+#ifdef __WIN32__
+		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
+#else
+		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$HOME/");
+#endif
+
+	}
+
+	size_t p = 0;
+	Fl_Native_File_Chooser native;
+
+	stitle.clear();
+	sfilter.clear();
+	sdef.clear();
+	sdirectory.clear();
+
+	if (title) stitle.assign(title);
+	if (filter) sfilter.assign(filter);
+
+	if (def) {
+		sdef.assign(def);
+		sdirectory.assign(def);
+		p = sdirectory.rfind(fl_filename_name(sdef.c_str()));
+		sdirectory.erase(p);
+	}
+	if (sdirectory.empty()) {
+		sdirectory.assign(dirbuf);
+	}
+	if (sdef.empty()) {
+		sdef.assign(sdirectory);
+		sdef.append("temp");
+	}
+
+	if (!sfilter.empty()) {
+		if (sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
+		native.filter(sfilter.c_str());
+	}
+	native.title(stitle.c_str());
+
+#if __WIN32__
+	dosfname(sdef);
+	dosfname(sdirectory);
+#endif
+
+	if (!sdef.empty()) native.preset_file(sdef.c_str());
+	if (!sdirectory.empty()) native.directory(sdirectory.c_str());
+
+	native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+	native.options(Fl_Native_File_Chooser::PREVIEW);
+
+	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
+
+	filename.clear();
+	switch ( native.show() ) {
+		case -1:
+			LOG_ERROR("ERROR: %s\n", native.errmsg()); // Error fall through
+		case  1:
+			return 0;
+			break;
+		default:
+			if ( native.filename() ) {
+				filename = native.filename();
+			} else {
+				filename = "";
+			}
+			break;
+	}
+
+	if (fsel)
+		*fsel = native.filter_value();
+
+	return filename.c_str();
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+const char* saveas(const char* title, const char* filter, const char* def, int* fsel)
+{
+	if (strlen(dirbuf) == 0) {
+
+#ifdef __WIN32__
+		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
+#else
+		fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$HOME/");
+#endif
+
+	}
+
+	size_t p = 0;
+	Fl_Native_File_Chooser native;
+
+	stitle.clear();
+	sfilter.clear();
+	sdef.clear();
+	sdirectory.clear();
+
+	if (title) stitle.assign(title);
+	if (filter) sfilter.assign(filter);
+
+	if (def) {
+		sdef.assign(def);
+		sdirectory.assign(def);
+		p = sdirectory.rfind(fl_filename_name(sdef.c_str()));
+		sdirectory.erase(p);
+	}
+	if (sdirectory.empty()) {
+		sdirectory.assign(dirbuf);
+	}
+	if (sdef.empty()) {
+		sdef.assign(sdirectory);
+		sdef.append("temp");
+	}
+
+	if (!sfilter.empty()) {
+		if (sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
+		native.filter(sfilter.c_str());
+	}
+	native.title(stitle.c_str());
+
+#if __WIN32__
+	dosfname(sdef);
+	dosfname(sdirectory);
+#endif
+
+	if (!sdef.empty()) native.preset_file(sdef.c_str());
+	if (!sdirectory.empty()) native.directory(sdirectory.c_str());
+	native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+	native.options(Fl_Native_File_Chooser::NEW_FOLDER || Fl_Native_File_Chooser::SAVEAS_CONFIRM);
+
+	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
+
+	filename.clear();
+	switch ( native.show() ) {
+		case -1: LOG_ERROR("ERROR: %s\n", native.errmsg()); break;	// ERROR
+		case  1: break;		// CANCEL
+		default:
+			if ( native.filename() ) {
+				filename = native.filename();
+			} else {
+				filename = "";
+			}
+			break;
+	}
+
+	if (fsel)
+		*fsel = native.filter_value();
+
+	return filename.c_str();
+
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+const char* dir_select(const char* title, const char* filter, const char* def)
+{
+	Fl_Native_File_Chooser native;
+
+	stitle.clear();
+	sfilter.clear();
+	sdef.clear();
+	if (title) stitle.assign(title);
+	if (filter) sfilter.assign(filter);
+	if (def) sdef.assign(def);
+	if (!sfilter.empty() && sfilter[sfilter.length()-1] != '\n') sfilter += '\n';
+
+	if (!stitle.empty()) native.title(stitle.c_str());
+	native.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+	if (!sfilter.empty()) native.filter(sfilter.c_str());
+	native.options(Fl_Native_File_Chooser::NO_OPTIONS);
+
+#if __WIN32__
+	dosfname(sdef);
+#endif
+
+	if (!sdef.empty()) {
+		native.directory(sdef.c_str());
+		sdirectory = sdef;
+	} else
+		sdirectory.clear();
+	
+	filename.clear();
+	switch ( native.show() ) {
+		case -1: LOG_ERROR("ERROR: %s\n", native.errmsg()); break;	// ERROR
+		case  1: break;		// CANCEL
+		default:
+			if ( native.filename() ) {
+				filename = native.filename();
+			} else {
+				filename = "";
+			}
+			break;
+	}
+	
+	return filename.c_str();
+}
 
 } // FSEL

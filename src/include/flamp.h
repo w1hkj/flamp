@@ -33,6 +33,9 @@
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Double_Window.H>
 
+#include "util.h"
+#include "nls.h"
+#include "gettext.h"
 #include "crc16.h"
 #include "threads.h"
 #include "timeops.h"
@@ -140,12 +143,11 @@ extern void thread_error_msg(void *data);
 extern void transfer_time(std::string modem_name, float &cps, int &transfer_size, std::string buffer);
 extern void transmit_current(void);
 extern void transmit_queue_main_thread(void *ptr);
-extern void transmit_queued(bool);
+extern void transmit_queued(bool event_driven, bool shift_key_pressed);
 extern void transmit_relay(RELAY_DATA *rd);
 extern void turn_rsid_off(void);
 extern void turn_rsid_on(void);
 extern void tx_removefile(bool flag);
 extern void update_cAmp_changes(cAmp *amp);
-extern void wait_seconds(int seconds);
 extern void writefile(int);
 #endif

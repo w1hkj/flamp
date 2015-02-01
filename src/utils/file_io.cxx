@@ -49,6 +49,7 @@
 
 #include "debug.h"
 #include "util.h"
+#include "nls.h"
 #include "gettext.h"
 #include "flinput2.h"
 #include "date.h"
@@ -65,6 +66,7 @@
 #include "base256.h"
 #include "lzma/LzmaLib.h"
 #include "status.h"
+
 
 #ifdef WIN32
 #  include "flamprc.h"
@@ -215,11 +217,11 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
 			bufstr.append((const char*)&outprops, sizeof(outprops));
 			bufstr.append((const char*)buf, outlen);
 			if (input.length() < bufstr.length()) {
-				LOG_DEBUG("%s", "Lzma could not compress data");
+				LOG_DEBUG("%s", _("Lzma could not compress data"));
 				bufstr.assign(input);
 			}
 		} else {
-			LOG_ERROR("Lzma Compress failed: %s", LZMA_ERRORS[r]);
+			LOG_ERROR("%s %s",  _("Lzma Compress failed:"), LZMA_ERRORS[r]);
 			bufstr.assign(input);
 		}
 		if (encode_with == BASE256)
@@ -331,7 +333,7 @@ void decompress_maybe(string& input)
 	const char* in = cmpstr.data();
 	size_t outlen = ntohl(*reinterpret_cast<const uint32_t*>(in + strlen(LZMA_STR)));
 	if (outlen > 1 << 25) {
-		fprintf(stderr, "Refusing to decompress data (> 32 MiB)\n");
+		fprintf(stderr, "%s", _("Refusing to decompress data (> 32 MiB)\n"));
 		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
@@ -345,7 +347,7 @@ void decompress_maybe(string& input)
 	int r;
 	if ((r = LzmaUncompress(buf, &outlen, (const unsigned char*)in + cmpstr.length() - inlen, &inlen,
 							inprops, LZMA_PROPS_SIZE)) != SZ_OK)
-		fprintf(stderr, "Lzma Uncompress failed: %s\n", LZMA_ERRORS[r]);
+		fprintf(stderr, "%s %s\n", _("Lzma Uncompress failed:"), LZMA_ERRORS[r]);
 	else {
 		cmpstr.assign((const char*)buf, outlen);
 		input.replace(p0, p3 - p0, cmpstr);
@@ -366,7 +368,7 @@ void connect_to_fldigi(void *)
 		tcpip->connect();
 		file_io_errno = errno;
 		bConnected = true;
-		LOG_INFO("Connected to %d", tcpip->fd());
+		LOG_INFO("%s %d", _("Connected to"), tcpip->fd());
 	}
 	catch (const SocketException& e) {
 		if(e.error() != 0) {
@@ -385,7 +387,7 @@ void send_via_fldigi(string tosend)
 	pthread_mutex_lock(&mutex_file_io);
 
 	if (!bConnected) {
-		LOG_ERROR("%s", "Not connected to fldigi");
+		LOG_ERROR("%s", _("Not connected to fldigi"));
 		pthread_mutex_unlock(&mutex_file_io);
 		return;
 	}

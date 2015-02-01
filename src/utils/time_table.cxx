@@ -75,6 +75,10 @@
  ***********************************************************/
 
 #include "debug.h"
+#include "util.h"
+#include "nls.h"
+#include "gettext.h"
+
 #include "time_table.h"
 #include "time_table.dat"
 
@@ -179,7 +183,7 @@ float seconds_from_string(std::string mode, std::string& str, float *overhead)
 	try {
 		return seconds_from_c_string(mode.c_str(), str.c_str(), str.length(), overhead);
 	} catch ( ... ) {
-		LOG_ERROR("%s", "String Ref Error");
+		LOG_ERROR("%s", _("String Ref Error"));
 		return 0.0;
 	}
 }
@@ -197,7 +201,7 @@ float minutes_from_string(std::string mode, std::string& str, float *overhead)
 		if(overhead)
 			*overhead /= 60.0;
 	} catch ( ... ) {
-		LOG_ERROR("%s", "String Ref Error");
+		LOG_ERROR("%s", _("String Ref Error"));
 		return 0.0;
 	}
 

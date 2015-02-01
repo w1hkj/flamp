@@ -12,7 +12,7 @@ dnl major and minor must be integers; patch may
 dnl contain other characters or be empty
 m4_define(FLAMP_MAJOR,  [2])
 m4_define(FLAMP_MINOR,  [2])
-m4_define(FLAMP_PATCH,  [.00AA])
+m4_define(FLAMP_PATCH,  [.00AC])
 
 AC_INIT([FLAMP], FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH, [w1hkj AT w1hkj DOT com])
 
@@ -36,19 +36,23 @@ AC_CANONICAL_HOST
 # define target, target_cpu, target_vendor, target_os
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE([-Wall foreign std-options 1.9.6])
+AM_INIT_AUTOMAKE([-Wall foreign std-options subdir-objects 1.9.6])
 
 #change the next config item for the specific application src's
 AC_CONFIG_SRCDIR([src/flamp.cxx])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
+# Checks for libraries.
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
 
-# Checks for libraries.
+### Internationalization
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([gettext-version])
+AM_CONDITIONAL([USE_NLS], [test "x$USE_NLS" = "xyes"])
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
@@ -107,6 +111,15 @@ AC_CHECK_FLTK
 # Set ENABLE_XMLRPC Makefile conditional
 #AC_FLAMP_XMLRPC
 
+### libintl
+# Substitute INTL_CFLAGS in Makefile
+# Substitute INTL_LIBS in Makefile
+# (default to LIBINTL)
+AC_FLDIGI_INTL
+
+IT_PROG_INTLTOOL
+
+
 ### X11
 # Set ac_cv_x to yes/no
 # Define USE_X in config.h
@@ -125,7 +138,7 @@ fi
 AC_FLAMP_BUILD_INFO
 
 #AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile po/Makefile.in])
 
 AC_OUTPUT
 

@@ -22,8 +22,11 @@
 
 #include <config.h>
 
-#if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3 ) || \
-(FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
+#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3
+#	error "FLTK versions less then 1.3 are no longer supported"
+#endif
+
+#if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
 
 // Use Windows' chooser
 #	if defined(__WIN32__) || defined(__CYGWIN__)

@@ -65,6 +65,7 @@
 
 #include "debug.h"
 #include "util.h"
+#include "nls.h"
 #include "gettext.h"
 #include "flinput2.h"
 #include "date.h"
@@ -92,14 +93,6 @@
 #include <FL/x.H>
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
-
-#ifdef __WIN32__
-#define PATH_SEPERATOR "\\"
-#define PATH_CHAR_SEPERATOR '\\'
-#else
-#define PATH_SEPERATOR "/"
-#define PATH_CHAR_SEPERATOR '/'
-#endif
 
 pthread_mutex_t mutex_script_io = PTHREAD_MUTEX_INITIALIZER;
 
@@ -365,7 +358,7 @@ static int process_base(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 			break;
 
 		default:
-			LOG_INFO("Unknown base encoder selected (%d)", base);
+			LOG_INFO("%s (%d)", _("Unknown base encoder selected"), base);
 			return -1;
 	}
 
@@ -565,15 +558,15 @@ static int process_event(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 
 	warn = sp->event_forever() | btn_repeat_forever->value();
 
-	if(value && warn)
-		results = fl_choice2(_("Enable Events?\nIMMEDIATE TRANSMISSION WILL OCCUR!"),
-							 _("No"), _("Yes"), NULL);
+	if(value && warn) {
+		results = fl_choice2("%s", _("No"), _("Yes"), NULL, _("Enable Events?\nIMMEDIATE TRANSMISSION WILL OCCUR!"));
+	}
 
 	warn = sp->event_timed() | btn_repeat_at_times->value();
 
-	if(value && warn)
-		results = fl_choice2(_("Enable Events?\nImmediate Transmission is possible!"),
-							 _("No"), _("Yes"), NULL);
+	if(value && warn) {
+		results = fl_choice2("%s", _("No"), _("Yes"), NULL, _("Enable Events?\nImmediate Transmission is possible!"));
+	}
 
 	if(results) {
 		do_events->value(value);
@@ -1109,21 +1102,21 @@ void script_execute(const char *filename, bool queue_flag)
 	static std::string script_filename = "";
 
 	if(!filename) {
-		LOG_INFO("Script file name (path) null pointer");
+		LOG_INFO("%s", _("Script file name (path) null pointer"));
 		return;
 	}
 
 	script_filename.assign(filename);
 
 	if(script_filename.empty()) {
-		LOG_INFO("Script file name (path) invalid");
+		LOG_INFO("%s", _("Script file name (path) invalid"));
 		return;
 	}
 
 	sp = new ScriptParsing;
 
 	if(!sp) {
-		LOG_INFO("ScriptParsing Class Allocation Fail (%s)", script_filename.c_str());
+		LOG_INFO("%s (%s)", _("ScriptParsing Class Allocation Fail"), script_filename.c_str());
 		return;
 	}
 
@@ -1158,8 +1151,8 @@ void script_execute(const char *filename, bool queue_flag)
 	error = sp->parse_commands((char *) script_filename.c_str());
 
 	if(error != script_no_errors) {
-		LOG_INFO("Error(s) in processing script file: %s", script_filename.c_str());
-		fl_alert("%s", "Script File contains Error(s)\nSee Log file for details.");
+		LOG_INFO("%s %s", _("Error(s) in processing script file:"), script_filename.c_str());
+		fl_alert("%s", _("Script File contains Error(s)\nSee Log file for details."));
 	}
 
 	if(sp)
@@ -1195,7 +1188,7 @@ void cb_scripts(bool reset_path = false)
 		first_time = false;
 	}
 
-	const char *p = FSEL::select((char *)"Script Files", (char *)"*.txt", \
+	const char *p = FSEL::select((char *)_("Script Files"), (char *)"*.txt", \
 		script_filename);
 
 	if(p) {
@@ -1228,10 +1221,10 @@ void cb_load_tx_queue(void)
 		script_filename.assign(txt_auto_load_queue_path->value());
 
 		if(script_filename.empty()) {
-			LOG_INFO("Queue Load file list (path) not assigned");
+			LOG_INFO("%s", _("Queue Load file list (path) not assigned"));
 			return;
 		}
-		
+
 		pthread_mutex_lock(&mutex_script_io);
 		strncpy(call_script.filename, script_filename.c_str(), FL_PATH_MAX-1);
 		call_script.queueflag = true;
