@@ -109,6 +109,7 @@ status progStatus = {
 	false,          // bool hamcast_mode_enable_4
 	1,              // int hamcast_mode_selection_4
 
+	true,          // bool auto_rx_save
 };
 
 extern std::string selected_encoder_string;
@@ -194,6 +195,8 @@ void status::saveLastState()
 
 	FLAMPpref.set("hamcast_mode_enable_4", hamcast_mode_enable_4);
 	FLAMPpref.set("hamcast_mode_selection_4", hamcast_mode_selection_4);
+
+	FLAMPpref.set("auto_rx_save", auto_rx_save);
 
 }
 
@@ -333,6 +336,8 @@ void status::loadLastState()
 		FLAMPpref.get("hamcast_mode_selection_4", i, hamcast_mode_selection_4);
 		hamcast_mode_selection_4 = i;
 
+		FLAMPpref.get("auto_rx_save", i, auto_rx_save);
+		auto_rx_save = i;
 
 		if(auto_load_queue_path.size() < 1)
 			auto_load_queue = false;

@@ -392,7 +392,7 @@ static void set_combo(void *str)
 		cbo_modes->value(s.c_str());
 		progStatus.selected_mode = cbo_modes->index();
 		g_modem.assign(cbo_modes->value());
-		estimate(0, false);
+		cbo_modes->do_callback();
 	}
 }
 

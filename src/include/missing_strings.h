@@ -33,8 +33,7 @@
 #include <config.h>
 
 // versions of FLTK < 1.3.2 do not contain fl_string
-#if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3 ) || \
-    (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
+#if (FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3 && FLAMP_FLTK_API_PATCH < 1)
 
 #  include <FL/Fl_Export.H>
 #  include <config.h>
@@ -119,4 +118,4 @@ FL_EXPORT extern size_t fl_strlcpy(char *, const char *, size_t);
 #endif /* < FLTK < 1.3.0 */
 
 #endif /* !flstring_h */
- 
+

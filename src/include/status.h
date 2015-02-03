@@ -102,6 +102,8 @@ struct status {
 	bool hamcast_mode_enable_4;
 	int  hamcast_mode_selection_4;
 
+	bool auto_rx_save;
+	
 	void saveLastState();
 	void loadLastState();
 };

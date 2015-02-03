@@ -6,7 +6,7 @@
 //		Stelios Bounanos, M0GLD
 //		Dave Freese, 2015
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
 // Fldigi is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
+// along with flamp.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
 #include <string>
@@ -28,6 +28,7 @@
 
 #include <FL/fl_ask.H>
 #include <FL/Fl_Native_File_Chooser.H>
+#include <FL/filename.H>
 
 #include "config.h"
 
@@ -116,8 +117,6 @@ string filename, stitle, sfilter, sdef, sdirectory;
 char dirbuf[FL_PATH_MAX + 1] = "";
 char msg[400];
 
-// use this function for testing on garbage OS, aka Windows
-/*
 void pfile (const char *dir, const char *fname, const char *filt) {
 	char fn[FL_PATH_MAX+1];
 #ifdef __WIN32__
@@ -133,7 +132,6 @@ file: %s\n\
 filter: %s\n", dir, fname, filt);
 	fclose(f);
 }
-*/
 
 void dosfname(string &s)
 {
@@ -164,11 +162,7 @@ const char* select(const char* title, const char* filter, const char* def, int* 
 
 	if (def) {
 		sdef.assign(def);
-		if (!sdef.empty()) {
-			p = sdef.length() - 1;
-			if ((sdef[p] == '/') || (sdef[p] == '\\')) sdef.append("fname");
-		}
-		sdirectory.assign(sdef);
+		sdirectory.assign(def);
 		p = sdirectory.rfind(fl_filename_name(sdef.c_str()));
 		sdirectory.erase(p);
 	}
@@ -195,7 +189,7 @@ const char* select(const char* title, const char* filter, const char* def, int* 
 	native.type(Fl_Native_File_Chooser::BROWSE_FILE);
 	native.options(Fl_Native_File_Chooser::PREVIEW);
 
-//	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
+	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
 
 	filename.clear();
 	switch ( native.show() ) {
@@ -242,11 +236,7 @@ const char* saveas(const char* title, const char* filter, const char* def, int* 
 
 	if (def) {
 		sdef.assign(def);
-		if (!sdef.empty()) {
-			p = sdef.length() - 1;
-			if ((sdef[p] == '/') || (sdef[p] == '\\')) sdef.append("fname");
-		}
-		sdirectory.assign(sdef);
+		sdirectory.assign(def);
 		p = sdirectory.rfind(fl_filename_name(sdef.c_str()));
 		sdirectory.erase(p);
 	}
@@ -272,7 +262,7 @@ const char* saveas(const char* title, const char* filter, const char* def, int* 
 	native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
 	native.options(Fl_Native_File_Chooser::NEW_FOLDER || Fl_Native_File_Chooser::SAVEAS_CONFIRM);
 
-//	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
+	pfile(sdirectory.c_str(), sdef.c_str(), sfilter.c_str());
 
 	filename.clear();
 	switch ( native.show() ) {

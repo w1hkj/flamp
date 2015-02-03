@@ -88,6 +88,7 @@ private:
 	bool _update_required;
 	bool _valid_tx_data;
 	bool _valid_tx_vec_data;
+	bool _file_saved;
 
 	int cAmp_type;
 	int thread_locks;
@@ -371,6 +372,9 @@ public:
 	void rx_relay_blocks(std::string str) {	relay_blocks.assign(reformat_missing_blocks(str)); }
 	void rx_time_stamp(std::string ts) { rxdttm.assign(ts); }
 	void rx_to_tx_hash(void) { xmthash.assign(rxhash); }
+
+	bool file_saved(void) { return _file_saved; }
+	void file_saved(bool flag) { _file_saved = flag; }
 
 	const char* rx_sz_percent(void) {
 		static const char empty[] = "  0 %";

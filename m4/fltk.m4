@@ -22,7 +22,7 @@ AC_DEFUN([AC_CHECK_FLTK], [
       if test $? -ne 0; then
           AC_MSG_ERROR([$FLTK_CONFIG failed])
       fi
-      if test "x$FLTK_API_VERSION" = "x1.1" || test "x$FLTK_API_VERSION" = "x1.3"; then
+      if test "x$FLTK_API_VERSION" = "x1.3"; then
           HAVE_FLTK_API_VERSION=yes
       fi
 
@@ -38,9 +38,13 @@ AC_DEFUN([AC_CHECK_FLTK], [
       if test "${HAVE_FLTK_API_VERSION}" = "no"; then
           AC_MSG_ERROR([
   *** The version of FLTK found on your system provides API version $FLTK_API_VERSION.
-  *** To build $PACKAGE you need a FLTK version that provides API 1.1 or 1.3.
+  *** To build $PACKAGE you need a FLTK version that provides API 1.3.
           ])
       fi
+      if test $FLDIGI_FLTK_API_MINOR -gt 3; then
+          AC_MSG_WARN([$PACKAGE_TARNAME may not work with FLTK $FLTK_API_VERSION])
+      fi
+
       FLTK_CFLAGS=`$FLTK_CONFIG --cxxflags`
       if test "x$ac_cv_static" != "xyes"; then
           FLTK_LIBS=`$FLTK_CONFIG --ldflags --use-images`
