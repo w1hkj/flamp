@@ -68,6 +68,7 @@ typedef struct _tx_fldigi_thread {
 	int mode;                   //!< @brief Mode (modem index) used in time table generation
 	int que;                    //!< @brief Flag to determine if a single file or multiple files to be sent.
 	int rx_interval_time;       //!< @brief Delay period between transmits
+	int tx_interval_time;       //!< @brief Transmit period in seconds
 	int thread_running;         //!< @brief Flag indicating thread is running.
 
 	std::string header_modem;   //!< @brief Local storage for current selected header modem
@@ -113,8 +114,7 @@ extern int last_selected_tx_file;
 extern int tx_thread_running_count;
 
 extern bool check_block_tx_time(std::vector<std::string> &header, std::vector<std::string> &data, TX_FLDIGI_THREAD *thread_ptr);
-extern bool send_vector_to_fldigi(std::string modem, std::string &tail, std::vector<std::string> vector_data, int mode, cAmp *tx);
-extern bool wait_for_rx(int max_wait_seconds);
+extern bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::string &tail, std::vector<std::string> vector_data, int mode, cAmp *tx);
 extern TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode, bool queued, bool event_driven, RELAY_DATA *relay_data);
 extern void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level, bool *in_use_flag);
 extern void * transmit_header_current(void *);
@@ -125,6 +125,7 @@ extern void * transmit_serial_current(void *);
 extern void * transmit_serial_queued(void *);
 extern void * transmit_serial_relay(void *ptr);
 extern void clear_missing(void *ptr);
-
+extern void abort_tx_from_main(void *ptr);
+extern bool wait_for_rx(int max_wait_seconds);
 
 #endif /* defined(__flamp_transmit_camp__) */

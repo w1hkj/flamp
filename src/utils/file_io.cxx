@@ -66,6 +66,7 @@
 #include "lzma/LzmaLib.h"
 #include "status.h"
 
+
 #ifdef WIN32
 #  include "flamprc.h"
 #  include "compat.h"
@@ -380,7 +381,7 @@ void connect_to_fldigi(void *)
 /** ********************************************************
  *
  ***********************************************************/
-void send_via_fldigi(string tosend)
+void send_via_fldigi(std::string tosend)
 {
 	pthread_mutex_lock(&mutex_file_io);
 
@@ -394,6 +395,7 @@ void send_via_fldigi(string tosend)
 		file_io_errno = errno;
 	}
 	catch (const SocketException& e) {
+
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);

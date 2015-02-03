@@ -30,10 +30,9 @@
 #include <FL/fl_draw.H>
 #include "Fl_BlockMap.h"
 
-//
-// 'Fl_BlockMap::draw()
-//
-
+/** ********************************************************
+ *
+ ***********************************************************/
 void Fl_BlockMap::draw()
 {
 	int tx = x();
@@ -71,8 +70,7 @@ void Fl_BlockMap::draw()
 
 }
 
-
-/**
+/** ********************************************************
  The constructor creates the progress bar using the position, size, and label.
 
  You can set the background color with color() and the
@@ -80,7 +78,7 @@ void Fl_BlockMap::draw()
  together with color(unsigned bg, unsigned sel).
 
  The default colors are FL_LIGHT3 and FL_DARK_BLUE, resp.
- */
+ ***********************************************************/
 Fl_BlockMap::Fl_BlockMap(int X, int Y, int W, int H, const char* L)
 : Fl_Widget(X, Y, W, H, L) {
 	align(FL_ALIGN_LEFT);

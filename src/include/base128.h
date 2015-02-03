@@ -27,8 +27,6 @@
 
 #include <string>
 
-using namespace std;
-
 typedef unsigned char byte;
 
 class base128 {
@@ -39,17 +37,17 @@ private:
 	int linelength;
 	size_t iocp;
 	size_t iolen;
-	string output;
+	std::string output;
 
-	void addlf(string &);
-	void escape(string &, bool encode = true);
+	void addlf(std::string &);
+	void escape(std::string &, bool encode = true);
 	void init();
-	void remlf(string &);
+	void remlf(std::string &);
 
 public:
 	base128() { init(); };
 	~base128() {};
-	string encode(string &in);
-	string decode(string &in, bool &decode_error);
+	std::string encode(std::string &in);
+	std::string decode(std::string &in, bool &decode_error);
 };
 

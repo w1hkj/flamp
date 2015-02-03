@@ -175,7 +175,7 @@ flamp_SOURCES += \
 	$(srcdir)/xmlrpcpp/XmlRpcUtil.h \
 	$(srcdir)/xmlrpcpp/XmlRpcValue.cpp \
 	$(srcdir)/xmlrpcpp/XmlRpcValue.h \
-	$(srcdir)/xmlrpcpp/base64.h
+	$(srcdir)/xmlrpcpp/Xmlbase64.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
@@ -232,22 +232,13 @@ EXTRA_DIST = \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_MAC.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser.H \
 	$(srcdir)/include/FL/Fl_Native_File_Chooser_WIN32.H \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Buffer_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Display_mod_1_3.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_1.cxx \
-	$(srcdir)/widgets/Fl_Text_Editor_mod_1_3.cxx \
+	$(srcdir)/widgets/Fl_Text_Buffer_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Display_mod.cxx \
+	$(srcdir)/widgets/Fl_Text_Editor_mod.cxx \
 	$(srcdir)/include/Fl_BlockMap.h \
 	$(srcdir)/include/Fl_Text_Buffer_mod.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Buffer_mod_1_3.H \
 	$(srcdir)/include/Fl_Text_Display_mod.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Display_mod_1_3.H \
 	$(srcdir)/include/Fl_Text_Editor_mod.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_1.H \
-	$(srcdir)/include/Fl_Text_Editor_mod_1_3.H \
 	$(srcdir)/include/FTextView.h
 
 # Additional non-source files that are distributed

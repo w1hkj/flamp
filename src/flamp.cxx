@@ -831,7 +831,7 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 /** ********************************************************
  *
  ***********************************************************/
-void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc)
+void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (char *)0, char *callto = (char *)0)
 {
 	xmt_fname = xmtfname;
 	string xmt_fname2 = xmtfname;
@@ -896,9 +896,18 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc)
 	cAmp *nu = new cAmp(tx_buffer, fl_filename_name(xmt_fname.c_str()));
 	nu->amp_type(TX_AMP);
 	nu->xmt_full_path_fname(xmt_fname2);
-	nu->callto("QST");
 
-	nu->xmt_descrip("");
+	if(callto) {
+		nu->callto(callto);
+	} else {
+		nu->callto("QST");
+	}
+
+	if(desc) {
+		nu->xmt_descrip(desc);
+	} else {
+		nu->xmt_descrip("");
+	}
 
 	if(use_comp_on_file) {
 		nu->compress(true);
@@ -973,14 +982,16 @@ int valid_block_size(int value)
 /** ********************************************************
  *
  ***********************************************************/
-void replace_add_queue_item(char *filename, bool compFlag, char *desc)
+void replace_add_queue_item(char *filename, bool compFlag, char *desc = (char *)0, char *callto = (char *)0)
 {
 	int count = 0;
 	int i     = 0;
 	cAmp *tx = (cAmp *)0;
 	char *cPtr = (char *)0;
 	bool compress = false;
-	string fn;
+	std::string fn;
+	std::string _callto;
+	std::string _desc;
 
 	if(!filename) {
 		LOG_DEBUG("filename parameter null");
@@ -1009,6 +1020,10 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 		return;
 	}
 
+	fn.clear();
+	_callto.clear();
+	_desc.clear();
+
 	count = tx_amp.size();
 
 	for(i = 1; i <= count; i++) {
@@ -1018,6 +1033,8 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 			if(strncmp(filename, cPtr, FILENAME_MAX) == 0) {
 				if(!tx->xmt_file_modified()) return;
 				compress = tx->compress();
+				_desc.assign(tx->xmt_descrip());
+				_callto.assign(tx->callto());
 				LOG_INFO("File removed from transmit queue: %s", cPtr);
 				tx_amp.set(tx);
 				tx_removefile(false);
@@ -1030,7 +1047,13 @@ void replace_add_queue_item(char *filename, bool compFlag, char *desc)
 
 	fn.assign(filename);
 
-	addfile(fn, 0, compress, desc);
+	if(!_desc.empty())
+		desc = (char *) _desc.c_str();
+
+	if(!_callto.empty())
+		callto =  (char *) _callto.c_str();
+
+	addfile(fn, 0, compress, desc, callto);
 }
 
 /** ********************************************************
@@ -1330,13 +1353,14 @@ void readfile()
 {
 	string xmtfname;
 	xmtfname.clear();
+	xmtfname = flampHomeDir;
 	const char *p = FSEL::select(_("Open file"), "*.*",
 								 xmtfname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
 	xmtfname = p;
 
-	addfile(xmtfname, 0, false, 0);
+	addfile(xmtfname, 0, false, 0, 0);
 }
 
 /** ********************************************************
@@ -1689,9 +1713,8 @@ void writefile(int xfrFlag)
 	fclose(dfile);
 
 	if(xfrFlag && dfile) {
-		addfile(rx_fname, amp, amp->compress(), 0);
+		addfile(rx_fname, amp, amp->compress(), (char *) amp->rx_desc().c_str(), 0);
 	}
-
 }
 
 /** ********************************************************
@@ -1704,18 +1727,32 @@ double time_f(void)
 	return ((double) now.tv_sec) + (((double)now.tv_usec) * 0.000001);
 }
 
+
 /** ********************************************************
  *
  ***********************************************************/
-void abort_and_id(void)
+void abort_tx(void)
 {
-	std::string idMessage;
 	send_abort();
 	send_abort();
 
+	for(int i = 0; i < 40; i++) { // 4 seconds
+		MilliSleep(100);
+		if(get_trx_state() == "RX") break;
+	}
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void abort_tx_from_main(void * ptr)
+{
+	abort_tx();
+
 	if(!generate_time_table) {
+		std::string idMessage;
 		// A number of non printable characters are required to overcome long interleave modems.
-		idMessage.assign("\n\n\n\n\n\n\n\n\n\n\nFILE TRANSFER ABORTED\n\nDE ").append(progStatus.my_call).append(" BK\n\n\n");
+		idMessage.assign("\n\n\n\n\n\n\n\n\n\n\nFILE TRANSFER ABORTED\n\nDE ").append(progStatus.my_call).append(" BK\n\n");
 		send_via_fldigi(idMessage);
 	}
 }
@@ -1732,7 +1769,7 @@ void abort_request(void)
 		transmit_stop = true;
 		ztime_end = 0;
 		continuous_exception = false;
-		abort_and_id();
+		//abort_tx();
 	}
 }
 
@@ -1784,7 +1821,7 @@ void transmit_queue_main_thread(void *ptr)
 		auto_load_tx_queue();
 	}
 
-	transmit_queued(true);
+	transmit_queued(true, false);
 }
 
 /** ********************************************************
@@ -2795,8 +2832,13 @@ void drop_file_changed()
 	drop_file->value("  DnD");
 	drop_file->redraw();
 
-	if ((n = buffer.find("file:///")) != string::npos)
-		buffer.erase(0, n + 7);
+	while(1) { // Remove URL file marker
+		if ((n = buffer.find("file:///")) != string::npos) {
+			buffer.erase(n, 7);
+		} else {
+			break;
+		}
+	}
 
 	n = buffer.find(":\\");
 	if(n == string::npos)
@@ -2822,7 +2864,7 @@ void drop_file_changed()
 			}
 
 			if(valid)
-				addfile(cFileName, 0, false, 0);
+				addfile(cFileName, 0, false, 0, 0);
 
 			// Remove any leading spaces and control characters
 			while(*cPtr <= ' ' && cPtr < cBufferEnd)

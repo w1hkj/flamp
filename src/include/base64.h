@@ -1,3 +1,4 @@
+
 // =====================================================================
 //
 // base64.h
@@ -27,8 +28,6 @@
 
 #include <string>
 
-using namespace std;
-
 typedef unsigned char byte;
 
 class base64 {
@@ -42,12 +41,12 @@ private:
 	int linelength;
 	size_t iocp;
 	size_t iolen;
-	string output;
-	void init();
+	std::string output;
+	void init(void);
 
 public:
 	base64(bool t = false) {crlf = t; init(); };
 	~base64(){};
-	string encode(string in);
-	string decode(string in, bool &decode_error);
+	std::string encode(std::string in);
+	std::string decode(std::string in, bool &decode_error);
 };

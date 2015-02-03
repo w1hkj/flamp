@@ -37,6 +37,7 @@
 
 #include "font_browser.h"
 #include "flslider2.h"
+#include "util.h"
 #include "gettext.h"
 
 using namespace std;

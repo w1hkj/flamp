@@ -7,7 +7,7 @@
 #include "XmlRpcSocket.h"
 #include "XmlRpc.h"
 
-#include "base64.h"   // For HTTP authentication encoding
+#include "Xmlbase64.h"   // For HTTP authentication encoding
 
 #include <stdio.h>
 #include <stdlib.h>

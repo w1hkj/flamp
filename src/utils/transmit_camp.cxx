@@ -82,6 +82,12 @@ bool transmit_queue         = false;
 int last_selected_tx_file   = 0;
 int tx_thread_running_count = 0;
 
+static bool shift_key_flag = false;
+
+
+static void wait_milliseconds(int milliseconds, int millisecond_increments);
+static void wait_seconds(int seconds, int millisecond_increments);
+
 /** ********************************************************
  *
  ***********************************************************/
@@ -197,8 +203,8 @@ void * create_tx_table(void *ptr)
 
 	char filename[256];
 
-	#define P_RELSOL "%3.6f"
-	#define P_RELSOL2 "%1.6f"
+#define P_RELSOL "%3.6f"
+#define P_RELSOL2 "%1.6f"
 
 	std::string response;
 	std::string txBuffer;
@@ -271,7 +277,7 @@ void * create_tx_table(void *ptr)
 			mode_name = cbo_modes->value();
 
 			send_new_modem(mode_name.c_str());
-			wait_seconds(1);
+			wait_seconds(1, 200);
 
 			time_seconds = measure_tx_time((int) 'A', &overhead);
 
@@ -458,7 +464,7 @@ void transmit_current()
 /** ********************************************************
  *
  ***********************************************************/
-void transmit_queued(bool event_driven)
+void transmit_queued(bool event_driven, bool shift_key_pressed)
 {
 	if (!bConnected) connect_to_fldigi(0);
 	if (!bConnected) return;
@@ -475,6 +481,8 @@ void transmit_queued(bool event_driven)
 		event_bail_flag = false;
 
 	last_selected_tx_file = tx_queue->value() - 1;
+
+	shift_key_flag = shift_key_pressed;
 
 	if(generate_time_table) {
 		run_in_thread(create_tx_table, 1, 1, event_driven, 0);
@@ -585,9 +593,10 @@ void * transmit_serial_queued(void *ptr)
 	transmitting = true;
 
 	static bool in_use = false;
+	TX_FLDIGI_THREAD *thread = (TX_FLDIGI_THREAD *) ptr;
 
 	if(in_use) {
-		return run_in_thread_destroy((TX_FLDIGI_THREAD *) ptr, 3, &in_use);
+		return run_in_thread_destroy(thread, 3, &in_use);
 	}
 
 	in_use = true;
@@ -597,7 +606,6 @@ void * transmit_serial_queued(void *ptr)
 	Fl::awake(deactivate_button, (void *) &val);
 
 	float tx_time = 0;
-	TX_FLDIGI_THREAD *thread = (TX_FLDIGI_THREAD *)ptr;
 
 	if (tx_amp.size() == 0) {
 		in_use = false;
@@ -612,6 +620,7 @@ void * transmit_serial_queued(void *ptr)
 	string null_string = "";
 	string temp        = "";
 	string terminator  = "";
+	bool fills = false;
 
 	autosend.clear();
 	temp.clear();
@@ -639,17 +648,27 @@ void * transmit_serial_queued(void *ptr)
 			return run_in_thread_destroy(thread, 3, &in_use);
 		}
 
-		tx->xmt_modem(thread->modem.c_str());
+		fills = false;
 
-		if (tx->xmt_buffer().empty())
-			return run_in_thread_destroy(thread, 3, &in_use);
+		if(shift_key_flag) {
+			if(tx->xmt_tosend().size() && !tx->unproto())
+				fills = true;
+		}
 
-		if(num == (count - 1))
-			temp = tx->tx_string(terminator);
-		else
-			temp = tx->tx_string(null_string);
+		if((fills && shift_key_flag) || !shift_key_flag) {
 
-		autosend.append(temp);
+			tx->xmt_modem(thread->modem.c_str());
+
+			if (tx->xmt_buffer().empty())
+				return run_in_thread_destroy(thread, 3, &in_use);
+
+			if(num == (count - 1))
+				temp = tx->tx_string(terminator);
+			else
+				temp = tx->tx_string(null_string);
+
+			autosend.append(temp);
+		}
 
 		delete tx;
 	}
@@ -676,7 +695,7 @@ void turn_rsid_on()
 {
 	// Turn on RX/TX RSIDs
 	send_via_fldigi("<cmd><txrsid>ON</txrsid></cmd><cmd><rsid>ON</rsid></cmd>");
-	wait_seconds(1);
+	MilliSleep(1000);
 }
 
 /** ********************************************************
@@ -686,7 +705,7 @@ void turn_rsid_off()
 {
 	// Turn on RX/TX RSIDs
 	send_via_fldigi("<cmd><txrsid>OFF</txrsid></cmd><cmd><rsid>OFF</rsid></cmd>");
-	wait_seconds(1);
+	MilliSleep(1000);
 }
 
 /** ********************************************************
@@ -849,14 +868,14 @@ void * transmit_relay_interval(void * ptr)
 			LOG_DEBUG("Header Modem Sent to FLDGI. (%s)", g_header_modem.c_str());
 			send_new_modem(thread_ptr->header_modem);
 
-			if(!send_vector_to_fldigi(thread_ptr->header_modem, tail, vector_header_data, thread_ptr->mode, tx)) {
+			if(!send_vector_to_fldigi(thread_ptr, thread_ptr->header_modem, tail, vector_header_data, thread_ptr->mode, tx)) {
 				delete tx;
 				return run_in_thread_destroy(thread_ptr, 3, &in_use);
 			}
 		}
 	}
 
-	wait_seconds(thread_ptr->rx_interval_time);
+	wait_seconds(thread_ptr->rx_interval_time, 100);
 
 	// Data section
 	if(progStatus.use_header_modem || progStatus.fldigi_xmt_mode_change) {
@@ -869,7 +888,7 @@ void * transmit_relay_interval(void * ptr)
 	LOG_DEBUG("vector_data_count = %d", vector_data_count);
 
 	if(vector_data_count)
-		send_vector_to_fldigi(thread_ptr->modem, tail, vector_data, thread_ptr->mode, tx);
+		send_vector_to_fldigi(thread_ptr, thread_ptr->modem, tail, vector_data, thread_ptr->mode, tx);
 
 	event_bail_flag = false;
 	return run_in_thread_destroy(thread_ptr, 3, &in_use);
@@ -902,11 +921,12 @@ void * transmit_interval(void * ptr)
 	int limit = 0;
 	int index = 0;
 	bool fills = 0;
-	//bool no_header_data = false;
 
 	std::vector<std::string> vector_data;
 	std::vector<std::string> vector_header_data;
 	std::string temp;
+	std::string tail_k;
+	std::string tail_bk;
 	std::string tail;
 	std::string send_to = "";
 
@@ -924,15 +944,15 @@ void * transmit_interval(void * ptr)
 	thread_ptr->exit_thread = 0;
 	pthread_mutex_unlock(&thread_ptr->mutex);
 
+	count = 0;
+
 	if(thread_ptr->que) {
 		index = 0;
-		count = 0;
 		limit = tx_amp.size();
 	} else {
 		n = tx_queue->value();
 		if (!n)	return run_in_thread_destroy(thread_ptr, 3, &in_use);
 		index = n - 1;
-		count = 0;
 		limit = 1;
 	}
 
@@ -941,13 +961,12 @@ void * transmit_interval(void * ptr)
 	}
 
 	event_bail_flag = false;
-
 	tx = 0;
 
 	do {
+
 		if(transmit_stop) {
-			if(tx)
-				delete tx;
+			if(tx) delete tx;
 			return run_in_thread_destroy(thread_ptr, 3, &in_use);
 		}
 
@@ -966,6 +985,12 @@ void * transmit_interval(void * ptr)
 		for (size_t n = 0; n < send_to.length(); n++)
 			send_to[n] = toupper(send_to[n]);
 
+		tail_bk.clear();
+		tail_bk.assign("\n").append(send_to).append(" BK\n\n");
+
+		tail_k.clear();
+		tail_k.assign("\n").append(send_to).append(" K\n\n");
+
 		value = tx->xmt_buffer().size();
 		if (!value) {
 			LOG_DEBUG("Empty xmt_buffer");
@@ -976,7 +1001,9 @@ void * transmit_interval(void * ptr)
 		temp.assign(tx->xmt_buffer());
 		compress_maybe(temp, tx->tx_base_conv_index(), (tx->compress() | tx->forced_compress()));//true);
 
-		if(!tx->xmt_vector_string(progStatus.use_header_modem, progStatus.enable_unproto_markers)) {
+		bool data_repeat_inhibit = true;
+
+		if(!tx->xmt_vector_string(progStatus.use_header_modem, progStatus.enable_unproto_markers, data_repeat_inhibit)) {
 			LOG_DEBUG("Empty xmt_vector_string");
 			delete tx;
 			return run_in_thread_destroy(thread_ptr, 3, &in_use);
@@ -987,81 +1014,105 @@ void * transmit_interval(void * ptr)
 			return run_in_thread_destroy(thread_ptr, 3, &in_use);
 		}
 
-		tail.clear();
-		tail.assign("\n").append(send_to).append(" BK\n\n");
 
 		fills = false;
-		if(progStatus.disable_header_modem_on_block_fills && tx->preamble_detected() == false) {
-			char *cPtr = (char *) txt_tx_selected_blocks->value();
-			if(cPtr) {
-				int _limit = 0;
-				while(*cPtr) {
-					if(isdigit(*cPtr)) {
-						fills = true;
-						break;
+		if((progStatus.disable_header_modem_on_block_fills && tx->preamble_detected() == false) || shift_key_flag) {
+			if(thread_ptr->que) {
+				if(tx->xmt_tosend().size() && !tx->unproto())
+					fills = true;
+			} else {
+				char *cPtr = (char *) txt_tx_selected_blocks->value();
+				if(cPtr) {
+					int _limit = 0;
+					while(*cPtr) {
+						if(isdigit(*cPtr)) {
+							fills = true;
+							break;
+						}
+						cPtr++;
+						if(_limit++ > 16) break;
 					}
-					cPtr++;
-					if(_limit++ > 16) break;
 				}
 			}
 		}
 
-		// Header section
-		vector_header_data = tx->xmt_vector_header();
-		vector_header_count = vector_header_data.size();
+		if((fills && shift_key_flag) || !shift_key_flag) {
 
-		LOG_DEBUG("vector_header_count = %d", vector_header_count);
+			if(count > 0 && !transmit_stop) {
+				wait_seconds(thread_ptr->rx_interval_time, 100);
+			}
 
-		if(progStatus.use_header_modem && (fills == false) && (tx->unproto() == false)) {
-			if(vector_header_count > 0) {
-				LOG_DEBUG("Header Modem Sent to FLDGI. (%s)", g_header_modem.c_str());
-				send_new_modem(thread_ptr->header_modem);
+			if(transmit_stop) {
+				delete tx;
+				return run_in_thread_destroy(thread_ptr, 3, &in_use);
+			}
 
-				if(!send_vector_to_fldigi(thread_ptr->header_modem, tail, vector_header_data, thread_ptr->mode, tx)) {
+			vector_data = tx->xmt_vector_data();
+			vector_data_count = vector_data.size();
+
+			// Header section
+			vector_header_data = tx->xmt_vector_header();
+			vector_header_count = vector_header_data.size();
+
+			LOG_DEBUG("vector_header_count = %d", vector_header_count);
+
+			int repeat_count = 0;
+			int no_of_repeats = progStatus.repeatNN;
+
+			for(repeat_count = 0; repeat_count < no_of_repeats; repeat_count++) {
+
+				if(transmit_stop) {
 					delete tx;
 					return run_in_thread_destroy(thread_ptr, 3, &in_use);
 				}
+
+				if(repeat_count > 0) {
+					wait_seconds(thread_ptr->rx_interval_time, 100);
+				}
+
+				int headerm = progStatus.use_header_modem;
+
+				if(headerm && (tx->unproto() == false)) {
+					if(vector_header_count > 0) {
+						LOG_DEBUG("Header Modem Sent to FLDGI. (%s)", g_header_modem.c_str());
+						send_new_modem(thread_ptr->header_modem);
+
+						if(!send_vector_to_fldigi(thread_ptr, thread_ptr->header_modem, tail_bk, vector_header_data, thread_ptr->mode, tx)) {
+							delete tx;
+							return run_in_thread_destroy(thread_ptr, 3, &in_use);
+						}
+					}
+				}
+
+				if(vector_header_count > 0) {
+					if(thread_ptr->mode == TX_SEGMENTED)
+						wait_seconds(thread_ptr->rx_interval_time, 100);
+					else
+						wait_seconds(1, 100);
+				}
+
+				// Data section
+				if(progStatus.use_header_modem || progStatus.fldigi_xmt_mode_change) {
+					send_new_modem(thread_ptr->modem);
+				}
+
+				if(transmit_stop) {
+					delete tx;
+					return run_in_thread_destroy(thread_ptr, 3, &in_use);
+				}
+
+
+				LOG_DEBUG("vector_data_count = %d", vector_data_count);
+
+				tail.assign(tail_bk);
+
+				if((count >= (limit - 1)) && !continuous_exception)
+					if(repeat_count >= (no_of_repeats - 1))
+						tail.assign(tail_k);
+
+				if(vector_data_count)
+					send_vector_to_fldigi(thread_ptr, thread_ptr->modem, tail, vector_data, thread_ptr->mode, tx);
 			}
-		}
-
-		if(vector_header_count > 0) {
-			if(thread_ptr->mode == TX_SEGMENTED)
-				wait_seconds(cnt_rx_internval_secs->value());
-			else
-				wait_seconds(1);
-		}
-
-		// Data section
-		if(progStatus.use_header_modem || progStatus.fldigi_xmt_mode_change) {
-			send_new_modem(thread_ptr->modem);
-		}
-
-		if(transmit_stop) {
-			delete tx;
-			return run_in_thread_destroy(thread_ptr, 3, &in_use);
-		}
-
-		vector_data = tx->xmt_vector_data();
-		vector_data_count = vector_data.size();
-
-		LOG_DEBUG("vector_data_count = %d", vector_data_count);
-
-		tail.clear();
-
-		if(count >= (limit - 1) && !continuous_exception)
-			tail.assign("\n").append(send_to).append(" K\n\n");
-		else
-			tail.assign("\n").append(send_to).append(" BK\n\n");
-
-
-		if(vector_data_count)
-			send_vector_to_fldigi(thread_ptr->modem, tail, vector_data, thread_ptr->mode, tx);
-
-		index++;
-		count++;
-
-		if(count < limit) {
-			wait_seconds(thread_ptr->rx_interval_time);
 		}
 
 		if(event_bail_flag && thread_ptr->event_driven) break;
@@ -1070,6 +1121,9 @@ void * transmit_interval(void * ptr)
 			delete tx;
 			tx = 0;
 		}
+
+		index++;
+		count++;
 
 	} while(count < limit);
 
@@ -1088,8 +1142,8 @@ void * transmit_interval(void * ptr)
 /** ********************************************************
  *
  ***********************************************************/
-bool send_vector_to_fldigi(std::string modem, std::string &tail,
-	std::vector<std::string> vector_data, int mode, cAmp *tx)
+bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::string &tail,
+						   std::vector<std::string> vector_data, int mode, cAmp *tx)
 {
 	std::string temp;
 	std::string send;
@@ -1103,6 +1157,8 @@ bool send_vector_to_fldigi(std::string modem, std::string &tail,
 	float next_length = 0;
 	float wait_factor = 3.0;
 	std::string send_to = tx->callto();
+
+	if(transmit_stop) return false;
 
 	send.clear();
 	temp.clear();
@@ -1129,7 +1185,7 @@ bool send_vector_to_fldigi(std::string modem, std::string &tail,
 	if(data_time_seconds <= 0.0) return false;
 
 	if(mode == TX_SEGMENTED) {
-		transfer_limit_time = (float) cnt_tx_internval_mins->value() * 60;
+		transfer_limit_time = (float) thread->tx_interval_time;
 		if(transfer_limit_time < 1) return false;
 	} else
 		transfer_limit_time = (float) ID_TIME_SECONDS;
@@ -1173,7 +1229,7 @@ bool send_vector_to_fldigi(std::string modem, std::string &tail,
 
 				if(mode == TX_SEGMENTED) {
 					if (!wait_for_rx(transfer_segment_time * wait_factor)) return false;
-					wait_seconds(cnt_rx_internval_secs->value());
+					wait_seconds(thread->rx_interval_time, 100);
 				}
 
 				send.assign("\n");
@@ -1237,7 +1293,7 @@ bool send_vector_to_fldigi(std::string modem, std::string &tail,
  *
  ***********************************************************/
 bool check_block_tx_time(std::vector<std::string> &header,
-	std::vector<std::string> &data, TX_FLDIGI_THREAD *thread_ptr)
+						 std::vector<std::string> &data, TX_FLDIGI_THREAD *thread_ptr)
 {
 	int index = 0;
 	int count = 0;
@@ -1314,63 +1370,111 @@ bool check_block_tx_time(std::vector<std::string> &header,
  ***********************************************************/
 bool wait_for_rx(int max_wait_seconds)
 {
-	static std::string response;
-	time_t eTime = time((time_t *)0) + 2;
-	time_t sTime = 0;
-	int sleep_time = 333;
-
 	if(max_wait_seconds < 1) return false;
 
-	do {
-
-		response = get_trx_state();
-
-		if((response == "TX"))
-			break;
-
+	for(int i = 0; i < 2; i++) {
 		if(transmit_stop) return false;
 
-		MilliSleep(sleep_time);
+		wait_seconds(1, 500);
+		if((get_trx_state() == "TX"))
+			break;
+	}
 
-	} while (time((time_t *)0) < eTime);
+	max_wait_seconds += 4; // in case RSID is enabled
 
-	sTime = time((time_t *)0);
-	eTime = sTime + max_wait_seconds;
+	for(int i = 0; i < max_wait_seconds; i++) {
+		if(transmit_stop) return false;
 
-	do {
-		response = get_trx_state();
-
-		if((response == "RX"))
+		wait_milliseconds(1000, 250);
+		if((get_trx_state() == "RX"))
 			return true;
-
-		if(transmit_stop) break;
-
-		MilliSleep(sleep_time);
-
-	} while (time((time_t *)0) < eTime);
+	}
 
 	return false;
+}
+
+//#define LOG_TIME_WAIT
+#undef LOG_TIME_WAIT
+
+/** ********************************************************
+ *
+ ***********************************************************/
+static void wait_seconds(int seconds, int millisecond_increments)
+{
+	struct timeval		tp;
+	double start_time   = 0.0;
+	double end_time     = 0.0;
+	double current_time = 0.0;
+
+	if(seconds < 1 || transmit_stop) return;
+
+	if((seconds * 1000) < millisecond_increments)
+		millisecond_increments = (seconds * 1000) >> 1;
+
+	if(millisecond_increments < 1)
+		millisecond_increments = 1;
+
+	gettimeofday(&tp, NULL);
+	start_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	end_time = (tp.tv_sec + seconds) + (tp.tv_usec * 0.000001);
+
+	do {
+		if(transmit_stop) break;
+		MilliSleep(millisecond_increments);
+		gettimeofday(&tp, NULL);
+		current_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	} while(current_time < end_time);
+
+#ifdef LOG_TIME_WAIT
+	gettimeofday(&tp, NULL);
+	current_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	LOG_DEBUG("SEC: %f DELAY", current_time - start_time);
+#endif
+
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-void wait_seconds(int seconds)
+static void wait_milliseconds(int milliseconds, int millisecond_increments)
 {
-	time_t eTime = time((time_t *)0) + seconds + 1;
+	struct timeval		tp;
+	double end_time = 0.0;
+	double current_time = 0.0;
+	double start_time   = 0.0;
 
-	if(seconds < 1) return;
+	if(milliseconds < 1 || transmit_stop) return;
 
-	while (time((time_t *)0) < eTime) {
-		MilliSleep(500);
-	}
+	if(milliseconds < millisecond_increments)
+		millisecond_increments = milliseconds >> 1;
+
+	if(millisecond_increments < 1)
+		millisecond_increments = 1;
+
+	gettimeofday(&tp, NULL);
+	start_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	end_time = (tp.tv_sec) + (tp.tv_usec * 0.000001) + (milliseconds * 0.001);
+
+	do {
+		if(transmit_stop) break;
+		MilliSleep(millisecond_increments);
+		gettimeofday(&tp, NULL);
+		current_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	} while(current_time < end_time);
+
+#ifdef LOG_TIME_WAIT
+	gettimeofday(&tp, NULL);
+	current_time = (tp.tv_sec) + (tp.tv_usec * 0.000001);
+	LOG_DEBUG("SEC: %f DELAY", current_time - start_time);
+#endif
+
 }
 
 /** ********************************************************
  *
  ***********************************************************/
 TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode,
-	bool queued, bool event_driven, RELAY_DATA *relay_data)
+								 bool queued, bool event_driven, RELAY_DATA *relay_data)
 {
 	TX_FLDIGI_THREAD *tx_thread = (TX_FLDIGI_THREAD *)0;
 	int count = 0;
@@ -1386,6 +1490,7 @@ TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode,
 		tx_thread->que  = queued;
 		tx_thread->event_driven = event_driven;
 		tx_thread->rx_interval_time = cnt_rx_internval_secs->value();
+		tx_thread->tx_interval_time = cnt_tx_internval_mins->value() * 60;
 		tx_thread->data = (void *) relay_data;
 
 		if(relay_data)
@@ -1435,15 +1540,21 @@ TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode,
  *
  ***********************************************************/
 void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level,
-	bool *in_use_flag)
+							 bool *in_use_flag)
 {
 	if(in_use_flag)
 		*in_use_flag = false;
 
 	if(!tx_thread) return 0;
 
+	transmitting = false;
+	transmit_queue = false;
+
+	if(transmit_stop)
+		Fl::awake(abort_tx_from_main, (void *)0);
+
 	if(tx_thread_running_count > 0)
-		tx_thread_running_count++;
+		tx_thread_running_count--;
 
 	{
 		static int value = TX_BUTTON;
@@ -1474,11 +1585,11 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level,
 
 	delete tx_thread;
 
+
 	Fl::awake(set_relay_button_label, (void *)0);
 	Fl::awake(set_button_to_xmit, (void *)0);
 	Fl::awake(clear_missing, (void *)0);
 
-	wait_for_rx(5);
 
 	{
 		static int value = TX_BUTTON;
@@ -1487,7 +1598,7 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level,
 		Fl::awake(activate_button, (void *)&value2);
 	}
 
-	//if (transmit_stop == true) send_abort();
+	wait_for_rx(5);
 
 	transmitting = false;
 	transmit_queue = false;

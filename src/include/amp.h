@@ -139,6 +139,7 @@ private:
 	int xmt_repeat; // repeat n time; default 1
 	int xmtblocksize;
 	int xmtnumblocks;
+	int _missing_block_count;
 
 	bool _unproto_markers;
 	bool preamble_detected_flag;
@@ -221,7 +222,7 @@ public:
 	int convert_to_plain_text(char *_src, char *_dst, size_t count);
 
 	void unproto_markers(bool markers);
-	void _xmt_unproto(void); // for internal non thread locking.
+	void _xmt_unproto(bool data_repeat_inhibit); // for internal non thread locking.
 
 	void xmt_data(std::string &str);
 
@@ -239,13 +240,12 @@ public:
 	void xmt_full_path_fname(string fname);
 	std::string xmt_string(bool use_locks);
 
-	std::string xmt_descrip(void);
-
-	int xmt_vector_string(bool header_modem, bool unproto_markers);
+	int xmt_vector_string(bool header_modem, bool unproto_markers, bool data_repeat_inhibit);
 	std::vector<std::string> &xmt_vector_header(void);
 	std::vector<std::string> &xmt_vector_data(void);
 
 	void xmt_descrip(std::string desc);
+	std::string xmt_descrip(void);
 
 	void xmt_tosend_clear(void);
 	void xmt_tosend(std::string str) ;
@@ -278,6 +278,8 @@ public:
 
 	//void tx_parse_report(std::string s);
 	void tx_parse_report(void);
+
+	int missing_block_count(void) { return _missing_block_count; }
 
 	void amp_update(void);
 	std::string tx_string(std::string t_string);

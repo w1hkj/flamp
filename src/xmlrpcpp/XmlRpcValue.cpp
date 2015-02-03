@@ -5,7 +5,7 @@
 #include "XmlRpcValue.h"
 #include "XmlRpcException.h"
 #include "XmlRpcUtil.h"
-#include "base64.h"
+#include "Xmlbase64.h"
 
 #include <iostream>
 #include <ostream>

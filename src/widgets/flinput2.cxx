@@ -35,8 +35,8 @@
 
 #include "icons.h"
 #include "flinput2.h"
-#include "gettext.h"
 #include "util.h"
+#include "gettext.h"
 
 enum { OP_UNDO, OP_CUT, OP_COPY, OP_PASTE, OP_DELETE, OP_CLEAR, OP_SELECT_ALL };
 
