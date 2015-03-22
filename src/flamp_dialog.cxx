@@ -317,9 +317,13 @@ void update_cbo_modes(std::string &fldigi_modes)
 	cbo_hamcast_mode_selection_4->clear();
 
 	int i = 0, j = 0;
+	std::string match_str;
 
 	while (s_basic_modes[i] != (char *)0) {
-		if (fldigi_modes.find(s_basic_modes[i]) != string::npos) {
+		// Prevent find 8PSK1000 within 8PSK1000F by adding the
+		// delimiter to the search (8PSK1000| != 8PSK1000F|).
+		match_str.assign(s_basic_modes[i]).append("|");
+		if (fldigi_modes.find(match_str) != std::string::npos) {
 			s_modes[j] = (char *) s_basic_modes[i];
 			cbo_modes->add(s_modes[j]);
 			cbo_header_modes->add(s_modes[j]);

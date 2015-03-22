@@ -70,8 +70,8 @@
 \section script_commands Script Command Format
 
 COMMAND:<br>
-COMMAND:<parameter><br>
-COMMAND:<parameter>,<parameter><br>
+COMMAND:\<parameter\><br>
+COMMAND:\<parameter\>,\<parameter\><br>
 
 The command and parameters are separated by a colon ':'.
 
@@ -213,7 +213,7 @@ Available list of command and description of their use:
 	range. File Attribute Command.
 <br>
 <br>
-	<b>Format:</b> <tt>BASE:\<64|128|256\></tt><br></tt>
+	<b>Format:</b> <tt>BASE:\<64|128|256\></tt><br>
 
 \subsection ss_block_size Transmit block size.
 	Used to adjust the transmit block size. Normally adjust to the conditions
@@ -225,14 +225,14 @@ Available list of command and description of their use:
 
 \subsection ss_call_from Callsign of the transmitting station
 	Assign the callfrom call. Any text are allowed. Follow local rules on
-	it's use (<callfrom> de <callto>).
+	it's use (\<callfrom\> de \<callto\>).
 <br>
 <br>
 	<b>Format:</b> <tt>CALLFROM:\<callsign\></tt>
 
 \subsection ss_call_to Callsign of the receiving stations
 	Assign the callto call. Any text are allowed. Follow local rules on
-	it's use (<callfrom> de <callto>). File Attribute Command.
+	it's use (\<callfrom\> de \<callto\>). File Attribute Command.
 <br>
 <br>
 	<b>Format:</b> <tt>CALLTO:\<callsign\></tt>
@@ -320,7 +320,7 @@ Event Type List:
 	<b>Format:</b> <tt>FILE:\<filename.ext\>,\<\"description of the file\"\></tt>
 
 \subsection ss_hamcast_modem Setting/Enabling/Disabling Hamcast Modems
-	Enable/Disable specific <pos> hamcast modem and/or set the modem type for
+	Enable/Disable specific \<pos\> hamcast modem and/or set the modem type for
 	that position.
 <br>
 <br>
@@ -334,7 +334,7 @@ Event Type List:
 
 \subsection ss_hdr_repeat Header Transmit Repeat
 	The number of time the header section of the AMP protocol is repeatedly
-	transmitted. Repeat <count> times.
+	transmitted. Repeat \<count\> times.
 <br>
 <br>
 	<b>Format:</b> <tt>HDR REPEAT:\<count\></tt>
@@ -471,7 +471,7 @@ transmit data.</li>
 
 \subsection ss_xmit_repeat Data Transmit Repeat
 	The number of time the data section of the AMP protocol is repeatedly
-	transmitted. Repeat <count> times.
+	transmitted. Repeat \<count\> times.
 <br>
 <br>
 	<b>Format:</b> <tt>XMIT REPEAT:\<count\></tt>

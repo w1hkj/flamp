@@ -15,7 +15,6 @@
  *
  */
 
-
 /*!
 
 \mainpage FLAMP Users Manual - Version 2.2
@@ -320,6 +319,16 @@ Note that the blocks with errors show up in the Missing line. In this case,
 blocks 3, 4 and 5 were received with errors. The Receive Queue panel will
 show the percent received. Nothing will appear in the Data panel.
 
+\section autoSave Auto Save Received Files
+
+\image latex auto_save_rx.png "Receive Panel - Auto Save Option" width=1.5in
+\image html auto_save_rx.png "Receive Panel - Auto Save Option"
+
+When selected, all files that are received 100% are save in FLAMP's
+"rx/" directory automatically. The saved file will be place in a sub-directory
+using a UTC date signature "rx/<DD_MM_YYYY_UTC>/".  This date corresponds to
+when the file was saved.
+
 \section missingBlocks Requesting Missing Blocks/Header
 
 If a transmission sequence has been completed and one or more stations
@@ -340,7 +349,7 @@ DE S0MCAL K
 
 In the event the header data is missing:
 
-Missing file name (<FILE tag).
+Missing file name (\<FILE tag).
 
 \verbatim
 DE S0MCAL File : Unassigned
@@ -348,7 +357,7 @@ DE S0MCAL File : Unassigned
 DE S0MCAL K
 \endverbatim
 
-Missing file block count size or Station ID (<SIZE or  <ID tags).
+Missing file block count size or Station ID (\<SIZE or \<ID tags).
 
 \verbatim
 DE S0MCAL File : Fox.txt
@@ -982,10 +991,6 @@ Menu: Configure(menu)->IDs(menu)->ID(tab)->RsID(tab).
 Set the RxID 'Sensitivity' slider above 'Pre-Signal Tone' to the left until
 the value of '2' is displayed. See Using RsID.
 
-On 3.21.77 (or later) versions of FLDIGI the naming convention has been
-replaced from numerical values to low, medium, and high error rate
-settings. If this is the case, select medium or to a level the conditions
-dictate.
 
 \subsection rsidUse Using RsID
 
@@ -1009,5 +1014,19 @@ Monitor your audio output level.  See the owners manual for your radio on
 how to verify proper modulation level.
 
 
+\section versionIssues FLDIGI Version Issues
+
+\subsection rsid_sens_set RSID Sensitivity Settings
+On 3.21.77 (or later) versions of FLDIGI the naming convention has been
+replaced from numerical values to low, medium, and high error rate
+settings. If this is the case, select medium or a level the conditions
+dictate.
+
+\subsection epsk_modems 8PSK Modem Availability
+FLDIGI 3.22.04 and 3.22.05 contain 8PSK1333, 8PSK1333F and 8PSK1200 modems
+that are no longer present in 3.22.06 and later releases.  The timing
+tables are still available in FLAMP 2.22.01+ and as a selectable option when
+transmitting. However, these modems will only be available in FLAMP if the
+stated versions are used.
 
 */
