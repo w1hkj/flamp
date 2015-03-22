@@ -95,6 +95,7 @@ Fl_Button * btn_tx_remove_file = 0;
 Fl_Button * btn_parse_relay_blocks    = 0;
 Fl_Button * btn_send_relay            = 0;
 Fl_Input2 * txt_relay_selected_blocks = 0;
+Fl_Check_Button * btn_auto_rx_save = 0;
 
 
 // Configuraton panel
@@ -189,6 +190,12 @@ const char *s_basic_modes[] = {
 	(char *) "8PSK1000",
 	(char *) "8PSK1200",
 	(char *) "8PSK1333",
+	(char *) "8PSK125F",
+	(char *) "8PSK250F",
+	(char *) "8PSK500F",
+	(char *) "8PSK1000F",
+	(char *) "8PSK1200F",
+	(char *) "8PSK1333F",
 	(char *) "BPSK31",
 	(char *) "BPSK63",
 	(char *) "BPSK63F",
@@ -371,7 +378,7 @@ void init_cbo_events()
 /** ********************************************************
  *
  ***********************************************************/
-void cb_cbo_modes()
+void cb_cbo_modes(void *a, void *b)
 {
 	progStatus.selected_mode = cbo_modes->index();
 	g_modem.assign(cbo_modes->value());
@@ -385,7 +392,7 @@ void cb_cbo_modes()
 /** ********************************************************
  *
  ***********************************************************/
-void cb_mnuExit(void *, void *)
+void cb_mnuExit(void *a, void *b)
 {
 	cb_exit();
 }
@@ -473,7 +480,6 @@ Fl_Menu_Item menu_[] = {
 	{0,0,0,0,0,0,0,0,0},
 	{_("&Script"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("&Execute Script"), 0, (Fl_Callback*)cb_mnu_scripts, 0, FL_MENU_DIVIDER, FL_NORMAL_LABEL, 0, 14, 0},
-	{_("Execute &Script (FLAMP Dir)"), 0, (Fl_Callback*)cb_mnu_scripts_default, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
 	{0,0,0,0,0,0,0,0,0},
 	{_("&Help"), 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
 	{_("&Debug log"), 0,  (Fl_Callback*)cb_mnuEventLog, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -534,42 +540,48 @@ static void cb_selected_blocks(Fl_Input2*, void*)
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_save_file(Fl_Button*, void*) {
+static void cb_btn_save_file(Fl_Button*, void*)
+{
 	writefile(0);
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_transfer_file_txQ(Fl_Button*, void*) {
+static void cb_btn_transfer_file_txQ(Fl_Button*, void*)
+{
 	writefile(1);
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_rx_remove(Fl_Button*, void*) {
+static void cb_btn_rx_remove(Fl_Button*, void*)
+{
 	receive_remove_from_queue(false);
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_open_file(Fl_Button*, void*) {
+static void cb_btn_open_file(Fl_Button*, void*)
+{
 	readfile();
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_tx_remove_file(Fl_Button*, void*) {
+static void cb_btn_tx_remove_file(Fl_Button*, void*)
+{
 	tx_removefile(false);
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_copy_missing(Fl_Button*, void*) {
+static void cb_btn_copy_missing(Fl_Button*, void*)
+{
 	send_missing_report();
 }
 
@@ -602,7 +614,8 @@ static void cb_rx_queue(Fl_Hold_Browser *hb, void*)
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_send_file(Fl_Button*, void*) {
+static void cb_btn_send_file(Fl_Button*, void*)
+{
 	if(transmitting) {
 		if (do_events_flag == 1) {
 			do_events_flag = 0;
@@ -626,7 +639,8 @@ static void cb_btn_send_file(Fl_Button*, void*) {
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_btn_send_queue(Fl_Button*, void*) {
+static void cb_btn_send_queue(Fl_Button*, void*)
+{
 	if(transmitting) {
 		abort_request();
 		return;
@@ -646,20 +660,29 @@ static void cb_btn_send_queue(Fl_Button*, void*) {
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_cnt_blocksize(Fl_Button*, void*) {
-	progStatus.blocksize = (int)cnt_blocksize->value();
+static void cb_cnt_blocksize(Fl_Button*, void*)
+{
+	int request_blk_size = (int)cnt_blocksize->value();
+	int reset_flag = false;
+
+	if(progStatus.blocksize != request_blk_size)
+		reset_flag = true;
+
+	progStatus.blocksize = request_blk_size;
 	update_cAmp_changes(0);
 	amp_mark_all_for_update();
-	txt_tx_selected_blocks->value("");
 	show_selected_xmt(tx_queue->value());
+
+	if(reset_flag)
+		txt_tx_selected_blocks->value("");
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
+static void cb_cnt_repeat_nbr(Fl_Button*, void*)
+{
 	progStatus.repeatNN = (int)cnt_repeat_nbr->value();
-	txt_tx_selected_blocks->value("");
 	update_cAmp_changes(0);
 	amp_mark_all_for_update();
 	show_selected_xmt(tx_queue->value());
@@ -668,9 +691,9 @@ static void cb_cnt_repeat_nbr(Fl_Button*, void*) {
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_repeat_header(Fl_Button*, void*) {
+static void cb_repeat_header(Fl_Button*, void*)
+{
 	progStatus.repeat_header = (int)cnt_repeat_header->value();
-	txt_tx_selected_blocks->value("");
 	update_cAmp_changes(0);
 	amp_mark_all_for_update();
 	show_selected_xmt(tx_queue->value());
@@ -681,10 +704,18 @@ static void cb_repeat_header(Fl_Button*, void*) {
  ***********************************************************/
 void cb_use_compression()
 {
-	progStatus.use_compression = btn_use_compression->value();
-	txt_tx_selected_blocks->value("");
+	bool req_compression = btn_use_compression->value();
+	int reset_flag = false;
+
+	if(progStatus.use_compression != req_compression)
+		reset_flag = true;
+
+	progStatus.use_compression = req_compression;
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
+
+	if(reset_flag)
+		txt_tx_selected_blocks->value("");
 }
 
 /** ********************************************************
@@ -692,10 +723,19 @@ void cb_use_compression()
  ***********************************************************/
 void cb_use_encoder()
 {
-	progStatus.encoder = encoders->index()+1;
+	int req_encoder = encoders->index()+1;
+	int reset_flag = false;
+
+	if(progStatus.encoder != req_encoder)
+		reset_flag = true;
+
+	progStatus.encoder = req_encoder;
 	progStatus.encoder_string.assign(encoders->value());
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
+
+	if(reset_flag)
+		txt_tx_selected_blocks->value("");
 }
 
 /** ********************************************************
@@ -1133,6 +1173,14 @@ void cb_relay_selected_blocks(Fl_Check_Button *a, void *b)
 	update_rx_missing_blocks();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
+void cb_auto_rx_save(Fl_Check_Button *a, void *b)
+{
+	progStatus.auto_rx_save = btn_auto_rx_save->value();
+}
+
 
 /** ********************************************************
  *
@@ -1235,7 +1283,14 @@ Fl_Double_Window* flamp_dialog() {
 	txt_relay_selected_blocks->tooltip(_("Clear for all\nComma separated block #s"));
 	txt_relay_selected_blocks->callback((Fl_Callback*)cb_relay_selected_blocks);
 
-	y += 42;
+	y += 20;
+	btn_auto_rx_save = new Fl_Check_Button(tmp-2, y, 20, 20, _("Auto save on 100% reception"));
+	btn_auto_rx_save->callback((Fl_Callback*)cb_auto_rx_save);
+	btn_auto_rx_save->align(FL_ALIGN_RIGHT);
+	btn_auto_rx_save->down_box(FL_DOWN_BOX);
+	btn_auto_rx_save->value(progStatus.auto_rx_save);
+
+	y += 22;
 	rx_queue = new Fl_Hold_Browser(8, y, W-16, H-y-6, _("Receive Queue"));
 	rx_queue->align(FL_ALIGN_LEFT | FL_ALIGN_TOP);
 	rx_queue->column_widths(cols);
@@ -1433,12 +1488,13 @@ Fl_Double_Window* flamp_dialog() {
 	explain_events->tooltip("");
 	explain_events->color(fl_rgb_color(255, 250, 205));
 
-	explain_events->value("\tTimed / Continuous events :\n" \
+	std::string message = "\tTimed / Continuous events :\n" \
 						  "\tEach transmission is identical to a 'Xmt All' (The entire\n" \
 						  "\tqueue is transmitted).  The unproto 'QST (calls) de URCALL'\n" \
 						  "\tand the program identifier '<PROG 11 8E48>FLAMP 2.x.x' are\n" \
-						  "\tincluded." \
-						  );
+						  "\tincluded.";
+
+	explain_events->value(_((char *) message.c_str()));
 
 	Fl_Group *Timed_Repeat_grp = new Fl_Group(X+4, y+=116, W-2*(X+4), 142, _("Timed Events")); //120
 	Timed_Repeat_grp->box(FL_ENGRAVED_BOX);

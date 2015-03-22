@@ -380,18 +380,18 @@ When disabled transmit function must be initiated from FLDIGI's T/R button.
 
 \section sendMissing Sending Missing Blocks/Header Information
 
+\image latex BlockRxProgress.png "Blocks Received Progress" width=3.1in
+\image html BlockRxProgress.png "Blocks Received Progress"
+
 For small files, another transmission of the complete file should suffice
 for fill-ins. In the case of a large file where only a few blocks are
 missing, FLAMP permits the sending station to just transmit the missing
 blocks.
 
 When the sender has received all of the block missing reports he or she
-then retrieves the reports from FLDIGI by pressing the Fetch button. FLAMP
-and FLDIGI communicate with each other using either FLDIGI's ARQ socket
-server or its XMLRPC socket server. These are two different processes
-with two different aims. The ARQ socket is used for sending and receiving
-the actual FLAMP messages. The XMLRPC socket is used for control processing
-and shared data exchange.
+then retrieves the reports from FLDIGI by pressing the Fetch button. Any
+missing reports for the selected transmit queue item will be display in
+the blocks field.
 
 FLAMP parses all of the received data from one or more reporting stations.
 It combines them, discards duplicates and sorts the missing blocks
@@ -399,17 +399,25 @@ numerically. It then updates the "blocks" entry control with the
 requested blocks.   Missing header information assigns '0' to the
 missing block list, triggering a retransmission of the header information.
 
-The combined set of missing blocks will appear as shown below along
-with total file size and transmission time.
 
-\image latex BlockRxProgress.png "Blocks Received Progress" width=3.1in
-\image html BlockRxProgress.png "Blocks Received Progress"
+\subsection ss_single_file Single File Fills
+
+Single file fills are executed by numerical data content in the
+'blocks' field in combination with 'Xmit' button selection.
+
+\subsection ss_multi_file Transmit Queue Fills
+
+Sending fills for all queued item(s) is accomplished by holding the
+'Shift Key' down and selecting 'Xmt All' button. Queued item(s) with
+missing reports will be transmitted, all others will be skipped. Pressing
+'Xmt All' without the 'Shift Key' transmits the entire content of the queue.
+
 
 \section sAllowableFiles Allowable File Type Transfers
 
 FLAMP will send any file format. For example, ICS forms from FLMSG may be
-sent as well as spreadsheets in CSV format or even binary files such
-picture.jpg.
+sent as well as spreadsheets in CSV format or binary data such as image
+files.
 
 In the case of binary files, a message will be displayed upon receipt as
 shown below.

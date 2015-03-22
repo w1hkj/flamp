@@ -4,14 +4,14 @@
 
 #include "config.h"
 
-const char *copyright[] = {
+static const char *copyright[] = {
 	" =====================================================================",
 	"",
 	" FLAMP "  VERSION, // flamp.cxx
 	"",
 	" Author(s):",
-	"    Robert Stiles, KK5VD, Copyright (C) 2013, 2014",
-	"    Dave Freese, W1HKJ, Copyright (C) 2012, 2013",
+	"    Robert Stiles, KK5VD, Copyright (C) 2013, 2014, 2015",
+	"    Dave Freese, W1HKJ, Copyright (C) 2012, 2013, 2014, 2015",
 	"",
 	" This is free software; you can redistribute it and/or modify",
 	" it under the terms of the GNU General Public License as published by",
@@ -644,7 +644,6 @@ bool assign_bc_modem_list(void)
 	return false;
 }
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 /** ********************************************************
  *
  ***********************************************************/
@@ -660,8 +659,6 @@ int default_handler(int event)
 
 	return 0;
 }
-
-#endif
 
 /** ********************************************************
  *
@@ -831,7 +828,8 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 /** ********************************************************
  *
  ***********************************************************/
-void addfile(std::string xmtfname, void *rx, bool useCompression, char *desc = (char *)0, char *callto = (char *)0)
+void addfile(std::string xmtfname, void *rx, bool useCompression, \
+             char *desc = (char *)0, char *callto = (char *)0)
 {
 	xmt_fname = xmtfname;
 	string xmt_fname2 = xmtfname;
@@ -1657,6 +1655,81 @@ void tx_removefile(bool all)
 /** ********************************************************
  *
  ***********************************************************/
+void auto_rx_save_file(cAmp *_amp)
+{
+	if (!_amp) return;
+
+	size_t fsize = _amp->rx_size();
+
+	if(!_amp->rx_completed()) {
+		LOG_ERROR(_("Only completed files can be Saved"));
+		return;
+	}
+
+	if (!fsize || _amp->get_rx_fname().empty()) return;
+
+	if(_amp->file_saved()) {
+		int sel = fl_choice("File Already Saved", "Overwrite", "Cancel", (char *)0);
+		if(sel) return;
+	}
+
+	std::string rx_directory;
+	std::string rx_fname;
+	char date_directory[32];
+	char test_char = 0;
+
+	time_t rawtime;
+	struct tm * ztime;
+	time ( &rawtime );
+	ztime = gmtime ( &rawtime );
+
+	memset(date_directory, 0, sizeof(date_directory));
+	snprintf(date_directory, sizeof(date_directory) - 1, "%02d_%02d_%04d_UTC", \
+				ztime->tm_mday, ztime->tm_mon, ztime->tm_year + 1900);
+
+	rx_directory.assign(flamp_rcv_dir);
+
+	test_char = rx_directory[rx_directory.size() - 1];
+	if(test_char != PATH_CHAR_SEP)
+		rx_directory.append(PATH_SEP);
+
+	rx_directory.append(date_directory);
+
+	mkdir((const char *) rx_directory.c_str(), 0777);
+
+	test_char = rx_directory[rx_directory.size() - 1];
+
+	if(test_char != PATH_CHAR_SEP)
+		rx_directory.append(PATH_SEP);
+
+	rx_fname.assign(rx_directory);
+	rx_fname.append(_amp->get_rx_fname());
+
+	FILE *dfile = fopen(rx_fname.c_str(), "wb");
+
+	if (!dfile) {
+		LOG_ERROR("could not open write/binary %s", rx_fname.c_str());
+		return;
+	}
+
+	string data = _amp->rx_recvd_string();
+	decompress_maybe(data);
+
+	size_t r = fwrite((void *)data.c_str(), 1, data.length(), dfile);
+
+	if (r != data.length()) {
+		LOG_ERROR("%s", "write error");
+		return;
+	}
+
+	_amp->file_saved(true);
+
+	fclose(dfile);
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
 void writefile(int xfrFlag)
 {
 	cAmp * amp = rx_amp.get_amp();
@@ -1671,33 +1744,35 @@ void writefile(int xfrFlag)
 
 	if (!fsize || amp->get_rx_fname().empty()) return;
 
-	static char rx_filename[FILENAME_MAX];
+	static char rx_filename[FL_PATH_MAX];
 	std::string rx_directory;
 	std::string rx_fname;
-	std::string file_path_name;
 
 	rx_directory.assign(flamp_rcv_dir);
 	rx_fname.assign(amp->get_rx_fname());
 
-	file_path_name.assign(flamp_rcv_dir).append(PATH_SEP).append(rx_fname);
+	char test_char = rx_directory[rx_directory.size() - 1];
 
-	memset(rx_filename, 0, FILENAME_MAX);
-	strncpy(rx_filename, rx_fname.c_str(), FILENAME_MAX);
+	rx_fname.assign(rx_directory);
 
-	rx_fname.assign(flamp_rcv_dir).append(PATH_SEP).append(amp->get_rx_fname());
+	if(test_char != PATH_CHAR_SEP)
+		rx_fname.append(PATH_SEP);
+
+	rx_fname.append(amp->get_rx_fname());
+
 	const char *p = FSEL::saveas(_("Save file"), "file\t*.*",
 								 rx_fname.c_str());
 	if (!p) return;
 	if (strlen(p) == 0) return;
 
-	memset(rx_filename, 0, FILENAME_MAX);
-	strncpy(rx_filename, p, FILENAME_MAX - 1);
+	memset(rx_filename, 0, FL_PATH_MAX);
+	strncpy(rx_filename, p, FL_PATH_MAX - 1);
 
 	FILE *dfile = fopen(rx_filename, "wb");
 
 	if (!dfile) {
 		LOG_ERROR("could not open write/binary %s", rx_fname.c_str());
-		exit (1);
+		return;
 	}
 
 	string data = amp->rx_recvd_string();
@@ -1726,7 +1801,6 @@ double time_f(void)
 	gettimeofday(&now, NULL);
 	return ((double) now.tv_sec) + (((double)now.tv_usec) * 0.000001);
 }
-
 
 /** ********************************************************
  *
@@ -2144,6 +2218,10 @@ void process_data_stream(void)
 				existing->rx_parse_buffer();
 				bline.assign("@f").append(existing->rx_sz_percent()).append("\t").append(existing->rx_hash()).append("\t").append(existing->get_rx_fname());
 				rx_queue->text(i+1, bline.c_str());
+			} else {
+				if(progStatus.auto_rx_save && !existing->file_saved()) {
+					auto_rx_save_file(existing);
+				}
 			}
 		}
 	}
@@ -2631,9 +2709,7 @@ int main(int argc, char *argv[])
 	main_window->resize( progStatus.mainX, progStatus.mainY, main_window->w(), main_window->h());
 	main_window->callback(exit_main);
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 	Fl::add_handler(default_handler);
-#endif
 
 	Fl_File_Icon::load_system_icons();
 	FSEL::create();

@@ -76,7 +76,7 @@
 
 #include "debug.h"
 #include "time_table.h"
-#include "time_table.dat"
+#include "time_table_dat.cxx"
 
 static float time_length(MODE_TIME_TABLE *mTable, const char *string, int length);
 static int str_cnt(char * str, int count_limit);

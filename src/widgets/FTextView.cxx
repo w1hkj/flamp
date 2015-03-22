@@ -63,15 +63,9 @@ using namespace std;
 /// @param h
 /// @param l
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3
-FTextBase::FTextBase(int x, int y, int w, int h, const char *l)
-: Fl_Text_Editor_mod(x, y, w, h, l),
-wrap(true), wrap_col(80), max_lines(0), scroll_hint(false)
-#else
 FTextBase::FTextBase(int x, int y, int w, int h, const char *l)
 : Fl_Text_Editor_mod(x, y, w, h, l),
 wrap(WRAP_AT_BOUNDS), wrap_col(80), max_lines(0), scroll_hint(false)
-#endif
 {
 	oldw = oldh = olds = -1;
 	oldf = (Fl_Font)-1;
@@ -150,15 +144,9 @@ void FTextBase::add(unsigned char c, int attr)
 
 void FTextBase::set_word_wrap(bool b)
 {
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR < 3
-	if ((wrap = b)) wrap_mode(true, 0);
-	else wrap_mode(false, 0);
-	show_insert_position();
-#else
 	if ((wrap = b)) wrap_mode(WRAP_AT_BOUNDS, 0);
 	else wrap_mode(WRAP_NONE, 0);
 	show_insert_position();
-#endif
 }
 
 void FTextBase::setFont(Fl_Font f, int attr)
@@ -208,7 +196,6 @@ void FTextBase::resize(int X, int Y, int W, int H)
 	if (need_wrap_reset)
 		reset_wrap_col();
 
-#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
 	TOP_MARGIN = DEFAULT_TOP_MARGIN;
 	int r = H - Fl::box_dh(box()) - TOP_MARGIN - BOTTOM_MARGIN;
 	if (mHScrollBar->visible())
@@ -218,16 +205,7 @@ void FTextBase::resize(int X, int Y, int W, int H)
 	//printf("H %d, textsize %d, lines %d, extra %d\n", r, msize, r / msize, r % msize);
 	if (r %= msize)
 		TOP_MARGIN += r;
-#else
-	if (need_margin_reset && textsize() > 0) {
-		TOP_MARGIN = DEFAULT_TOP_MARGIN;
-		int r = H - Fl::box_dh(box()) - TOP_MARGIN - BOTTOM_MARGIN;
-		if (mHScrollBar->visible())
-			r -= scrollbar_width();
-		if (r %= textsize())
-			TOP_MARGIN += r;
-	}
-#endif
+
 	if (scroll_hint) {
 		mTopLineNumHint = mNBufferLines;
 		mHorizOffsetHint = 0;
@@ -415,10 +393,6 @@ char* FTextBase::get_word(int x, int y, const char* nwchars, bool ontext)
 			return tbuf->selection_text();
 	}
 
-	//#if FLAMP_FLTK_API_MAJOR == 1 && FLAMP_FLTK_API_MINOR == 3
-	//	start = tbuf->word_start(p);
-	//	end = tbuf->word_end(p);
-	//#else
 	string nonword = nwchars;
 	nonword.append(" \t\n");
 	if (!tbuf->findchars_backward(p, nonword.c_str(), &start))
@@ -916,7 +890,7 @@ void FTextEdit::changed_cb(int pos, int nins, int ndel, int nsty, const char *dt
 		}
 		else if (nsty > 0) // restyled, e.g. selected, text
 			return e->buffer_modified_cb(pos, nins, ndel, nsty, dtext, e);
-		
+
 		// No changes, e.g., a paste with an empty clipboard.
 		return;
 	}
@@ -938,9 +912,9 @@ void FTextEdit::changed_cb(int pos, int nins, int ndel, int nsty, const char *dt
 	}
 	else if (ndel > 0)
 		e->sbuf->remove(pos, pos + ndel);
-	
+
 	e->sbuf->select(pos, pos + nins - ndel);
-	
+
 	e->buffer_modified_cb(pos, nins, ndel, nsty, dtext, e);
 	// We may need to scroll if the text was inserted by the
 	// add() methods, e.g. by a macro

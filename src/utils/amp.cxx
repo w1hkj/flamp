@@ -173,6 +173,7 @@ cAmp::cAmp(std::string str, std::string fname)
 	_update_required_vector = false;
 	_valid_tx_data = false;
 	_valid_tx_vec_data = false;
+	_file_saved = false;
 	preamble_detected_flag = false;
 	use_compression = false;
 	use_forced_compression = false;

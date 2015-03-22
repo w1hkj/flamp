@@ -2977,8 +2977,6 @@ SCRIPT_CODES ScriptParsing::parse_single_command(char *data, size_t buffer_size)
 				}
 			} else {
 				LOG_INFO("Command %s ignored, not supported in current file type:", buffer);
-				if(file_type() & QUEUE_COMMAND)  LOG_INFO("Queue.");
-				if(file_type() & SCRIPT_COMMAND) LOG_INFO("Script.");
 			}
 			break;
 		}
@@ -3037,8 +3035,8 @@ SCRIPT_CODES ScriptParsing::parse_commands(char *file_name_path)
 		if(ferror(fd) || feof(fd)) break;
 
 		memset(line_buffer, 0, sizeof(line_buffer));
-		line_number++;
-		fgets(line_buffer, sizeof(line_buffer) - 1, fd);
+		if(fgets(line_buffer, sizeof(line_buffer) - 1, fd))
+			line_number++;
 
 #ifdef TESTING
 		printf("Reading: %s", line_buffer);

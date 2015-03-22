@@ -3,7 +3,6 @@
 
 # Generic support for FLTK applications
 
-
 AC_COPYRIGHT([Copyright (C) 2009 Dave Freese, W1HKJ (w1hkj AT w1hkj DOT com)])
 
 AC_PREREQ([2.63])

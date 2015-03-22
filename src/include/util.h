@@ -196,6 +196,8 @@ deprecated__ typeof(strcat) strcat;
 #endif
 
 #  define PATH_SEP "/"
+#  define PATH_CHAR_SEP '/'
+
 
 //======================================================================
 

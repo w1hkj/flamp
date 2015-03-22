@@ -66,7 +66,6 @@
 #include "lzma/LzmaLib.h"
 #include "status.h"
 
-
 #ifdef WIN32
 #  include "flamprc.h"
 #  include "compat.h"
@@ -395,7 +394,6 @@ void send_via_fldigi(std::string tosend)
 		file_io_errno = errno;
 	}
 	catch (const SocketException& e) {
-
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);

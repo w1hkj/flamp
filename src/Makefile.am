@@ -174,13 +174,13 @@ flamp_SOURCES += \
 	xmlrpcpp/XmlRpcUtil.h \
 	xmlrpcpp/XmlRpcValue.cpp \
 	xmlrpcpp/XmlRpcValue.h \
-	xmlrpcpp/base64.h
+	xmlrpcpp/Xmlbase64.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
 	config.h \
 	utils/mingw.c \
-	utils/time_table.dat \
+	utils/time_table_dat.cxx \
 	widgets/flnfc_common.cxx \
 	include/amp.h \
 	include/ascii.h \

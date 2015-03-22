@@ -6,7 +6,7 @@
 //		Stelios Bounanos, M0GLD
 //		Dave Freese, 2015
 //
-// This file is part of fldigi.
+// This file is part of FLAMP.
 //
 // Fldigi is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with fldigi.  If not, see <http://www.gnu.org/licenses/>.
+// along with flamp.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
 #include <string>
@@ -28,6 +28,7 @@
 
 #include <FL/fl_ask.H>
 #include <FL/Fl_Native_File_Chooser.H>
+#include <FL/filename.H>
 
 #include "config.h"
 
