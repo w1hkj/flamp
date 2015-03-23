@@ -1330,6 +1330,7 @@ void readfile()
 {
 	string xmtfname;
 	xmtfname.clear();
+	xmtfname = flampHomeDir;
 	const char *p = FSEL::select(_("Open file"), "*.*",
 								 xmtfname.c_str());
 	if (!p) return;

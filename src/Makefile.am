@@ -137,7 +137,6 @@ flamp_SOURCES += \
 	widgets/flinput2.cxx \
 	widgets/flslider2.cxx \
 	widgets/Fl_BlockMap.cxx \
-	widgets/Fl_Native_File_Chooser.cxx \
 	widgets/Fl_Text_Buffer_mod.cxx \
 	widgets/Fl_Text_Editor_mod.cxx \
 	widgets/Fl_Text_Display_mod.cxx \
@@ -183,9 +182,6 @@ EXTRA_DIST = \
 	utils/mingw.c \
 	utils/time_table.dat \
 	widgets/flnfc_common.cxx \
-	widgets/Fl_Native_File_Chooser_FLTK.cxx \
-	widgets/Fl_Native_File_Chooser_MAC.cxx \
-	widgets/Fl_Native_File_Chooser_WIN32.cxx \
 	include/amp.h \
 	include/ascii.h \
 	include/base64.h \
@@ -228,10 +224,6 @@ EXTRA_DIST = \
 	include/transmit_camp.h \
 	include/ztimer.h \
 	include/script_parsing.h \
-	include/FL/Fl_Native_File_Chooser_FLTK.H \
-	include/FL/Fl_Native_File_Chooser_MAC.H \
-	include/FL/Fl_Native_File_Chooser.H \
-	include/FL/Fl_Native_File_Chooser_WIN32.H \
 	widgets/Fl_Text_Buffer_mod_1_1.cxx \
 	widgets/Fl_Text_Buffer_mod_1_3.cxx \
 	widgets/Fl_Text_Display_mod_1_1.cxx \
