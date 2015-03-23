@@ -482,19 +482,17 @@ std::string cAmp::xmt_string(bool use_locks = true)
 	fileline.assign(file_header());
 	statsline.assign(size_header());
 
-	for (int i = 0; i < repeat_header; i++) {
-		fstring.append(fileline);
-		fstring.append(idline);
-		fstring.append(statsline);
-	}
-
-	if (!xmtdesc.empty()) {
-		fstring.append(desc_header());
-	}
-
 	xmt_calc_numblocks();
 
 	if (tosend.empty()) {
+		for (int i = 0; i < repeat_header; i++) {
+			fstring.append(fileline);
+			fstring.append(idline);
+			fstring.append(statsline);
+			if (!xmtdesc.empty()) {
+				fstring.append(desc_header());
+			}
+		}
 		for (int i = 0; i < xmtnumblocks; i++) {
 			fstring.append(data_block(i + 1));
 		}
@@ -503,17 +501,27 @@ std::string cAmp::xmt_string(bool use_locks = true)
 		int bnbr;
 		while (!blocks.empty()) {
 			if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
-				if (bnbr > 0 && bnbr <= xmtnumblocks) {
+				if(bnbr == 0) {
+					for (int i = 0; i < repeat_header; i++) {
+						fstring.append(fileline);
+						fstring.append(idline);
+						fstring.append(statsline);
+						if (!xmtdesc.empty()) {
+							fstring.append(desc_header());
+						}
+					}
+				} else 	if (bnbr > 0 && bnbr <= xmtnumblocks) {
 					fstring.append(data_block(bnbr));
 				}
 			}
+
 			while (!blocks.empty() && isdigit(blocks[0]))
 				blocks.erase(0,1);
 			while (!blocks.empty() && !isdigit(blocks[0]))
 				blocks.erase(0,1);
 		}
 	}
-
+	
 	fstring.append(data_eof());
 
 	for (int i = 0; i < xmt_repeat; i++)
@@ -621,14 +629,14 @@ void cAmp::unproto_markers(bool unproto_markers)
 {
 	lock();
 	_unproto_markers = unproto_markers;
-	_xmt_unproto();
+	_xmt_unproto(true);
 	unlock();
 }
 
 /** ********************************************************
  * Non thread locking version
  ***********************************************************/
-void cAmp::_xmt_unproto(void)
+void cAmp::_xmt_unproto(bool data_repeat_inhibit = false)
 {
 	size_t pos = 0;
 	int appendFlag = 0;
@@ -669,7 +677,14 @@ void cAmp::_xmt_unproto(void)
 
 	xmtunproto.clear();
 
-	for(index = 0; index < xmt_repeat; index++) {
+	int repeat_count = 0;
+
+	if(data_repeat_inhibit)
+		repeat_count = 1;
+	else
+		repeat_count = xmt_repeat;
+
+	for(index = 0; index < repeat_count; index++) {
 		xmtunproto.append("\n").append(call_from_to);
 
 		if(_unproto_markers)
@@ -688,7 +703,7 @@ void cAmp::_xmt_unproto(void)
 /** ********************************************************
  *
  ***********************************************************/
-int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
+int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers, bool data_repeat_inhibit)
 {
 	lock();
 
@@ -699,6 +714,9 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 	int j = 0;
 	int i = 0;
 	int no_of_elements = 0;
+	int xmit_repeat_count = 0;
+	bool preamble_flag = true;
+	bool data_flag = true;
 
 	if(xmtcallto.empty())
 		xmtcallto.assign("QST");
@@ -723,7 +741,7 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 		int length = 0;
 		int stride = xmtblocksize;
 
-		_xmt_unproto();
+		_xmt_unproto(data_repeat_inhibit);
 		count = (int) xmtunproto.size();
 		index = 0;
 		data_string_array.push_back(call_from_to);
@@ -743,61 +761,112 @@ int cAmp::xmt_vector_string(bool header_modem, bool unproto_markers)
 		} while(index < count);
 
 	} else {
-		if(header_modem) {
-			header_string_array.push_back(call_from_to);
-
-			for (i = 0; i < repeat_header; i++) {
-				header_string_array.push_back(program_header());
-				header_string_array.push_back(file_header());
-				header_string_array.push_back(id_header());
-				header_string_array.push_back(size_header());
-
-				if (!xmtdesc.empty()) {
-					header_string_array.push_back(desc_header());
-				}
-			}
-		} else { // !progStatus.use_header_modem
-			data_string_array.push_back(call_from_to);
-
-			for (i = 0; i < repeat_header; i++) {
-				data_string_array.push_back(program_header());
-				data_string_array.push_back(file_header());
-				data_string_array.push_back(id_header());
-				data_string_array.push_back(size_header());
-
-				if (!xmtdesc.empty()) {
-					data_string_array.push_back(desc_header());
-				}
-			}
-		}
-
-
-		for (i = 0; i < xmt_repeat; i++) {
-			if (tosend.empty()) {
-				for (j = 0; j < xmtnumblocks; j++) {
-					up_string = data_block(j + 1);
-					data_string_array.push_back(up_string);
-				}
-			} else {
-				std::string blocks;
-				int bnbr;
-				blocks.assign(tosend);
-				while (!blocks.empty()) {
-					if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
-						if (bnbr > 0 && bnbr <= xmtnumblocks) {
-							data_string_array.push_back(data_block(bnbr));
-						}
+		if(!tosend.empty()) {
+			std::string blocks;
+			int bnbr;
+			blocks.assign(tosend);
+			preamble_flag = false;
+			data_flag = false;
+			while (!blocks.empty()) {
+				if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
+					if (bnbr == 0) {
+						preamble_flag = true;
+					} else if(bnbr > 0) {
+						data_flag = true;
 					}
+
+					if(data_flag && preamble_flag)
+						break;
+
 					while (!blocks.empty() && isdigit(blocks[0]))
 						blocks.erase(0,1);
 					while (!blocks.empty() && !isdigit(blocks[0]))
 						blocks.erase(0,1);
 				}
 			}
-			data_string_array.push_back(data_eof());
 		}
 
-		data_string_array.push_back(data_eot());
+		if((preamble_flag || data_flag) && header_modem)
+			if(progStatus.disable_header_modem_on_block_fills)
+				header_modem = false;
+
+		if(header_modem) {
+			header_string_array.push_back(call_from_to);
+			if(tosend.empty() || preamble_flag) {
+				for (i = 0; i < repeat_header; i++) {
+					header_string_array.push_back(program_header());
+					header_string_array.push_back(file_header());
+					header_string_array.push_back(id_header());
+					header_string_array.push_back(size_header());
+
+					if (!xmtdesc.empty()) {
+						header_string_array.push_back(desc_header());
+					}
+
+					if(!data_flag) {
+						header_string_array.push_back(data_eof());
+					}
+				}
+
+				if(!data_flag) {
+					header_string_array.push_back(data_eot());
+				}
+			}
+		} else { // !progStatus.use_header_modem
+			data_string_array.push_back(call_from_to);
+			if(tosend.empty() || preamble_flag) {
+				for (i = 0; i < repeat_header; i++) {
+					data_string_array.push_back(program_header());
+					data_string_array.push_back(file_header());
+					data_string_array.push_back(id_header());
+					data_string_array.push_back(size_header());
+
+					if (!xmtdesc.empty()) {
+						data_string_array.push_back(desc_header());
+					}
+				}
+			}
+		}
+
+		if(data_repeat_inhibit)
+			xmit_repeat_count = 1;
+		else
+			xmit_repeat_count = xmt_repeat;
+
+		for (i = 0; i < xmit_repeat_count; i++) {
+			if (tosend.empty()) {
+				for (j = 0; j < xmtnumblocks; j++) {
+					up_string = data_block(j + 1);
+					data_string_array.push_back(up_string);
+				}
+			} else {
+				if(data_flag) {
+					std::string blocks;
+					int bnbr;
+					blocks.assign(tosend);
+					while (!blocks.empty()) {
+						if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
+							if (bnbr > 0 && bnbr <= xmtnumblocks) {
+								data_string_array.push_back(data_block(bnbr));
+							}
+						}
+						while (!blocks.empty() && isdigit(blocks[0]))
+							blocks.erase(0,1);
+						while (!blocks.empty() && !isdigit(blocks[0]))
+							blocks.erase(0,1);
+					}
+				}
+			}
+
+			if(data_flag) {
+				data_string_array.push_back(data_eof());
+			}
+
+		}
+		
+		if(data_flag) {
+			data_string_array.push_back(data_eot());
+		}
 	}
 
 	unlock();
@@ -1018,9 +1087,11 @@ bool cAmp::rx_parse_line(int ltype, char *crc, std::string data)
 			snprintf(temp_buffer, temp_buffer_local_size, "<ID %d %s>", count, local_crc.c_str());
 			_rx_raw_id.assign(temp_buffer).append(data);
 			break;
+
 		case _CNTL:
 			snprintf(temp_buffer, temp_buffer_local_size, "<CNTL %d %s>", count, local_crc.c_str());
 			_rx_raw_cntl.assign(temp_buffer).append(data);
+
 		default:;
 	}
 
@@ -1264,10 +1335,14 @@ std::string cAmp::reformat_missing_blocks(std::string &missing_blocks)
 	iblocks.sort();
 	to_send_local.clear();
 	char szblock[10];
+
+	_missing_block_count = 0;
+
 	for (pblock = iblocks.begin(); pblock != iblocks.end(); pblock++) {
 		snprintf(szblock, sizeof(szblock), "%d", *pblock);
 		if (to_send_local.empty()) to_send_local.append(szblock);
 		else to_send_local.append(",").append(szblock);
+		_missing_block_count++;
 	}
 
 	return to_send_local;
@@ -1974,8 +2049,10 @@ bool cAmp::xmt_file_modified(void)
 	struct stat cur_stat;
 	if(xmtfilename_fullpath.size() > 0) {
 		stat(xmtfilename_fullpath.c_str(), &cur_stat);
-		if(cur_stat.st_mtime == tx_statbuf.st_mtime)
+		if(cur_stat.st_mtime == tx_statbuf.st_mtime) {
+			unlock();
 			return false;
+		}
 	}
 	unlock();
 	return true;
@@ -2226,7 +2303,7 @@ bool cAmp::compress()
 	bool tmp = false;
 	tmp = use_compression;
 	unlock();
-
+	
 	return tmp;
 }
 

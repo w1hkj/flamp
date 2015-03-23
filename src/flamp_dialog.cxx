@@ -106,6 +106,9 @@ Fl_Check_Button * btn_sync_mode_fldigi_flamp = 0;
 Fl_Check_Button * btn_disable_header_modem_on_block_fills = 0;
 Fl_Check_Button * btn_enable_header_modem  = 0;
 Fl_Check_Button * btn_enable_tx_unproto    = 0;
+#if 0
+Fl_Check_Button * btn_queue_fills_only     = 0;
+#endif
 Fl_Check_Button * btn_enable_txrx_interval = 0;
 Fl_ComboBox *     cbo_header_modes         = 0;
 
@@ -180,6 +183,7 @@ extern void cb_scripts_in_main_thread(void *);
  * this table using the --time-table command line switch.
  ***********************************************************/
 const char *s_basic_modes[] = {
+	(char *) "8PSK125",
 	(char *) "8PSK250",
 	(char *) "8PSK500",
 	(char *) "8PSK1000",
@@ -632,7 +636,11 @@ static void cb_btn_send_queue(Fl_Button*, void*) {
 
 	btn_send_queue->deactivate();
 
-	transmit_queued(false);
+	if(Fl::event_shift())
+		transmit_queued(false, true);
+	else
+		transmit_queued(false, false);
+
 }
 
 /** ********************************************************
@@ -936,6 +944,16 @@ void cb_enable_tx_unproto(Fl_Check_Button *a, void *b)
 	update_cAmp_changes(0);
 	show_selected_xmt(tx_queue->value());
 }
+
+#if 0
+/** ********************************************************
+ *
+ ***********************************************************/
+void cb_queue_fills_only(Fl_Check_Button *a, void *b)
+{
+	progStatus.queue_fills_only = btn_queue_fills_only->value();
+}
+#endif
 
 /** ********************************************************
  *
@@ -1327,7 +1345,23 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_tx_unproto->down_box(FL_DOWN_BOX);
 	btn_enable_tx_unproto->callback((Fl_Callback*)cb_enable_tx_unproto);
 	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
+#if 0
+	btn_enable_tx_unproto = new Fl_Check_Button(X+150, y, 20, 20,
+												_("TX Unproto (7 bit)"));
+	btn_enable_tx_unproto->tooltip(_("Transmit unproto (plain text, 7bit ASCII)"));
+	btn_enable_tx_unproto->align(FL_ALIGN_RIGHT);
+	btn_enable_tx_unproto->down_box(FL_DOWN_BOX);
+	btn_enable_tx_unproto->callback((Fl_Callback*)cb_enable_tx_unproto);
+	btn_enable_tx_unproto->value(progStatus.enable_tx_unproto);
 
+	btn_queue_fills_only = new Fl_Check_Button(W-190, y, 20, 20,
+												_("Missing Only (xmt all)"));
+	btn_queue_fills_only->tooltip(_("Tx missing queue list fills only (xmit all)"));
+	btn_queue_fills_only->align(FL_ALIGN_RIGHT);
+	btn_queue_fills_only->down_box(FL_DOWN_BOX);
+	btn_queue_fills_only->callback((Fl_Callback*)cb_queue_fills_only);
+	btn_queue_fills_only->value(progStatus.queue_fills_only);
+#endif
 	y+=24;
 
 	txt_tx_selected_blocks = new Fl_Input2(X+70, y, W - X - 162, 20, _("blocks"));

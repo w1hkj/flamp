@@ -43,9 +43,9 @@ void base256::init()
  * characters this function substitutes a two character
  * sequence for the offending characters
  ***********************************************************/
-void base256::escape(string &in, bool encode)
+void base256::escape(std::string &in, bool encode)
 {
-	string out;
+	std::string out;
 	if (encode) {
 		for( size_t i = 0; i < in.length(); i++) {
 			switch ((in[i] & 0xFF)) {
@@ -102,9 +102,9 @@ void base256::escape(string &in, bool encode)
 /** ********************************************************
  *
  ***********************************************************/
-void base256::addlf(string &in)
+void base256::addlf(std::string &in)
 {
-	string out;
+	std::string out;
 	int len = 0;
 	for (size_t n = 0; n < in.length(); n++) {
 		if (len < LINELEN) {out += in[n]; len++;}
@@ -116,9 +116,9 @@ void base256::addlf(string &in)
 /** ********************************************************
  *
  ***********************************************************/
-void base256::remlf(string &in)
+void base256::remlf(std::string &in)
 {
-	string out;
+	std::string out;
 	for (size_t n = 0; n < in.length(); n++) {
 		if (in[n] != '\n') out += in[n];
 	}
@@ -128,7 +128,7 @@ void base256::remlf(string &in)
 /** ********************************************************
  *
  ***********************************************************/
-string base256::encode(string &in)
+std::string base256::encode(std::string &in)
 {
 	char insize[20];
 	snprintf(insize, sizeof(insize), "%d\n", (int)in.length());
@@ -137,7 +137,7 @@ string base256::encode(string &in)
 	iocp = 0;
 	ateof = false;
 
-	string temp (in);
+	std::string temp (in);
 	escape (temp);
 	output.append(temp);
 	return output;
@@ -146,15 +146,15 @@ string base256::encode(string &in)
 /** ********************************************************
  *
  ***********************************************************/
-string base256::decode(string &in, bool &decode_error)
+std::string base256::decode(std::string &in, bool &decode_error)
 {
 	int temp;
 	//size_t nbr = 0;
-	string output = in;
+	std::string output = in;
 	decode_error = false;
 
 	size_t p = output.find("\n");
-	if (p == string::npos) {
+	if (p == std::string::npos) {
 		decode_error = true;
 		return "ERROR: base256 missing character count";
 	}

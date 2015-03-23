@@ -87,6 +87,8 @@ status progStatus = {
 	false,          // bool enable_tx_unproto
 	false,          // bool enable_unproto_markers
 
+	false,          // bool queue_fills_only
+
 	false,          // bool auto_load_queue
 
 	false,          // bool load_from_tx_folder
@@ -171,6 +173,8 @@ void status::saveLastState()
 
 	FLAMPpref.set("enable_tx_unproto", enable_tx_unproto);
 	FLAMPpref.set("enable_unproto_markers", enable_unproto_markers);
+
+	FLAMPpref.set("queue_fills_only", queue_fills_only);
 
 	FLAMPpref.set("auto_load_queue", auto_load_queue);
 	FLAMPpref.set("load_from_tx_folder", load_from_tx_folder);
@@ -288,6 +292,9 @@ void status::loadLastState()
 
 		FLAMPpref.get("enable_unproto_markers", i, enable_unproto_markers);
 		enable_unproto_markers = (bool) i;
+
+		FLAMPpref.get("queue_fills_only", i, queue_fills_only);
+		queue_fills_only = (bool) i;
 
 		FLAMPpref.get("auto_load_queue", i, auto_load_queue);
 		auto_load_queue = (bool) i;

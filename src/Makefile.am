@@ -224,22 +224,13 @@ EXTRA_DIST = \
 	include/transmit_camp.h \
 	include/ztimer.h \
 	include/script_parsing.h \
-	widgets/Fl_Text_Buffer_mod_1_1.cxx \
-	widgets/Fl_Text_Buffer_mod_1_3.cxx \
-	widgets/Fl_Text_Display_mod_1_1.cxx \
-	widgets/Fl_Text_Display_mod_1_3.cxx \
-	widgets/Fl_Text_Editor_mod_1_1.cxx \
-	widgets/Fl_Text_Editor_mod_1_3.cxx \
+	widgets/Fl_Text_Buffer_mod.cxx \
+	widgets/Fl_Text_Display_mod.cxx \
+	widgets/Fl_Text_Editor_mod.cxx \
 	include/Fl_BlockMap.h \
 	include/Fl_Text_Buffer_mod.H \
-	include/Fl_Text_Buffer_mod_1_1.H \
-	include/Fl_Text_Buffer_mod_1_3.H \
 	include/Fl_Text_Display_mod.H \
-	include/Fl_Text_Display_mod_1_1.H \
-	include/Fl_Text_Display_mod_1_3.H \
 	include/Fl_Text_Editor_mod.H \
-	include/Fl_Text_Editor_mod_1_1.H \
-	include/Fl_Text_Editor_mod_1_3.H \
 	include/FTextView.h
 
 # Additional non-source files that are distributed

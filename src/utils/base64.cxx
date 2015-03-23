@@ -27,7 +27,7 @@
 /** ********************************************************
  *
  ***********************************************************/
-void base64::init()
+void base64::init(void)
 {
 	iolen = 0;
 	iocp = 0;
@@ -75,7 +75,7 @@ void base64::init()
 /** ********************************************************
  *
  ***********************************************************/
-string base64::encode(string in)
+std::string base64::encode(std::string in)
 {
 	int n;
 	byte igroup[3], ogroup[4];
@@ -127,7 +127,7 @@ string base64::encode(string in)
 /** ********************************************************
  *
  ***********************************************************/
-string base64::decode(string in, bool &decode_error)
+std::string base64::decode(std::string in, bool &decode_error)
 {
 	int i;
 	output = "";

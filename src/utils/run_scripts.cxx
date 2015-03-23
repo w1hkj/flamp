@@ -1221,14 +1221,17 @@ void cb_load_tx_queue(void)
 	std::string script_filename;
 	script_filename.assign(txt_auto_load_queue_path->value());
 
-	if(script_filename.empty()) {
-		LOG_INFO("Queue Load file list (path) not assigned");
-		return;
-	}
-
 	if(progStatus.load_from_tx_folder) {
 		auto_load_tx_queue_from_tx_directory();
 	} else {
+		std::string script_filename;
+		script_filename.assign(txt_auto_load_queue_path->value());
+
+		if(script_filename.empty()) {
+			LOG_INFO("Queue Load file list (path) not assigned");
+			return;
+		}
+		
 		pthread_mutex_lock(&mutex_script_io);
 		strncpy(call_script.filename, script_filename.c_str(), FL_PATH_MAX-1);
 		call_script.queueflag = true;
