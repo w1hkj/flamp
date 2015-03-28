@@ -1,6 +1,27 @@
 
 
+=Version 2.2.01=
+
+2015-03-23  David Freese  <iam_w1hkj@w1hkj.com>
+
+	4704889: FSF address
+	03ca8af: Bug Fixes/Enhancements
+
+2015-03-22  Robert Stiles  <kk5vd@yahoo.com>
+
+	bdce87e: Document and Timing Table Update
+	deb61d1: Minor Bug fixes.
+
+2015-03-22  David Freese  <iam_w1hkj@w1hkj.com>
+
+	9c489e7: fileselect
+	4a9c8a0: subdir-objects
+	a01e276: On line help
+
+
 =Version 2.2.00=
+
+	6bf63a9: STRNLEN
 
 2014-12-01  Robert Stiles  <kk5vd@yahoo.com>
 
