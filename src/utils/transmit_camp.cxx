@@ -379,10 +379,10 @@ double measure_tx_time(int character_to_send, double *over_head)
 
 	std::string tx_duration;
 
-	set_xmlrpc_timeout(8.0);
+//	set_xmlrpc_timeout(8.0);
 	tx_duration = get_char_timing(character_to_send);
 
-	set_xmlrpc_timeout_default();
+//	set_xmlrpc_timeout_default();
 
 	if(tx_duration.size() < 1) {
 		LOG_ERROR("No Data returned.");

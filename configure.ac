@@ -99,13 +99,6 @@ AC_FLAMP_NP_COMPAT
 # Set HAVE_FLUID Makefile conditional
 AC_CHECK_FLTK
 
-### XML-RPC library
-# Set ac_cv_xmlrpc to yes/no
-# Substitute XMLRPC_CFLAGS and XMLRPC_LIBS in Makefile
-# Define USE_XMLRPC in config.h
-# Set ENABLE_XMLRPC Makefile conditional
-#AC_FLAMP_XMLRPC
-
 ### X11
 # Set ac_cv_x to yes/no
 # Define USE_X in config.h
@@ -118,6 +111,15 @@ fi
 # substitute ASCIIDOC and A2X in doc/Makefile
 # set HAVE_ASCIIDOC Makefile conditional
 #AC_FLAMP_DOCS
+
+### libflxmlrpc
+# Set ac_cv_flxmlrpc to yes/no
+# Define USE_FLXMLRPC in config.h
+# Substitute FLXMLRPC_CFLAGS and FLXMLRPC_LIBS in Makefile
+
+AC_FLAMP_PKG_CHECK([flxmlrpc], [flxmlrpc >= 0.1.0], 
+  [yes], [yes], [use external flxmlrpc library @<:@autodetect@:>@],
+  [ENABLE_FLXMLRPC])
 
 ### build info
 # Define various build variables in config.h
@@ -135,6 +137,8 @@ Configuration summary:
   Version ..................... $VERSION
 
   Target OS ................... $target_os
+
+  Have flxmlrpc library ....... $ac_cv_flxmlrpc
 
   Static linking .............. $ac_cv_static
   CPU optimizations ........... $ac_cv_opt

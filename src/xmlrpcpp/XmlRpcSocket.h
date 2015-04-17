@@ -1,8 +1,23 @@
-#ifndef _XMLRPCSOCKET_H_
-#define _XMLRPCSOCKET_H_
+// ----------------------------------------------------------------------------
 //
+// flxmlrpc Copyright (c) 2015 by W1HKJ, Dave Freese <iam_w1hkj@w1hkj.com>
+//    
 // XmlRpc++ Copyright (c) 2002-2008 by Chris Morley
 //
+// This file is part of fldigi
+//
+// flxmlrpc is free software; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// ----------------------------------------------------------------------------
+
+#ifndef _XMLRPCSOCKET_H_
+#define _XMLRPCSOCKET_H_
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4786)    // identifier was truncated in debug info
 #endif
@@ -12,69 +27,69 @@
 
 namespace XmlRpc {
 
-	//! A platform-independent socket API.
-	class XmlRpcSocket {
-	public:
+  //! A platform-independent socket API.
+  class XmlRpcSocket {
+  public:
 
-		// On windows, a socket is an unsigned int large enough to hold a ptr
-		// This should match the definition of SOCKET in winsock2.h
+    // On windows, a socket is an unsigned int large enough to hold a ptr
+    // This should match the definition of SOCKET in winsock2.h
 #if defined(_WINDOWS)
 # if defined(_WIN64)
-		typedef unsigned __int64 Socket;
+    typedef unsigned __int64 Socket;
 # else
-		typedef unsigned int Socket;
+    typedef unsigned int Socket;
 # endif
 #else
-		typedef int Socket;
+    typedef int Socket;
 #endif
 
-		//! An invalid socket constant.
-		static const Socket Invalid = (Socket) -1;
+    //! An invalid socket constant.
+    static const Socket Invalid = (Socket) -1;
 
-		//! Creates a stream (TCP) socket. Returns XmlRpcSocket::Invalid on failure.
-		static Socket socket();
+    //! Creates a stream (TCP) socket. Returns XmlRpcSocket::Invalid on failure.
+    static Socket socket();
 
-		//! Closes a socket.
-		static void close(Socket socket);
-
-
-		//! Sets a stream (TCP) socket to perform non-blocking IO. Returns false on failure.
-		static bool setNonBlocking(Socket socket);
+    //! Closes a socket.
+    static void close(Socket socket);
 
 
-		// The next four methods are appropriate for servers.
+    //! Sets a stream (TCP) socket to perform non-blocking IO. Returns false on failure.
+    static bool setNonBlocking(Socket socket);
 
-		//! Allow the port the specified socket is bound to to be re-bound immediately so
-		//! server re-starts are not delayed. Returns false on failure.
-		static bool setReuseAddr(Socket socket);
 
-		//! Bind to a specified port
-		static bool bind(Socket socket, int port);
+    // The next four methods are appropriate for servers.
 
-		//! Set socket in listen mode
-		static bool listen(Socket socket, int backlog);
+    //! Allow the port the specified socket is bound to to be re-bound immediately so 
+    //! server re-starts are not delayed. Returns false on failure.
+    static bool setReuseAddr(Socket socket);
 
-		//! Accept a client connection request
-		static Socket accept(Socket socket);
+    //! Bind to a specified port
+    static bool bind(Socket socket, int port);
 
-		//! Connect a socket to a server (from a client)
-		static bool connect(Socket socket, std::string& host, int port);
+    //! Set socket in listen mode
+    static bool listen(Socket socket, int backlog);
 
-		//! Get the port of a bound socket
-		static int getPort(Socket socket);
+    //! Accept a client connection request
+    static Socket accept(Socket socket);
 
-		//! Returns true if the last error was not a fatal one (eg, EWOULDBLOCK)
-		static bool nonFatalError();
+    //! Connect a socket to a server (from a client)
+    static bool connect(Socket socket, std::string& host, int port);
 
-		//! Returns last errno
-		static int getError();
+    //! Get the port of a bound socket
+    static int getPort(Socket socket);
 
-		//! Returns message corresponding to last error
-		static std::string getErrorMsg();
+    //! Returns true if the last error was not a fatal one (eg, EWOULDBLOCK)
+    static bool nonFatalError();
 
-		//! Returns message corresponding to error
-		static std::string getErrorMsg(int error);
-	};
+    //! Returns last errno
+    static int getError();
+
+    //! Returns message corresponding to last error
+    static std::string getErrorMsg();
+
+    //! Returns message corresponding to error
+    static std::string getErrorMsg(int error);
+  };
 
 } // namespace XmlRpc
 

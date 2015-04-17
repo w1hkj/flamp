@@ -2,20 +2,55 @@
 
 bin_PROGRAMS = flamp
 
-flamp_CPPFLAGS = @FLAMP_BUILD_CPPFLAGS@
-flamp_CXXFLAGS = @FLAMP_BUILD_CXXFLAGS@
-flamp_CFLAGS = $(flamp_CXXFLAGS)
-flamp_LDFLAGS = @FLAMP_BUILD_LDFLAGS@
-flamp_LDADD = @FLAMP_BUILD_LDADD@
-
 MINGW32_SRC = flamp-rc.rc include/flamprc.h \
 	utils/mingw.c include/mingw.h include/compat.h \
 	utils/getsysinfo.c
 
+# Build the xmlrpcpp source if libflxmlrpc is not found
+XMLRPCPP_SRC = \
+	xmlrpcpp/XmlRpcBase64.h \
+	xmlrpcpp/XmlRpcClient.cpp \
+	xmlrpcpp/XmlRpcClient.h \
+	xmlrpcpp/XmlRpcDispatch.cpp \
+	xmlrpcpp/XmlRpcDispatch.h \
+	xmlrpcpp/XmlRpcException.h \
+	xmlrpcpp/XmlRpc.h \
+	xmlrpcpp/XmlRpcMutex.cpp \
+	xmlrpcpp/XmlRpcMutex.h \
+	xmlrpcpp/XmlRpcServerConnection.cpp \
+	xmlrpcpp/XmlRpcServerConnection.h \
+	xmlrpcpp/XmlRpcServer.cpp \
+	xmlrpcpp/XmlRpcServer.h \
+	xmlrpcpp/XmlRpcServerMethod.cpp \
+	xmlrpcpp/XmlRpcServerMethod.h \
+	xmlrpcpp/XmlRpcSocket.cpp \
+	xmlrpcpp/XmlRpcSocket.h \
+	xmlrpcpp/XmlRpcSource.cpp \
+	xmlrpcpp/XmlRpcSource.h \
+	xmlrpcpp/XmlRpcUtil.cpp \
+	xmlrpcpp/XmlRpcUtil.h \
+	xmlrpcpp/XmlRpcValue.cpp \
+	xmlrpcpp/XmlRpcValue.h
+
 # We distribute these but do not always compile them
-EXTRA_flamp_SOURCES = $(flamp_WIN32_RES_SRC) $(MINGW32_SRC)
+EXTRA_flamp_SOURCES = $(FLRIG_WIN32_RES_SRC) $(MINGW32_SRC) $(XMLRPCPP_SRC)
 
 flamp_SOURCES =
+
+if !ENABLE_FLXMLRPC
+  flamp_SOURCES += $(XMLRPCPP_SRC)
+  flamp_CPPFLAGS = @FLAMP_BUILD_CPPFLAGS@
+  flamp_CXXFLAGS = @FLAMP_BUILD_CXXFLAGS@
+  flamp_CFLAGS = $(flamp_CXXFLAGS)
+  flamp_LDFLAGS = @FLAMP_BUILD_LDFLAGS@
+  flamp_LDADD = @FLAMP_BUILD_LDADD@
+else
+  flamp_CPPFLAGS = @FLAMP_BUILD_CPPFLAGS@ @FLXMLRPC_CFLAGS@
+  flamp_CXXFLAGS = @FLAMP_BUILD_CXXFLAGS@ @FLXMLRPC_CFLAGS@
+  flamp_CFLAGS = $(flamp_CXXFLAGS)
+  flamp_LDFLAGS = @FLAMP_BUILD_LDFLAGS@ @FLXMLRPC_LIBS@
+  flamp_LDADD = @FLAMP_BUILD_LDADD@
+endif
 
 if MINGW32
 if HAVE_WINDRES
@@ -147,34 +182,7 @@ flamp_SOURCES += \
 	widgets/pixmaps_tango.cxx \
 	widgets/font_browser.cxx \
 	widgets/hamcast_group.cxx \
-	include/hamcast_group.h \
-	xmlrpcpp/XmlRpc.h \
-	xmlrpcpp/XmlRpcClient.cpp \
-	xmlrpcpp/XmlRpcClient.h \
-	xmlrpcpp/XmlRpcDispatch.cpp \
-	xmlrpcpp/XmlRpcDispatch.h \
-	xmlrpcpp/XmlRpcException.h \
-	xmlrpcpp/XmlRpcMutex.cpp \
-	xmlrpcpp/XmlRpcMutex.h \
-	xmlrpcpp/XmlRpcServer.cpp \
-	xmlrpcpp/XmlRpcServer.h \
-	xmlrpcpp/XmlRpcServerConnection.cpp \
-	xmlrpcpp/XmlRpcServerConnection.h \
-	xmlrpcpp/XmlRpcServerMethod.cpp \
-	xmlrpcpp/XmlRpcServerMethod.h \
-	xmlrpcpp/XmlRpcSocket.cpp \
-	xmlrpcpp/XmlRpcSocket.h \
-	xmlrpcpp/XmlRpcSource.cpp \
-	xmlrpcpp/XmlRpcSource.h \
-	xmlrpcpp/XmlRpcThread.cpp \
-	xmlrpcpp/XmlRpcThread.h \
-	xmlrpcpp/XmlRpcThreadedServer.cpp \
-	xmlrpcpp/XmlRpcThreadedServer.h \
-	xmlrpcpp/XmlRpcUtil.cpp \
-	xmlrpcpp/XmlRpcUtil.h \
-	xmlrpcpp/XmlRpcValue.cpp \
-	xmlrpcpp/XmlRpcValue.h \
-	xmlrpcpp/Xmlbase64.h
+	include/hamcast_group.h 
 
 # Additional source files that are distributed
 EXTRA_DIST = \
