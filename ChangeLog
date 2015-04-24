@@ -1,16 +1,21 @@
 
 
+=Version 2.2.02=
+
+2015-04-17  David Freese  <iam_w1hkj@w1hkj.com>
+
+	88b8599: xmlrpc
+
+
 =Version 2.2.01=
 
-2015-03-23  David Freese  <iam_w1hkj@w1hkj.com>
-
-	4704889: FSF address
+	ae83438: FSF address
 	03ca8af: Bug Fixes/Enhancements
 
 2015-03-22  Robert Stiles  <kk5vd@yahoo.com>
 
-	bdce87e: Document and Timing Table Update
-	deb61d1: Minor Bug fixes.
+	4f2aee3: Document and Timing Table Update
+	9787795: Minor Bug fixes.
 
 2015-03-22  David Freese  <iam_w1hkj@w1hkj.com>
 
