@@ -1,0 +1,6 @@
+#include <windows.h> // include for version info constants
+
+#include "fm_msngrrc.h"
+
+IDI_ICON ICON DISCARDABLE "fm_msnger.ico"
+

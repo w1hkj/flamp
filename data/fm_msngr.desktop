@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=fm_msngr
+GenericName=Frame Messenger, Keyboard to Keyboard Chat
+Comment=Amateur Radio Communications
+Exec=fm_msngr
+Icon=fm_msngr
+Terminal=false
+Type=Application
+Categories=Network;HamRadio;
