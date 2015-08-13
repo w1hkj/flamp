@@ -34,7 +34,6 @@ fi
 
 set -e
 
-test "x$NOSTRIP" = "x" && $STRIP -S "$flamp_bin"
 def="-Dflamp_NAME=$flamp_name -Dflamp_BINARY=$flamp_bin -Dflamp_VERSION=$PACKAGE_VERSION"
 
 $MAKENSIS -V2 -NOCD -D"INSTALLER_FILE=$INSTALLER_FILE" -D"LICENSE_FILE=$data/../COPYING" \

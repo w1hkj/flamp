@@ -254,7 +254,7 @@ EXTRA_DIST += \
 	../data/flamp.png \
 	../data/win32/fl_app.nsi \
 	../data/win32/flamp.ico \
-	../scripts/build4mingw.sh \
+	../scripts/buildmxe.sh \
 	../scripts/builddist.sh \
 	../scripts/mkappbundle.sh \
 	../scripts/mknsisinst.sh \
