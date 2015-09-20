@@ -11,7 +11,7 @@ dnl major and minor must be integers; patch may
 dnl contain other characters or be empty
 m4_define(FLAMP_MAJOR,  [2])
 m4_define(FLAMP_MINOR,  [2])
-m4_define(FLAMP_PATCH,  [.02])
+m4_define(FLAMP_PATCH,  [.03])
 
 AC_INIT([FLAMP], FLAMP_MAJOR.FLAMP_MINOR[]FLAMP_PATCH, [w1hkj AT w1hkj DOT com])
 
@@ -99,6 +99,14 @@ AC_FLAMP_NP_COMPAT
 # Set HAVE_FLUID Makefile conditional
 AC_CHECK_FLTK
 
+### XML-RPC library
+# Set ac_cv_xmlrpc to yes/no
+# Substitute XMLRPC_CFLAGS and XMLRPC_LIBS in Makefile
+# Define USE_XMLRPC in config.h
+# Set ENABLE_XMLRPC Makefile conditional
+#AC_FLAMP_XMLRPC
+
+
 ### X11
 # Set ac_cv_x to yes/no
 # Define USE_X in config.h
@@ -117,7 +125,7 @@ fi
 # Define USE_FLXMLRPC in config.h
 # Substitute FLXMLRPC_CFLAGS and FLXMLRPC_LIBS in Makefile
 
-AC_FLAMP_PKG_CHECK([flxmlrpc], [flxmlrpc >= 0.1.0], 
+AC_FLAMP_PKG_CHECK([flxmlrpc], [flxmlrpc >= 0.1.0],
   [yes], [yes], [use external flxmlrpc library @<:@autodetect@:>@],
   [ENABLE_FLXMLRPC])
 
