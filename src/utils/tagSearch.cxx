@@ -1,7 +1,7 @@
 // tagSearch.cxx
 //
 //  Author(s):
-//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013, 2015
 //	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This file is part of FLAMP.
@@ -44,7 +44,10 @@ const char * searchTags[] = {
  ***********************************************************/
 TagSearch::TagSearch()
 {
-
+	patternMatchList = 0;
+	matchMaxLen = 0;
+	search_tag_count = 0;
+	listCount = 0;
 }
 
 /** ********************************************************
@@ -62,7 +65,10 @@ TagSearch::TagSearch(int (*_data_stream)(void *), int (*_process_que)(void *))
  ***********************************************************/
 TagSearch::~TagSearch()
 {
-	delete [] patternMatchList;
+	if(patternMatchList) {
+		delete [] patternMatchList;
+		patternMatchList = 0;
+	}
 }
 
 /** ********************************************************

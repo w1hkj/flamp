@@ -83,7 +83,7 @@ struct status {
 	bool enable_unproto_markers;
 
 	bool queue_fills_only;
-	
+
 	bool auto_load_queue;
 	bool load_from_tx_folder;
 	string auto_load_queue_path;
@@ -103,7 +103,8 @@ struct status {
 	int  hamcast_mode_selection_4;
 
 	bool auto_rx_save;
-	
+	bool auto_rx_save_local_time;
+
 	void saveLastState();
 	void loadLastState();
 };

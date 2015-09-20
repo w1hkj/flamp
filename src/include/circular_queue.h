@@ -2,7 +2,7 @@
 //  circularQueue.h
 //
 //  Author(s):
-//	Robert Stiles, KK5VD, Copyright (C) 2013
+//	Robert Stiles, KK5VD, Copyright (C) 2013, 2015
 //	Dave Freese, W1HKJ, Copyright (C) 2013
 //
 // This file is part of FLAMP.
@@ -31,6 +31,7 @@
 #include <time.h>
 
 #include "util.h"
+#include "crc16.h"
 
 #define CQUE_HOLD   1
 #define CQUE_RESUME 0
@@ -75,6 +76,8 @@ private:
 	int read_index;
 	int stalled;
 	int write_index;
+
+	Ccrc16 crcValidate;
 
 public:
 

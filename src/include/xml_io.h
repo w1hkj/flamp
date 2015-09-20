@@ -49,5 +49,7 @@ extern void send_rx(void);
 extern void send_tune(void);
 extern void send_tx(void);
 extern void set_rsid(void);
+extern void set_xmlrpc_timeout_default(void);
+extern void set_xmlrpc_timeout(double value);
 
 #endif

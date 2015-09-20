@@ -26,6 +26,7 @@
 #define _CCRC16_
 
 #include <string>
+#include <stdio.h>
 #include "debug.h"
 
 using namespace std;

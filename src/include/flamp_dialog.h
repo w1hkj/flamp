@@ -130,6 +130,8 @@ extern Fl_Check_Button * btn_enable_header_modem;
 extern void cb_enable_header_modem(Fl_Check_Button *a, void *b);
 extern void unproto_widgets(class cAmp *amp);
 
+extern Fl_Check_Button * btn_auto_rx_save_local_time;
+
 // Hamcasting panel
 
 extern Fl_Check_Button * btn_hamcast_mode_cycle;

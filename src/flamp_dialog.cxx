@@ -4,7 +4,7 @@
 //
 // Author(s):
 //	Dave Freese, W1HKJ, Copyright (C) 2010, 2011, 2012, 2013
-//  Robert Stiles, KK5VD, Copyright (C) 2013, 2014
+//  Robert Stiles, KK5VD, Copyright (C) 2013, 2014, 2015
 //
 // This file is part of FLAMP.
 //
@@ -120,6 +120,8 @@ Fl_Check_Button * btn_clear_tosend_on_tx_blocks = 0;
 Fl_Check_Button * btn_enable_delete_warning     = 0;
 Fl_Check_Button * btn_enable_tx_on_report       = 0;
 Fl_Check_Button * btn_enable_unproto_markers    = 0;
+
+Fl_Check_Button * btn_auto_rx_save_local_time   = 0;
 
 // end Configuration panel.
 
@@ -1185,6 +1187,13 @@ void cb_auto_rx_save(Fl_Check_Button *a, void *b)
 	progStatus.auto_rx_save = btn_auto_rx_save->value();
 }
 
+/** ********************************************************
+ *
+ ***********************************************************/
+void cb_auto_rx_save_local_time(Fl_Check_Button *a, void *b)
+{
+	progStatus.auto_rx_save_local_time = btn_auto_rx_save_local_time->value();
+}
 
 /** ********************************************************
  *
@@ -1802,6 +1811,15 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_unproto_markers->down_box(FL_DOWN_BOX);
 	btn_enable_unproto_markers->callback((Fl_Callback*)cb_enable_unproto_markers);
 	btn_enable_unproto_markers->value(progStatus.enable_unproto_markers);
+
+	btn_auto_rx_save_local_time = new Fl_Check_Button(X+70, y+=26, 20, 20,
+													 _("Auto save subfolders in local time, otherwise UTC"));
+	btn_auto_rx_save_local_time->tooltip("");
+	btn_auto_rx_save_local_time->align(FL_ALIGN_RIGHT);
+	btn_auto_rx_save_local_time->down_box(FL_DOWN_BOX);
+	btn_auto_rx_save_local_time->callback((Fl_Callback*)cb_auto_rx_save_local_time);
+	btn_auto_rx_save_local_time->value(progStatus.auto_rx_save_local_time);
+
 
 	btn_enable_header_modem = new Fl_Check_Button(X+70, y+=26, 20, 20,
 												  _("Enable header modem (Sync flamp to fldigi ignored)"));

@@ -30,7 +30,9 @@
 #include <sys/time.h>
 
 #include "util.h"
+
 #include "circular_queue.h"
+
 
 using namespace std;
 
@@ -206,7 +208,7 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size,
 	buffer_count = bufferCount;
 
 	if(*reset) {
-		crcval = 0xFFFF;
+		crcValidate.reset();
 		*reset = 0;
 	}
 
@@ -224,15 +226,7 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size,
 
 				buffer_count--;
 				count++;
-
-				crcval ^= (char ) *cPtr;
-				for (int i = 0; i < 8; ++i) {
-					if (crcval & 1)
-						crcval = (crcval >> 1) ^ 0xA001;
-					else
-						crcval = (crcval >> 1);
-				}
-
+				crcValidate.crc16(*cPtr);
 				cPtr++;
 			} else
 				break;
@@ -244,7 +238,7 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size,
 
 	readQueData(buffer_count);
 
-	*crcVal = crcval & 0xFFFF;
+	*crcVal = crcValidate.val();
 
 	return count;
 

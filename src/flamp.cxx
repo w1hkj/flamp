@@ -1681,11 +1681,18 @@ void auto_rx_save_file(cAmp *_amp)
 	time_t rawtime;
 	struct tm * ztime;
 	time ( &rawtime );
-	ztime = gmtime ( &rawtime );
 
 	memset(date_directory, 0, sizeof(date_directory));
-	snprintf(date_directory, sizeof(date_directory) - 1, "%02d_%02d_%04d_UTC", \
-				ztime->tm_mday, ztime->tm_mon, ztime->tm_year + 1900);
+
+	if(progStatus.auto_rx_save_local_time) {
+		ztime = localtime(&rawtime);
+		snprintf(date_directory, sizeof(date_directory) - 1, "%04d_%02d_%02d", \
+				 ztime->tm_year + 1900, ztime->tm_mon + 1, ztime->tm_mday);
+	} else {
+		ztime = gmtime(&rawtime);
+		snprintf(date_directory, sizeof(date_directory) - 1, "%04d_%02d_%02d_UTC", \
+				 ztime->tm_year + 1900, ztime->tm_mon + 1, ztime->tm_mday);
+	}
 
 	rx_directory.assign(flamp_rcv_dir);
 
@@ -2894,11 +2901,49 @@ void cb_folders()
 /** ********************************************************
  *
  ***********************************************************/
-void drop_file_changed()
+void url_to_file(char *path, size_t buffer_length)
+{
+	if(!path && buffer_length < 1) return;
+
+	char *convert_buffer = (char *)0;
+	char *cPtr = path;
+	char *cEnd = &path[buffer_length];
+	char *dPtr = (char *)0;
+	int value = 0;
+	int count = 0;
+
+	convert_buffer = new char [buffer_length + 1];
+	if(!convert_buffer) return;
+
+	memset(convert_buffer, 0, buffer_length + 1);
+	dPtr = convert_buffer;
+
+	while(cPtr < cEnd) {
+		if(*cPtr == '%') {
+			sscanf(cPtr + 1, "%02x", &value);
+			*dPtr++ = (char) value;
+			cPtr += 3;
+		} else {
+			*dPtr++ = *cPtr++;
+		}
+		count++;
+	}
+
+	memset(path, 0, buffer_length);
+	memcpy(path, convert_buffer, count);
+
+	delete [] convert_buffer;
+}
+
+/** ********************************************************
+ *
+ ***********************************************************/
+void drop_file_changed(void)
 {
 	string buffer = Fl::event_text();
+	size_t length = Fl::event_length();
+	char *fname = (char *)0;
 	size_t n = 0;
-	size_t limit = 0;
 	int valid = 0;
 
 	char *cPtr = (char *)0;
@@ -2908,62 +2953,49 @@ void drop_file_changed()
 	drop_file->value("  DnD");
 	drop_file->redraw();
 
-	while(1) { // Remove URL file marker
-		if ((n = buffer.find("file:///")) != string::npos) {
-			buffer.erase(n, 7);
-		} else {
-			break;
-		}
+	fname = new char[length + 1];
+	if(!fname) {
+		LOG_INFO("File name allocation error\n");
+		return;
 	}
 
-	n = buffer.find(":\\");
-	if(n == string::npos)
-		n = buffer.find("/");
+	memset(fname, 0, length + 1);
+	memcpy(fname, buffer.c_str(), length);
 
-	if(n != string::npos) {
+	if ((n = buffer.find("file:///")) != string::npos) {
+		buffer.erase(n, 7);
+		memcpy(fname, buffer.c_str(), buffer.size());
+		url_to_file(fname, length);
 		valid = 1;
-		limit = buffer.size();
-		cBufferEnd = &((buffer.c_str())[limit]);
-		cFileName = cPtr = (char *) buffer.c_str();
+	} else	if ((n = buffer.find(":\\")) != string::npos) {
+		valid = 1;
+	} else 	if ((n = buffer.find("/")) != string::npos) {
+		valid = 1;
+	}
 
-		while(cPtr < cBufferEnd) {
+	if(valid == 0) return;
 
-			// Skip though the current filename path to find delimters
-			while(*cPtr >= ' ' && cPtr < cBufferEnd)
-				cPtr++;
+	cBufferEnd = &fname[length];
+	cFileName = cPtr = (char *) fname;
 
-			// Null terminate CR/LF delimiters
-			while(*cPtr == '\n' || *cPtr == '\r') {
-				*cPtr = 0;
-				cPtr++;
-				if(cPtr >= cBufferEnd) break;
-			}
+	// Skip leading spaces
+	while(*cPtr <= ' ' && cPtr < cBufferEnd)
+		cPtr++;
 
-			if(valid)
-				addfile(cFileName, 0, false, 0, 0);
+	// Begining of file path
+	fname = cPtr;
 
-			// Remove any leading spaces and control characters
-			while(*cPtr <= ' ' && cPtr < cBufferEnd)
-				cPtr++;
+	// Null terminate control characters
+	while(cPtr < cBufferEnd) {
+	   if(*cPtr < ' ') *cPtr = 0;
+	   cPtr++;
+	}
 
-			// Reassign a possible new filename path.
-			cFileName = cPtr;
-			valid = 0;
+	addfile(fname, 0, false, 0, 0);
 
-			// Minimal validation check on system specific file name path sturcture
-			while(cPtr < cBufferEnd) {
-				if(*cPtr == '/') { // Unix/BSD type file systems
-					valid = 1;
-					break;
-				}
-
-				if(cPtr[0] == ':' && cPtr[1] == '\\') { // Windows file system
-					valid = 1;
-					break;
-				}
-				cPtr++;
-			}
-		}
+	if(fname) {
+		delete [] fname;
+		fname = 0;
 	}
 }
 

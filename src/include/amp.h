@@ -3,7 +3,7 @@
 //
 //  Author(s):
 //	Dave Freese, W1HKJ, Copyright (C) 2010, 2013
-//	Robert Stiles, KK5VD, Copyright (C) 2013, 2014
+//	Robert Stiles, KK5VD, Copyright (C) 2013, 2014, 2015
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
