@@ -450,14 +450,14 @@ with the selected received queue item into the relay blocks field. This field
 is user editable and can be entered directly without the need to press the
 fetch button. If the Blocks field contains no missing block numbers (empty)
 the received content of the file will be retransmitted. It is not necessary
-for the received file to contain 100% of the data. Only checksum verified data
-is available for retransmission.
+for the received file to contain 100% of the data. All checksum verified data
+received is available for retransmission.
 
 To enter missing block numbers manually, the following numerical
 values are used to indicate what part of the data is to be relayed. Missing
 preamble (header data) are represented by the number '0'. Block numbers
 1 to n (the maximum number of blocks for the given file) represents the
-<tt><DATA 34 2E43>{</tt>hash:<b>block number n</b><tt>}</tt>
+<tt><DATA 34 2E43>{hash:<b>block number n</b>}</tt>
 AMP-2 tagged data.
 
 Retransmission of the data format is limited to how it was received. The user
@@ -504,22 +504,6 @@ transmit. Pressing 'Yes' starts the transmit process.
 While FLDIGI is transmitting the "Relay" button changes to "Cancel".
 Pressing the "Cancel" button immediately terminates the transmission on
 validation via a Warning Dialog box.
-
-\section txQueue Transfer Receive Queue Item to the Transmit Queue.
-
-<ol>
-	<li> Select the receive queue item.
-	<li> Click on "To TxQ" button.
-</ol>
-
-The content of the file, file name, description, and block size will be
-transfered to the TxQ after the user is requested to save the file.
-Software will only allow 100 percent completed files to be transfered.
-Mouse clicking on the Transmit tab reveals the transfered queue item.
-Retransmission of the file in it's complete form must be conducted (no
-missing blocks fills).  Use of this option does not allow for
-digipeater functionality. For digipeat operations see \ref sRelayData
-
 
 \section evSched Event Scheduler
 

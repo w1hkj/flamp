@@ -2649,7 +2649,7 @@ int parse_args(int argc, char **argv, int& idx)
 
 
 	if (strcasecmp(argv[idx], "--version") == 0) {
-		printf("Version: "VERSION"\n");
+		printf("Version: " VERSION "\n"); //c++11
 		exit (0);
 	}
 	return 0;
@@ -2986,6 +2986,17 @@ void drop_file_changed(void)
 
 	memset(fname, 0, length + 1);
 	memcpy(fname, buffer.c_str(), length);
+
+#if 0
+    char _fname[128];
+    memset(_fname, 0, sizeof(_fname));
+    snprintf(_fname, sizeof(_fname) - 1, "%s/%s", flampHomeDir.c_str(), (char *) "dnd_filename.txt");
+    FILE *fd = fopen(_fname, "a+");
+    if(fd) {
+        fprintf(fd, "%s\n", fname);
+        fclose(fd);
+    }
+#endif
 
 	if ((n = buffer.find("file:///")) != string::npos) {
 		buffer.erase(n, 7);

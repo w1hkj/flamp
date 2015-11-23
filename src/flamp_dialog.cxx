@@ -193,7 +193,9 @@ const char *s_basic_modes[] = {
 	(char *) "8PSK1200",
 	(char *) "8PSK1333",
 	(char *) "8PSK125F",
+	(char *) "8PSK125FL",
 	(char *) "8PSK250F",
+        (char *) "8PSK250FL",
 	(char *) "8PSK500F",
 	(char *) "8PSK1000F",
 	(char *) "8PSK1200F",
@@ -1257,9 +1259,11 @@ Fl_Double_Window* flamp_dialog() {
 	txt_rx_blocksize->box(FL_DOWN_BOX);
 	txt_rx_blocksize->tooltip("");
 
+#if 0
 	btn_rxq_to_txq = new Fl_Button(W - 88, y, 80, 20, _("To TxQ"));
 	btn_rxq_to_txq->callback((Fl_Callback*)cb_btn_transfer_file_txQ);
 	btn_rxq_to_txq->tooltip("");
+#endif
 
 	txt_rx_missing_blocks = new Fl_Output(100, y+=26, W-194, 20, _("Missing"));
 	txt_rx_missing_blocks->box(FL_DOWN_BOX);

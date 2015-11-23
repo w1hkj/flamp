@@ -283,7 +283,7 @@ void * create_tx_table(void *ptr)
 
 			LOG_DEBUG("Mode %s overhead=%f", mode_name.c_str(), overhead);
 
-			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, "P_RELSOL2", \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
+			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, " P_RELSOL2 ", \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
 			fflush(fd);
 
 			if(mode_name.find("Olivia") != string::npos || mode_name.find("MT63") != string::npos) {

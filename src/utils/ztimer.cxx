@@ -468,7 +468,7 @@ void *watch_dog_loop(void *p)
 	double diff_time = 0;
 	double limit = 10.0;
 	int counter = 0;
-	struct timeval tv;
+	struct timeval tv = {0};
 
 	exit_watch_dog = false;
 

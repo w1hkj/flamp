@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 //
 // flxmlrpc Copyright (c) 2015 by W1HKJ, Dave Freese <iam_w1hkj@w1hkj.com>
-//    
+//
 // XmlRpc++ Copyright (c) 2002-2008 by Chris Morley
 //
 // This file is part of fldigi
@@ -26,9 +26,20 @@
 # include <winsock2.h>
 //# pragma lib(WS2_32.lib)
 
+// Updates to MXE require conditional test before assignment to
+// prevent duplicate defines.
+
+#ifndef EINPROGRESS
 # define EINPROGRESS	WSAEINPROGRESS
+#endif
+
+#ifndef EWOULDBLOCK
 # define EWOULDBLOCK	WSAEWOULDBLOCK
-# define ETIMEDOUT	    WSAETIMEDOUT
+#endif
+
+#ifndef ETIMEDOUT
+# define ETIMEDOUT  WSAETIMEDOUT
+#endif
 
 typedef int socklen_t;
 
