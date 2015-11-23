@@ -56,12 +56,16 @@
 #include "util.h"
 #include "gettext.h"
 #include "flinput2.h"
+#include "icons.h"
 #include "status.h"
 #include "threads.h"
 #include "flamp.h"
 #include "flamp_dialog.h"
 #include "xml_io.h"
 #include "ztimer.h"
+#include "fileselect.h"
+
+extern void close_ops();
 
 static char szoutTimeValue[] = "12:30:00";
 static char sztime[] = "123000";
@@ -484,6 +488,26 @@ void *watch_dog_loop(void *p)
 }
 
 /** ********************************************************
+ * fldigi was closed before flamp ... abort
+ ***********************************************************/
+void abort_flamp(void *)
+{
+	fl_alert2(_("fldigi off line"));
+	close_ops();
+	exit(0);
+}
+
+void fldigi_ok()
+{	string test = get_io_mode();
+	if (test == "NIL" || test.empty()) {
+		Fl::remove_timeout(ztimer);
+		abort_flamp(0);
+//		Fl::awake(abort_flamp);
+	}
+}
+
+
+/** ********************************************************
  * \brief FLAMP event timer.
  * \param *first_call. if true initialzation occures. Otherwise, the
  * count down timer is reset.
@@ -507,7 +531,9 @@ void ztimer(void* first_call)
 		execute_ztimer(flag, tv);
 	}
 
-	if(generate_time_table) return; // No Events Allow in Time Table Generation Mode.
+	if(generate_time_table) {
+		return; // No Events Allow in Time Table Generation Mode.
+	}
 
 	struct tm tm;
 	time_t t_temp;
@@ -523,10 +549,11 @@ void ztimer(void* first_call)
 	if (!strftime(szoutTimeValue, sizeof(szoutTimeValue), "%H:%M:%S", &tm))
 		memset(szoutTimeValue, 0, sizeof(szoutTimeValue));
 
-	tx_state = get_trx_state();
-
 	watch_dog_seconds = time_check();
 
+	fldigi_ok();
+
+	tx_state = get_trx_state();
 	if((tx_state == "RX"))
 		tx_ztimer_flag = false;
 	else

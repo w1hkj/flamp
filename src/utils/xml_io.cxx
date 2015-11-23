@@ -48,8 +48,9 @@ using namespace std;
 using XmlRpc::XmlRpcValue;
 
 #define DEFAULT_XMLRPC_TIMEOUT 6.0
+#define INIT_XMLRPC_TIMEOUT 0.2
 
-double xmlrpc_timeout = DEFAULT_XMLRPC_TIMEOUT;
+double xmlrpc_timeout = INIT_XMLRPC_TIMEOUT;
 
 // these are get only
 static const char* modem_get_name		     = "modem.get_name";
@@ -376,8 +377,11 @@ string get_io_mode(void)
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+		response = "NIL";
 	}
 	pthread_mutex_unlock(&mutex_xmlrpc);
+
+	xmlrpc_timeout = DEFAULT_XMLRPC_TIMEOUT;
 
 	return response;
 }
@@ -428,6 +432,7 @@ string get_trx_state()
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
+		response = "ABORT";
 	}
 	pthread_mutex_unlock(&mutex_xmlrpc);
 

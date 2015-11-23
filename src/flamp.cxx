@@ -2460,14 +2460,9 @@ void estimate_bc(void) {
 /** ********************************************************
  *
  ***********************************************************/
-void cb_exit()
+
+void close_ops()
 {
-	if(transmitting) {
-		transmit_stop = true;
-	}
-
-	exit_watch_dog = true;
-
 	progStatus.saveLastState();
 
 	FSEL::destroy();
@@ -2484,9 +2479,38 @@ void cb_exit()
 	debug::stop();
 
 	if(cQue) delete cQue;
+}
 
+void cb_exit()
+{
+	if(transmitting) {
+		transmit_stop = true;
+	}
+	exit_watch_dog = true;
+	close_ops();
 	exit(0);
 }
+
+/** ********************************************************
+ *  test for running fldigi made immediately after starting
+ *  the xmlrpc thread
+ ***********************************************************/
+
+void test_for_fldigi()
+{	string test = get_io_mode();
+	if (test == "NIL" || test.empty()) {
+		fl_alert2(_("Start fldigi before flamp!"));
+		if (tcpip) {
+			tcpip->close();
+			delete tcpip;
+			delete localaddr;
+		}
+		debug::stop();
+		if(cQue) delete cQue;
+		exit(0);
+	}
+}
+
 
 /** ********************************************************
  *
@@ -2766,6 +2790,7 @@ int main(int argc, char *argv[])
 		perror("pthread_create: xmlrpc");
 		exit(EXIT_FAILURE);
 	}
+	test_for_fldigi();
 
 	try {
 		cQue = new TagSearch(receive_data_stream, process_que);
