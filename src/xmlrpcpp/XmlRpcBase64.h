@@ -18,6 +18,8 @@
 #if !defined(__BASE64_H_INCLUDED__)
 #define __BASE64_H_INCLUDED__ 1
 
+#include <ios>    // Corrects forward declarations issue c++11
+#include <iosfwd> // Corrects forward declarations issue c++11
 #include <iterator>
 
 static
