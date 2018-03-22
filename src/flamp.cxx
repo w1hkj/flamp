@@ -2673,28 +2673,23 @@ int main(int argc, char *argv[])
 	NBEMS_dir.clear();
 	{
 		string appname = argv[0];
-		string appdir;
+		string appdir = argv[0];
+		size_t p;
 		char dirbuf[FL_PATH_MAX + 1];
-		fl_filename_expand(dirbuf, FL_PATH_MAX, appname.c_str());
-		appdir.assign(dirbuf);
-
 #ifdef __WOE32__
-		size_t p = appdir.rfind("flamp.exe");
-		appdir.erase(p);
-		p = appdir.find("FL_APPS/");
-		if (p != string::npos) {
-			NBEMS_dir.assign(appdir.substr(0, p + 8));
-		} else {
+		p = appdir.find("FL_APPS\\");
+		if (p == string::npos) p = appdir.find("FL_APPS/");
+		if (p == string::npos) {
+			char dirbuf[FL_PATH_MAX + 1];
 			fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
 			NBEMS_dir.assign(dirbuf);
-		}
+		} else
+			NBEMS_dir.assign(appdir.substr(0, p + 8));
 		NBEMS_dir.append("NBEMS.files/");
-
 #else
-
 		fl_filename_absolute(dirbuf, sizeof(dirbuf), argv[0]);
 		appdir.assign(dirbuf);
-		size_t p = appdir.rfind("flamp");
+		p = appdir.rfind("flamp");
 		if (p != string::npos)
 			appdir.erase(p);
 		p = appdir.find("FL_APPS/");
