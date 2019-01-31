@@ -1,6 +1,30 @@
 
 
-=Version ....=
+=Version 2.0.4=
+
+2018-03-21  David Freese  <w1hkj@bellsouth.net>
+
+	774bd02: Thumb Drive
+	c2dbde2: OS X build scripts
+	d878498: win-mingw
+	b4ca616: flxmlrpc config
+	c104dc6: INSTALL
+
+2016-07-10  Kamal Mostafa  <kamal@whence.com>
+
+	361bd9e: fix XmlRpc tm_mday comparison typo
+
+2016-07-04  Robert Cunnings  <nw8l@whitemesa.com>
+
+	2feb8c5: mxe update
+
+2015-11-23  David Freese  <iam_w1hkj@w1hkj.com>
+
+	a7806a1: Fldigi on-line
+
+
+=Version 2.2.03=
+
 
 2015-09-20  Robert Stiles  <kk5vd@yahoo.com>
 
