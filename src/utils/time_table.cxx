@@ -74,9 +74,13 @@
 
  ***********************************************************/
 
+#include <math.h>
+
 #include "debug.h"
 #include "time_table.h"
 #include "time_table_dat.cxx"
+
+#include "status.h"
 
 static float time_length(MODE_TIME_TABLE *mTable, const char *string, int length);
 static int str_cnt(char * str, int count_limit);
@@ -204,7 +208,6 @@ float minutes_from_string(std::string mode, std::string& str, float *overhead)
 	return time;
 }
 
-
 /** ********************************************************
  * \brief Search the modem table for a modem string match.
  * 'C++' std::string interface.
@@ -271,5 +274,21 @@ char * modem_at_index(int index)
 		return (char *) &modem_name[0];
 
 	return (char *) mode_time_table[index].mode_name;
+}
+
+/** ********************************************************
+ * \brief Return duration of mode TxID in seconds
+ *        0 if mode not in table
+ * TxID is either 25 or 50 symbols in duration
+ ***********************************************************/
+float rsid_duration(std::string modem)
+{
+	size_t mode_count = sizeof(mode_time_table) / sizeof(*mode_time_table);
+
+	for( size_t index = 0; index < mode_count; index++) {
+		if (modem == mode_time_table[index].mode_name)
+			return round(mode_time_table[index].rsid_symbols * 25 * 0.09288);
+	}
+	return 0;
 }
 

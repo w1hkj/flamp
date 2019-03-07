@@ -39,6 +39,8 @@
 #include <exception>
 #include <cstring>
 
+#define S_BUFSIZ 16384
+
 class SocketException : public std::exception
 {
 public:

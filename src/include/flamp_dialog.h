@@ -73,8 +73,9 @@ extern Fl_Check_Button * btn_sync_mode_flamp_fldigi;
 extern Fl_Check_Button * btn_sync_mode_fldigi_flamp;
 
 extern Fl_ComboBox       * cbo_header_modes;
-extern Fl_Simple_Counter * cnt_rx_internval_secs;
-extern Fl_Simple_Counter * cnt_tx_internval_mins;
+extern Fl_Simple_Counter * cnt_rx_interval_secs;
+extern Fl_Counter        * cnt_tx_interval_mins;
+extern Fl_Output         * txt_tx_interval;
 
 extern Fl_Simple_Counter * cnt_blocksize;
 extern Fl_Simple_Counter * cnt_repeat_header;
@@ -131,6 +132,8 @@ extern void cb_enable_header_modem(Fl_Check_Button *a, void *b);
 extern void unproto_widgets(class cAmp *amp);
 
 extern Fl_Check_Button * btn_auto_rx_save_local_time;
+
+extern void set_txt_tx_interval();
 
 // Hamcasting panel
 

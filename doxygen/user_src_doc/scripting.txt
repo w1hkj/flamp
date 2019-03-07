@@ -442,7 +442,7 @@ transmit data.</li>
 \subsection ss_tx_interval Transmit interval time (minutes).
 	Designed for repeater use. This is the time the transmitter is turned on.
 	See \ref ss_interval_on_off "INTERVAL" and
-	\ref ss_rx_interval "RX INTERVAL". Value range 1-8.
+	\ref ss_rx_interval "RX INTERVAL". Value range 1.0-8.0 in 0.05 increments (3 seconds).
 <br>
 <br>
 	<b>Format:</b> <tt>TX INTERVAL:\<time_in_minutes\></tt>
@@ -570,6 +570,10 @@ FLAMP_CONFIG
 CLEAR TXQ:
 PATH:"C:/directory_path/"
 PROTO:OFF
+BLOCKS:128
+TX INTERVAL:2.75
+RX INTERVAL:5
+MODEM:8PSK250F
 CALLTO:"WX"
 FILE:"weather_report.txt", "Weekly Weather Report"
 PROTO:ON

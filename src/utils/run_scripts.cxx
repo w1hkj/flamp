@@ -952,14 +952,14 @@ static int process_reset(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 static int process_rx_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-	int max   = cnt_rx_internval_secs->maximum();
-	int min   = cnt_rx_internval_secs->minimum();
+	int max   = cnt_rx_interval_secs->maximum();
+	int min   = cnt_rx_interval_secs->minimum();
 	int value = sp->rx_interval();
 
 	if(value > max) value = max;
 	if(value < min) value = min;
 
-	cnt_rx_internval_secs->value(value);
+	cnt_rx_interval_secs->value(value);
 	progStatus.rx_interval_seconds = value;
 
 	return 0;
@@ -1017,15 +1017,16 @@ static int process_sync_with(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
  ***********************************************************/
 static int process_tx_interval(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 {
-	int max   = cnt_tx_internval_mins->maximum();
-	int min   = cnt_tx_internval_mins->minimum();
-	int value = sp->tx_interval();
+	float max   = cnt_tx_interval_mins->maximum();
+	float min   = cnt_tx_interval_mins->minimum();
+	float value = sp->tx_interval();
 
 	if(value > max) value = max;
 	if(value < min) value = min;
 
-	cnt_tx_internval_mins->value(value);
+	cnt_tx_interval_mins->value(value);
 	progStatus.tx_interval_minutes = value;
+	set_txt_tx_interval();
 
 	return 0;
 }

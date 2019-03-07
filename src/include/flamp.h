@@ -126,7 +126,7 @@ extern void relay_missing_report(void);
 extern void send_fldigi_modem(void *ptr);
 extern void send_missing_report(void);
 extern void send_relay_data(void);
-extern void send_via_fldigi_in_main_thread(void *ptr);
+extern void transfer_in_main_thread(void *ptr);
 extern void set_button_to_cancel(void *);
 extern void set_button_to_xmit(void *);
 extern void set_relay_button_label(void *);

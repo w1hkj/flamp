@@ -41,4 +41,6 @@ extern float minutes_from_c_string(const char *mode, const char *string, int len
 extern float seconds_from_string(std::string mode, std::string& str, float *overhead);
 extern float minutes_from_string(std::string mode, std::string& str, float *overhead);
 
+extern float rsid_duration(std::string mode);
+
 #endif // __TIME_TABLE_H

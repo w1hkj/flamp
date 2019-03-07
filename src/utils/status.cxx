@@ -71,7 +71,7 @@ status progStatus = {
 	false,			// bool repeat_at_times;
 
 	false, 			// bool use_txrx_interval;
-	3, 				// int  tx_interval_minutes;
+	3.0, 			// int  tx_interval_minutes;
 	10, 			// int  rx_interval_seconds;
 
 	false, 			// bool use_header_modem;
@@ -268,8 +268,7 @@ void status::loadLastState()
 		FLAMPpref.get("use_repeater_interval", i, use_txrx_interval);
 		use_txrx_interval = (bool) i;
 
-		FLAMPpref.get("repeater_tx_minutes", i, tx_interval_minutes);
-		tx_interval_minutes = i;
+		FLAMPpref.get("repeater_tx_minutes", tx_interval_minutes, tx_interval_minutes);
 
 		FLAMPpref.get("repeater_rx_seconds", i, rx_interval_seconds);
 		rx_interval_seconds = i;

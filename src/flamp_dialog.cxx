@@ -23,6 +23,8 @@
 //
 // =====================================================================
 
+#include <math.h>
+
 #include "config.h"
 
 #include "gettext.h"
@@ -113,8 +115,9 @@ Fl_Check_Button * btn_queue_fills_only     = 0;
 Fl_Check_Button * btn_enable_txrx_interval = 0;
 Fl_ComboBox *     cbo_header_modes         = 0;
 
-Fl_Simple_Counter * cnt_tx_internval_mins = 0;
-Fl_Simple_Counter * cnt_rx_internval_secs = 0;
+Fl_Counter        * cnt_tx_interval_mins = 0;
+Fl_Output         * txt_tx_interval = 0;
+Fl_Simple_Counter * cnt_rx_interval_secs = 0;
 
 Fl_Check_Button * btn_clear_tosend_on_tx_blocks = 0;
 Fl_Check_Button * btn_enable_delete_warning     = 0;
@@ -437,11 +440,11 @@ static void cb_mnu_scripts(Fl_Menu_*, void*) {
 /** ********************************************************
  *
  ***********************************************************/
-static void cb_mnu_scripts_default(Fl_Menu_*, void*) {
+//static void cb_mnu_scripts_default(Fl_Menu_*, void*) {
 	//static bool value = true;
 	//Fl::awake(cb_scripts_in_main_thread, (void *)&value);
-	cb_scripts(true);
-}
+//	cb_scripts(true);
+//}
 
 /** ********************************************************
  *
@@ -911,9 +914,21 @@ void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 /** ********************************************************
  *
  ***********************************************************/
+#include <iostream>
+void set_txt_tx_interval()
+{
+	char szT[15];
+	float t = cnt_tx_interval_mins->value();
+	int mins = floor(cnt_tx_interval_mins->value());
+	int secs = round(60 * (cnt_tx_interval_mins->value() - mins));
+	snprintf(szT, sizeof(szT), "%02d:%02d", mins, secs);
+	txt_tx_interval->value(szT);
+}
+
 void cb_tx_interval_mins(Fl_Simple_Counter *a, void *b)
 {
-	progStatus.tx_interval_minutes = cnt_tx_internval_mins->value();
+	progStatus.tx_interval_minutes = cnt_tx_interval_mins->value();
+	set_txt_tx_interval();
 }
 
 /** ********************************************************
@@ -921,7 +936,7 @@ void cb_tx_interval_mins(Fl_Simple_Counter *a, void *b)
  ***********************************************************/
 void cb_rx_interval_secs(Fl_Simple_Counter *a, void *b)
 {
-	progStatus.rx_interval_seconds = cnt_rx_internval_secs->value();
+	progStatus.rx_interval_seconds = cnt_rx_interval_secs->value();
 }
 
 /** ********************************************************
@@ -1852,23 +1867,27 @@ Fl_Double_Window* flamp_dialog() {
 	btn_enable_txrx_interval->callback((Fl_Callback*)cb_enable_txrx_interval);
 	btn_enable_txrx_interval->value(progStatus.use_txrx_interval);
 
-	cnt_tx_internval_mins = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Tx Duration Mins"));
-	cnt_tx_internval_mins->step(1);
-	cnt_tx_internval_mins->value(progStatus.tx_interval_minutes);
-	cnt_tx_internval_mins->minimum(1);
-	cnt_tx_internval_mins->maximum(ID_TIME_MINUTES);
-	cnt_tx_internval_mins->align(FL_ALIGN_RIGHT);
-	cnt_tx_internval_mins->callback((Fl_Callback*)cb_tx_interval_mins);
-	cnt_tx_internval_mins->tooltip(_("Transmit Duration in Minutes"));
+	cnt_tx_interval_mins = new Fl_Counter(X+25, y+=26, 100, 20, _("Tx Duration Mins"));
+	cnt_tx_interval_mins->step(0.05, 1.0);
+	cnt_tx_interval_mins->value(progStatus.tx_interval_minutes);
+	cnt_tx_interval_mins->minimum(1);
+	cnt_tx_interval_mins->maximum(ID_TIME_MINUTES);
+	cnt_tx_interval_mins->align(FL_ALIGN_RIGHT);
+	cnt_tx_interval_mins->callback((Fl_Callback*)cb_tx_interval_mins);
+	cnt_tx_interval_mins->tooltip(_("Transmit Duration in Minutes"));
 
-	cnt_rx_internval_secs = new Fl_Simple_Counter(X+94, y+=26, 60, 20, _("Rx Duration Secs"));
-	cnt_rx_internval_secs->step(1);
-	cnt_rx_internval_secs->value(progStatus.rx_interval_seconds);
-	cnt_rx_internval_secs->minimum(MIN_INTERAL_TIME);
-	cnt_rx_internval_secs->maximum(120);
-	cnt_rx_internval_secs->align(FL_ALIGN_RIGHT);
-	cnt_rx_internval_secs->callback((Fl_Callback*)cb_rx_interval_secs);
-	cnt_rx_internval_secs->tooltip(_("Receive Duration in Seconds"));
+	txt_tx_interval = new Fl_Output(w->w()/2 + 50, y, 50, 20, "mm:ss");
+	txt_tx_interval->align(FL_ALIGN_TOP);
+	set_txt_tx_interval();
+
+	cnt_rx_interval_secs = new Fl_Simple_Counter(X+25, y+=26, 60, 20, _("Rx Duration Secs"));
+	cnt_rx_interval_secs->step(1);
+	cnt_rx_interval_secs->value(progStatus.rx_interval_seconds);
+	cnt_rx_interval_secs->minimum(MIN_INTERAL_TIME);
+	cnt_rx_interval_secs->maximum(120);
+	cnt_rx_interval_secs->align(FL_ALIGN_RIGHT);
+	cnt_rx_interval_secs->callback((Fl_Callback*)cb_rx_interval_secs);
+	cnt_rx_interval_secs->tooltip(_("Receive Duration in Seconds"));
 
 	Config_tab->end();
 

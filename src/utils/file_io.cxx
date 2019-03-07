@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstring>
 #include <ctime>
 #include <sys/stat.h>
@@ -65,6 +66,9 @@
 #include "base256.h"
 #include "lzma/LzmaLib.h"
 #include "status.h"
+#include "threads.h"
+
+#include "ztimer.h"
 
 #ifdef WIN32
 #  include "flamprc.h"
@@ -192,7 +196,7 @@ static bool convert2lf(string &s)
 void compress_maybe(string& input, int encode_with, bool try_compress)
 {
 	// allocate 110% of the original size for the output buffer
-	pthread_mutex_lock(&mutex_comp_data);
+	guard_lock mcd(&mutex_comp_data);
 
 	size_t outlen = (size_t)ceil(input.length() * 1.1);
 	unsigned char* buf = new unsigned char[outlen];
@@ -245,8 +249,6 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
 
 	input = bufstr;
 
-	pthread_mutex_unlock(&mutex_comp_data);
-
 	return;
 }
 
@@ -255,7 +257,7 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
  ***********************************************************/
 void decompress_maybe(string& input)
 {
-	pthread_mutex_lock(&mutex_decomp_data);
+	guard_lock mdd(&mutex_decomp_data);
 
 	int decode = NONE; //BASE64;
 	bool decode_error = false;
@@ -291,7 +293,6 @@ void decompress_maybe(string& input)
 			case NONE :
 			default : ;
 		}
-		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 	switch (decode) {
@@ -318,13 +319,11 @@ void decompress_maybe(string& input)
 
 	if (decode_error == true) {
 		fprintf(stderr,"%s\n", cmpstr.c_str());
-		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 
 	if (cmpstr.find(LZMA_STR) == string::npos) {
 		input.replace(p0, p3 - p0, cmpstr);
-		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 
@@ -332,7 +331,6 @@ void decompress_maybe(string& input)
 	size_t outlen = ntohl(*reinterpret_cast<const uint32_t*>(in + strlen(LZMA_STR)));
 	if (outlen > 1 << 25) {
 		fprintf(stderr, "Refusing to decompress data (> 32 MiB)\n");
-		pthread_mutex_unlock(&mutex_decomp_data);
 		return;
 	}
 
@@ -352,8 +350,6 @@ void decompress_maybe(string& input)
 	}
 
 	delete [] buf;
-
-	pthread_mutex_unlock(&mutex_decomp_data);
 }
 
 /** ********************************************************
@@ -361,46 +357,81 @@ void decompress_maybe(string& input)
  ***********************************************************/
 void connect_to_fldigi(void *)
 {
-	pthread_mutex_lock(&mutex_file_io);
+	guard_lock fio(&mutex_file_io);
 	try {
 		tcpip->connect();
-		file_io_errno = errno;
 		bConnected = true;
 		LOG_INFO("Connected to %d", tcpip->fd());
 	}
 	catch (const SocketException& e) {
+		file_io_errno = errno;
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);
 		}
 	}
-	pthread_mutex_unlock(&mutex_file_io);
 }
 
 /** ********************************************************
  *
  ***********************************************************/
-void send_via_fldigi(std::string tosend)
+static void wait(int n)
 {
-	pthread_mutex_lock(&mutex_file_io);
+	while (n > 0) {
+		MilliSleep(10);
+		Fl::awake();
+		n -= 10;
+	}
+}
+
+std::string now()
+{
+	std::string nw;
+	time_t tm;
+	tm = time_check();
+	nw = ctime(&tm);
+	size_t p = nw.find(":");
+	if (p == std::string::npos) return "";
+	nw.erase(0, p-2);
+	p = nw.find(" ");
+	nw.erase(p);
+	return nw;
+}
+
+#define XFR_BLOCK_SIZE 512
+
+struct timeval start_time;
+int transfer_minutes;
+
+void transfer(std::string tosend)
+{
+	gettimeofday(&start_time, NULL);
+	transfer_minutes = progStatus.tx_interval_minutes;
+
+	guard_lock fio(&mutex_file_io);
 
 	if (!bConnected) {
 		LOG_ERROR("%s", "Not connected to fldigi");
-		pthread_mutex_unlock(&mutex_file_io);
 		return;
 	}
 	try {
-		tcpip->send(tosend.c_str());
-		file_io_errno = errno;
+		while (tosend.length() > XFR_BLOCK_SIZE) {
+			tcpip->send(tosend.substr(0,XFR_BLOCK_SIZE));
+			tosend.erase(0,XFR_BLOCK_SIZE);
+			wait(50);
+		}
+		if (!tosend.empty()) {
+			tcpip->send(tosend.c_str());
+			wait(50);
+		}
 	}
 	catch (const SocketException& e) {
+		file_io_errno = errno;
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);
 		}
 	}
-
-	pthread_mutex_unlock(&mutex_file_io);
 	return;
 }
 
@@ -413,27 +444,25 @@ int rx_fldigi(std::string &retbuff)
 {
 	int buff_length = 0;
 
-	pthread_mutex_lock(&mutex_file_io);
+	guard_lock fio(&mutex_file_io);
+
 	if (!bConnected) {
-		pthread_mutex_unlock(&mutex_file_io);
 		return 0;
 	}
 	try {
 		rx_buff.clear();
 		tcpip->set_nonblocking();
 		tcpip->recv(rx_buff);
-		file_io_errno = errno;
 		retbuff = rx_buff;
 		buff_length = rx_buff.length();
 	}
 	catch (const SocketException& e) {
+		file_io_errno = errno;
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);
 		}
 	}
-
-	pthread_mutex_unlock(&mutex_file_io);
 
 	return buff_length;
 }
@@ -445,24 +474,23 @@ int rx_fldigi(char *buffer, int limit)
 {
 	int buff_length = 0;
 
-	pthread_mutex_lock(&mutex_file_io);
+	guard_lock fio(&mutex_file_io);
+
 	if (!bConnected) {
-		pthread_mutex_unlock(&mutex_file_io);
 		return 0;
 	}
 	try {
 		tcpip->set_nonblocking();
 		buff_length = tcpip->recv(buffer, (size_t) limit);
-		file_io_errno = errno;
 	}
 	catch (const SocketException& e) {
+		file_io_errno = errno;
 		if(e.error() != 0) {
 			bConnected = false;
 			LOG_ERROR("%s %d", e.what(), file_io_errno);
 		}
 	}
 
-	pthread_mutex_unlock(&mutex_file_io);
 	return buff_length;
 }
 

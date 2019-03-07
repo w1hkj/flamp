@@ -34,6 +34,7 @@ extern time_t ztime_end;
 extern pthread_t * watch_dog_thread;
 extern void      * watch_dog_loop(void *p);
 
+extern time_t time_check(void);
 extern void stop_events(void);
 extern void ztimer(void* first_call);
 extern bool parse_repeat_times(bool delete_flag, unsigned int zt, int mode);

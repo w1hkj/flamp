@@ -39,6 +39,7 @@
 #include <libgen.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include <FL/Fl.H>
 #include <FL/Enumerations.H>
@@ -84,6 +85,7 @@ int tx_thread_running_count = 0;
 
 static bool shift_key_flag = false;
 
+static bool using_rsid = false;
 
 static void wait_milliseconds(int milliseconds, int millisecond_increments);
 static void wait_seconds(int seconds, int millisecond_increments);
@@ -91,7 +93,7 @@ static void wait_seconds(int seconds, int millisecond_increments);
 /** ********************************************************
  *
  ***********************************************************/
-void send_via_fldigi_in_main_thread(void *ptr)
+void transfer_in_main_thread(void *ptr)
 {
 	if (!ptr) return;
 
@@ -100,7 +102,7 @@ void send_via_fldigi_in_main_thread(void *ptr)
 	if (!bConnected) connect_to_fldigi(0);
 	if (!bConnected) return;
 
-	send_via_fldigi(*data);
+	transfer(*data);
 }
 
 #if 0
@@ -572,7 +574,7 @@ void * transmit_serial_current(void *ptr)
 	tx_time_g = tx_time;
 	tx_time *= 2.0;
 
-	send_via_fldigi(autosend);
+	transfer(autosend);
 
 	wait_for_rx((int) tx_time);
 
@@ -673,7 +675,7 @@ void * transmit_serial_queued(void *ptr)
 		delete tx;
 	}
 
-	send_via_fldigi(autosend);
+	transfer(autosend);
 
 	float oh = 0;
 	tx_time = seconds_from_string(thread->modem.c_str(), autosend, &oh);
@@ -694,7 +696,8 @@ void * transmit_serial_queued(void *ptr)
 void turn_rsid_on()
 {
 	// Turn on RX/TX RSIDs
-	send_via_fldigi("<cmd><txrsid>ON</txrsid></cmd><cmd><rsid>ON</rsid></cmd>");
+	transfer("<cmd><txrsid>ON</txrsid></cmd><cmd><rsid>ON</rsid></cmd>");
+	using_rsid = true;
 	MilliSleep(1000);
 }
 
@@ -704,7 +707,8 @@ void turn_rsid_on()
 void turn_rsid_off()
 {
 	// Turn on RX/TX RSIDs
-	send_via_fldigi("<cmd><txrsid>OFF</txrsid></cmd><cmd><rsid>OFF</rsid></cmd>");
+	transfer("<cmd><txrsid>OFF</txrsid></cmd><cmd><rsid>OFF</rsid></cmd>");
+	using_rsid = false;
 	MilliSleep(1000);
 }
 
@@ -780,7 +784,7 @@ void * transmit_serial_relay(void *ptr)
 	tx_time_g = tx_time;
 	tx_time *= 2.0;
 
-	send_via_fldigi(autosend);
+	transfer(autosend);
 
 	wait_for_rx((int) tx_time);
 
@@ -1147,6 +1151,7 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 {
 	std::string temp;
 	std::string send;
+	std::string extras;
 	int count = 0;
 	int index = 0;
 	float data_time_seconds = 0;
@@ -1156,12 +1161,24 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 	float length = 0;
 	float next_length = 0;
 	float wait_factor = 3.0;
+	float extras_time = 0.0;
+	float rsid_time = 0.0;
 	std::string send_to = tx->callto();
 
 	if(transmit_stop) return false;
 
 	send.clear();
 	temp.clear();
+
+	extras.assign("\n\n\n\n ");
+	if(mode == TX_SEGMENTED) {
+		extras.append("BK");
+	} else {
+		extras.append("ID");
+	}
+	extras_time = seconds_from_string(modem, extras, NULL);
+
+	rsid_time = (using_rsid ? rsid_duration(modem) : 0);
 
 	if(tx->amp_type() == RX_AMP)
 		send_to.clear();
@@ -1179,18 +1196,23 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 	}
 
 	data_time_seconds = seconds_from_string(modem, temp, &overhead);
+
 	data_time_seconds += overhead;
 	tx_time_g = data_time_seconds;
 
 	if(data_time_seconds <= 0.0) return false;
 
 	if(mode == TX_SEGMENTED) {
-		transfer_limit_time = (float) thread->tx_interval_time;
-		if(transfer_limit_time < 1) return false;
+		transfer_limit_time = thread->tx_interval_time;
+		if (transfer_limit_time < 1) return false;
 	} else
 		transfer_limit_time = (float) ID_TIME_SECONDS;
 
+	length = seconds_from_string(modem, send, &overhead);
 	length = overhead;
+	length += rsid_time;
+	length += extras_time;
+	length += 0.5;
 
 	if(data_time_seconds > transfer_limit_time) {
 
@@ -1209,32 +1231,30 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 			} else
 				next_length = 0;
 
-			transfer_segment_time = length + next_length + INTERVAL_TIME_BUFFER;
+			transfer_segment_time = length + next_length;
 
-			if (transfer_segment_time > transfer_limit_time) {
-
+			if (round(transfer_segment_time) >= transfer_limit_time) {
 				tx_time_g = length;
-
 				send.append(temp).append("\n").append(send_to);
-
 				if(mode == TX_SEGMENTED) {
 					send.append(" BK");
 				} else {
 					send.append(" ID");
 				}
-
 				send.append("\n");
-
-				send_via_fldigi(send);
+				transfer(send);
 
 				if(mode == TX_SEGMENTED) {
-					if (!wait_for_rx(transfer_segment_time * wait_factor)) return false;
+					if (!wait_for_rx(length, wait_factor)) return false;
 					wait_seconds(thread->rx_interval_time, 100);
 				}
 
 				send.assign("\n");
 				temp.clear();
 				length = overhead;
+				length += rsid_time;
+				length += extras_time;
+				length += 0.5;
 			}
 		}
 
@@ -1247,8 +1267,8 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 		if(send.size()) {
 			tx_time_g = seconds_from_string(modem, send, &overhead);
 			tx_time_g += overhead;
-			send_via_fldigi(send);
-			if (!wait_for_rx(transfer_segment_time * wait_factor)) return false;
+			transfer(send);
+			if (!wait_for_rx(transfer_segment_time, wait_factor)) return false;
 		}
 
 	} else {
@@ -1256,9 +1276,9 @@ bool send_vector_to_fldigi(TX_FLDIGI_THREAD *thread, std::string modem, std::str
 		if(tail.size())
 			send.append(tail);
 
-		send_via_fldigi(send);
+		transfer(send);
 
-		if (!wait_for_rx(data_time_seconds * wait_factor)) return false;
+		if (!wait_for_rx(data_time_seconds, wait_factor)) return false;
 	}
 
 	if(progStatus.use_header_modem) {
@@ -1298,7 +1318,7 @@ bool check_block_tx_time(std::vector<std::string> &header,
 	int index = 0;
 	int count = 0;
 	float max_tx_time = 0;
-	float interval_time = (float) cnt_tx_internval_mins->value();
+	float interval_time = (float) cnt_tx_interval_mins->value();
 	float tx_time = 0;
 	bool return_value = true;
 	char str_buffer[256];
@@ -1368,8 +1388,9 @@ bool check_block_tx_time(std::vector<std::string> &header,
 /** ********************************************************
  *
  ***********************************************************/
-bool wait_for_rx(int max_wait_seconds)
+bool wait_for_rx(int max_wait_seconds, float factor)
 {
+	
 	if(max_wait_seconds < 1) return false;
 
 	for(int i = 0; i < 2; i++) {
@@ -1382,12 +1403,13 @@ bool wait_for_rx(int max_wait_seconds)
 
 	max_wait_seconds += 4; // in case RSID is enabled
 
-	for(int i = 0; i < max_wait_seconds; i++) {
+	for(int i = 0; i < max_wait_seconds * factor; i++) {
 		if(transmit_stop) return false;
 
 		wait_milliseconds(1000, 250);
-		if((get_trx_state() == "RX"))
+		if((get_trx_state() == "RX")) {
 			return true;
+		}
 	}
 
 	return false;
@@ -1485,8 +1507,8 @@ TX_FLDIGI_THREAD * run_in_thread(void *(*func)(void *), int mode,
 		tx_thread->mode = mode;
 		tx_thread->que  = queued;
 		tx_thread->event_driven = event_driven;
-		tx_thread->rx_interval_time = cnt_rx_internval_secs->value();
-		tx_thread->tx_interval_time = cnt_tx_internval_mins->value() * 60;
+		tx_thread->rx_interval_time = cnt_rx_interval_secs->value();
+		tx_thread->tx_interval_time = floor(cnt_tx_interval_mins->value() * 60);
 		tx_thread->data = (void *) relay_data;
 
 		if(relay_data)

@@ -192,7 +192,7 @@ static const SCRIPT_COMMANDS default_script_command_table[] = {
 	{ CMD_RESET,           SCRIPT_COMMAND,                 0,  1, {0}, { p_string },                 0, 0, 0, 0 },
 	{ CMD_RX_INTERVAL,     SCRIPT_COMMAND,                 0,  1, {0}, { p_unsigned_int },           0, 0, 0, 0 },
 	{ CMD_SYNC_WITH,       SCRIPT_COMMAND,                 0,  2, {0}, { p_string, p_string },       0, 0, 0, 0 },
-	{ CMD_TX_INTERVAL,     SCRIPT_COMMAND,                 0,  1, {0}, { p_unsigned_int },           0, 0, 0, 0 },
+	{ CMD_TX_INTERVAL,     SCRIPT_COMMAND,                 0,  1, {0}, { p_float },                  0, 0, 0, 0 },
 	{ CMD_TX_REPORT,       SCRIPT_COMMAND,                 0,  1, {0}, { p_string },                 0, 0, 0, 0 },
 	{ CMD_UNPROTO_MARKERS, SCRIPT_COMMAND,                 0,  1, {0}, { p_string },                 0, 0, 0, 0 },
 	{ CMD_WARN_USER,       SCRIPT_COMMAND,                 0,  1, {0}, { p_string },                 0, 0, 0, 0 },
@@ -296,7 +296,8 @@ SCRIPT_CODES ScriptParsing::check_filename(char *filename, char *full_name_path=
 	}
 
 	if(user_path.empty()) {
-		get_current_dir(path, FILENAME_MAX);
+		if (!get_current_dir(path, FILENAME_MAX))
+			strncpy(path, user_path.c_str(), FILENAME_MAX);
 	} else {
 		strncpy(path, user_path.c_str(), FILENAME_MAX);
 	}
@@ -2209,10 +2210,10 @@ SCRIPT_CODES ScriptParsing::sc_tx_interval(struct script_cmds *cmd)
 	if(!cmd)
 		return script_function_parameter_error;
 
-	int value = 0;
+	float value = 0;
 
 	if(cmd->argc && cmd->args[0]) {
-		value = atoi(cmd->args[0]);
+		value = atof(cmd->args[0]);
 
 		if(value < 1) value = 1;
 		if(value > 8) value = 8;

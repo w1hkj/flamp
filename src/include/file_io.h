@@ -27,7 +27,10 @@
 
 #include <string.h>
 #include <string>
+#include <sys/time.h>
+
 #include "socket.h"
+
 
 #ifdef WIN32
 #  include <winsock2.h>
@@ -43,10 +46,13 @@ extern Address *localaddr;
 extern bool bConnected;
 extern Socket *tcpip;
 
+extern struct timeval start_time;
+extern int transfer_minutes;
+
 extern void compress_maybe(std::string& input, int encode_with, bool try_compress = true);
 extern void connect_to_fldigi(void *);
 extern void decompress_maybe(std::string& input);
-extern void send_via_fldigi(std::string tosend);
+extern void transfer(std::string tosend);
 
 extern int  rx_fldigi(char *buffer, int limit);
 extern int  rx_fldigi(std::string &);

@@ -42,8 +42,6 @@
 
 #define BROADCAST_MAX_MODEMS 4  //!< @brief Maximum number of modems (hamcast).
 
-#define INTERVAL_TIME_BUFFER 10 // seconds
-
 #define THREAD_ERR_MSG_SIZE  256
 
 //! @struct _tx_fldigi_thread
@@ -126,6 +124,6 @@ extern void * transmit_serial_queued(void *);
 extern void * transmit_serial_relay(void *ptr);
 extern void clear_missing(void *ptr);
 extern void abort_tx_from_main(void *ptr);
-extern bool wait_for_rx(int max_wait_seconds);
+extern bool wait_for_rx(int max_wait_seconds, float factpr = 1.0);
 
 #endif /* defined(__flamp_transmit_camp__) */

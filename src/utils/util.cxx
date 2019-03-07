@@ -338,3 +338,16 @@ int strnlen(const char *cPtr, int limit)
 }
 
 #endif
+
+#include "threads.h"
+
+guard_lock::guard_lock(pthread_mutex_t* m) : mutex(m)
+{
+	pthread_mutex_lock(mutex);
+}
+
+guard_lock::~guard_lock(void)
+{
+	pthread_mutex_unlock(mutex);
+}
+

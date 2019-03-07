@@ -208,7 +208,7 @@ private:
 	int _reset;                     //!< Reset type flag.
 	int _rx_interval;               //!< Rx interval duration (in seconds)
 	int _sub_script_count;          //!< Number of sub class created and called from upper level class
-	int _tx_interval;               //!< Interval tramit time (in minutes)
+	float _tx_interval;             //!< Interval transmit time (in minutes)
 	int _xmit_repeat;               //!< Number of times non-header data repeats.
 
 	std::string _call_from;         //!< Storage for the Call From (callsign)
@@ -375,8 +375,8 @@ public:
 	bool sync_with_prior(void) { return _sync_with_prior; }
 	void sync_with_prior(bool value) { _sync_with_prior = value; }
 
-	int tx_interval(void) { return _tx_interval; }
-	void tx_interval(int value) { _tx_interval = value; }
+	float tx_interval(void) { return _tx_interval; }
+	void tx_interval(float value) { _tx_interval = value; }
 
 	bool tx_report(void) { return _tx_report; }
 	void tx_report(bool value) { _tx_report = value; }

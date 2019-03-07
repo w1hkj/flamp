@@ -1491,7 +1491,7 @@ void send_missing_report()
 		if (!bConnected) return;
 		int results = fl_choice("%s", cancel, yes, (const char *)0, cont);
 		if(results < 1) return;
-		send_via_fldigi(report);
+		transfer(report);
 	} else {
 		report.append("\n\n^r");
 		send_report(report);
@@ -1834,7 +1834,7 @@ void abort_tx_from_main(void * ptr)
 		std::string idMessage;
 		// A number of non printable characters are required to overcome long interleave modems.
 		idMessage.assign("\n\n\n\n\n\n\n\n\n\n\nFILE TRANSFER ABORTED\n\nDE ").append(progStatus.my_call).append(" BK\n\n");
-		send_via_fldigi(idMessage);
+		transfer(idMessage);
 	}
 }
 
@@ -2967,7 +2967,7 @@ void drop_file_changed(void)
 	int valid = 0;
 
 	char *cPtr = (char *)0;
-	char *cFileName = (char *)0;
+//	char *cFileName = (char *)0;
 	const char *cBufferEnd = (char *)0;
 
 	drop_file->value("  DnD");
@@ -2996,7 +2996,8 @@ void drop_file_changed(void)
 	if(valid == 0) return;
 
 	cBufferEnd = &fname[length];
-	cFileName = cPtr = (char *) fname;
+//	cFileName = 
+	cPtr = (char *) fname;
 
 	// Skip leading spaces
 	while(*cPtr <= ' ' && cPtr < cBufferEnd)

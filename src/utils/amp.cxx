@@ -915,7 +915,7 @@ void cAmp::rx_add_data(string data)
 	int blknbr;
 
 	if (rxhash != data.substr(1,4)) {
-		LOG_DEBUG("Datablock not for %s", rxfilename.c_str());
+		LOG_INFO("Datablock not for %s", rxfilename.c_str());
 		return;
 	}
 	if (sscanf(data.substr(6).c_str(), "%d", &blknbr) != 1) {

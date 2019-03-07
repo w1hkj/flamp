@@ -47,8 +47,13 @@
 #include <cmath>
 #include <cstdio>
 
+#include <iostream>
+#include <fstream>
+
 #include "debug.h"
 #include "socket.h"
+
+#include "flamp.h"
 
 #if HAVE_GETADDRINFO && !defined(AI_NUMERICSERV)
 #  define AI_NUMERICSERV 0
@@ -485,7 +490,7 @@ string Address::get_str(const addr_info_t* addr)
  ***********************************************************/
 Socket::Socket(const Address& addr)
 {
-	buffer = new char[BUFSIZ];
+	buffer = new char[S_BUFSIZ];
 	memset(&timeout, 0, sizeof(timeout));
 	anum = 0;
 	nonblocking = false;
@@ -500,7 +505,7 @@ Socket::Socket(const Address& addr)
 Socket::Socket(int fd)
 : sockfd(fd)
 {
-	buffer = new char[BUFSIZ];
+	buffer = new char[S_BUFSIZ];
 	anum = 0;
 	memset(&timeout, 0, sizeof(timeout));
 
@@ -526,7 +531,7 @@ Socket::Socket(const Socket& s)
 : sockfd(s.sockfd), address(s.address), anum(s.anum),
 nonblocking(s.nonblocking), autoclose(true)
 {
-	buffer = new char[BUFSIZ];
+	buffer = new char[S_BUFSIZ];
 	ainfo = address.get(anum);
 	memcpy(&timeout, &s.timeout, sizeof(timeout));
 	s.set_autoclose(false);
@@ -719,16 +724,27 @@ size_t Socket::send(const void* buf, size_t len)
 		if (!wait(1))
 			return 0;
 
-	ssize_t r = ::send(sockfd, (const char*)buf, len, 0);
-	if (r == 0)
-		shutdown(sockfd, SHUT_WR);
-	else if (r == -1) {
-		if (errno != EAGAIN)
-			throw SocketException(errno, "send");
-		r = 0;
+	ssize_t r = 0;
+	ssize_t sent = 0;
+	const char *cbuf = (const char *)buf;
+	int retries = 0;
+	while (len && retries < 10) {
+		r = ::send(sockfd, cbuf, len, 0);
+		if (r == 0) {
+			shutdown(sockfd, SHUT_WR);
+		} else if (r == -1) {
+			if (errno != EAGAIN)
+				throw SocketException(errno, "send");
+			r = 0;
+		}
+		len -= r;
+		cbuf += r;
+		sent += r;
+		if (len == 0) break;
+		retries--;
+		MilliSleep(50);
 	}
-
-	return r;
+	return sent;
 }
 
 /** ********************************************************
@@ -757,7 +773,7 @@ size_t Socket::recv(void* buf, size_t len)
 		if (!wait(0))
 			return 0;
 
-	ssize_t r = ::recv(sockfd, (char*)buf, len, 0);
+	int r = ::recv(sockfd, (char*)buf, len, 0);
 	if (r == 0)
 		shutdown(sockfd, SHUT_RD);
 	else if (r == -1) {
@@ -765,6 +781,8 @@ size_t Socket::recv(void* buf, size_t len)
 			throw SocketException(errno, "recv");
 		r = 0;
 	}
+
+	if (r == 0) return 0;
 
 	return r;
 }
@@ -778,12 +796,11 @@ size_t Socket::recv(string& buf)
 {
 	size_t n = 0;
 	ssize_t r;
-	while ((r = recv(buffer, BUFSIZ)) > 0) {
+	while ((r = recv(buffer, S_BUFSIZ)) > 0) {
 		buf.reserve(buf.length() + r);
 		buf.append(buffer, r);
 		n += r;
 	}
-
 	return n;
 }
 

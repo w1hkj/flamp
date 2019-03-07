@@ -66,7 +66,7 @@ struct status {
 	bool repeat_forever;
 
 	bool use_txrx_interval;
-	int  tx_interval_minutes;
+	float  tx_interval_minutes;
 	int  rx_interval_seconds;
 
 	bool use_header_modem;

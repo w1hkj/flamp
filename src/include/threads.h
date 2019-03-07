@@ -92,4 +92,14 @@ bool thread_in_list(int id, const int* list);
 
 #include "fl_lock.h"
 
+/// This ensures that a mutex is always unlocked when leaving a function or block.
+class guard_lock
+{
+public:
+	guard_lock(pthread_mutex_t* m);
+	~guard_lock(void);
+private:
+	pthread_mutex_t* mutex;
+};
+
 #endif // !THREADS_H_

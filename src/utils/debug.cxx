@@ -326,6 +326,8 @@ debug::~debug()
 static void synctext(void *d)
 {
 	debug_in_use = true;
+	for (size_t n = 0; n < estr.length(); n++)
+		if (estr[n] < '\n') estr[n] = ' ';
 	size_t p0 = 0, p1 = estr.find('\n');
 	while (p1 != string::npos) {
 		btext->insert(1, estr.substr(p0,p1-p0).c_str());
