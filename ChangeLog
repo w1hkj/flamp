@@ -1,12 +1,13 @@
+2019-03-07  David Freese  <w1hkj@bellsouth.net>
+
+	6386d8b: socket block size
 
 
 =Version 2.0.4=
 
-2018-03-21  David Freese  <w1hkj@bellsouth.net>
-
-	774bd02: Thumb Drive
-	c2dbde2: OS X build scripts
-	d878498: win-mingw
+	8e79231: Thumb Drive
+	d85070c: OS X build scripts
+	7752468: win-mingw
 	b4ca616: flxmlrpc config
 	c104dc6: INSTALL
 
