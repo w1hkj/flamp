@@ -47,8 +47,8 @@
 using namespace std;
 using XmlRpc::XmlRpcValue;
 
-#define DEFAULT_XMLRPC_TIMEOUT 6.0
-#define INIT_XMLRPC_TIMEOUT 0.2
+#define DEFAULT_XMLRPC_TIMEOUT 15.0
+#define INIT_XMLRPC_TIMEOUT 5.0
 
 double xmlrpc_timeout = INIT_XMLRPC_TIMEOUT;
 
