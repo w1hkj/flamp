@@ -450,6 +450,25 @@ void execute_ztimer(bool flag, struct timeval &tv)
 	pthread_mutex_unlock(&mutex_watch_dog);
 }
 
+/** ********************************************************
+ * fldigi was closed before flamp ... abort
+ ***********************************************************/
+void abort_flamp(void *)
+{
+	fl_alert2(_("fldigi off line"));
+	close_ops();
+	exit(0);
+}
+
+void fldigi_ok()
+{	string test = get_io_mode();
+	if (test == "NIL" || test.empty()) {
+		Fl::remove_timeout(ztimer);
+		abort_flamp(0);
+//		Fl::awake(abort_flamp);
+	}
+}
+
 /** *******************************************************
  * \brief Watch dog for ztimer.
  *
@@ -486,26 +505,6 @@ void *watch_dog_loop(void *p)
 
 	return (void *)0;
 }
-
-/** ********************************************************
- * fldigi was closed before flamp ... abort
- ***********************************************************/
-void abort_flamp(void *)
-{
-	fl_alert2(_("fldigi off line"));
-	close_ops();
-	exit(0);
-}
-
-void fldigi_ok()
-{	string test = get_io_mode();
-	if (test == "NIL" || test.empty()) {
-		Fl::remove_timeout(ztimer);
-		abort_flamp(0);
-//		Fl::awake(abort_flamp);
-	}
-}
-
 
 /** ********************************************************
  * \brief FLAMP event timer.
@@ -551,7 +550,10 @@ void ztimer(void* first_call)
 
 	watch_dog_seconds = time_check();
 
-	fldigi_ok();
+	int tc = atoi(&sztime[4]);
+	if (tc % 30 == 0) { // every 30 seconds
+		fldigi_ok();
+	}
 
 	tx_state = get_trx_state();
 	if((tx_state == "RX"))
