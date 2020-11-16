@@ -2812,7 +2812,7 @@ int main(int argc, char *argv[])
 		perror("pthread_create: ztimer watch dog not started");
 	}
 
-	ztimer((void *)true);
+	Fl::add_timeout(0, ztimer, (void *)true);
 
 	if(progStatus.auto_load_queue) {
 		auto_load_tx_queue();
