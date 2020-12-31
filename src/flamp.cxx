@@ -838,7 +838,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, \
 	int use_comp_on_file = 0;
 	int use_forced_comp_on_file = 0;
 
-	if(rx > 0 && !rAmp->rx_completed()) {
+	if(rx != NULL && !rAmp->rx_completed()) {
 		fl_alert2("Only completed files can be transfered");
 		return;
 	}
@@ -934,7 +934,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, \
 
 	LOG_INFO("File added to transmit queue: %s", xmtfname.c_str());
 
-	if(rx > 0) {
+	if(rx != NULL) {
 		cAmp *rAmp = (cAmp *) rx;
 		int xfrBlockSize = rAmp->rx_blocksize_int();
 
