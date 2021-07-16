@@ -1183,7 +1183,7 @@ std::string cAmp::rx_missing()
 	lock();
 
 	std::string missing;
-	char number[10];
+	char number[20];
 	missing.clear();
 	for (int i = 1; i <= rxnumblocks; i++) {
 		if (rxblocks.find(i) == rxblocks.end()) {
@@ -1206,7 +1206,7 @@ std::string cAmp::rx_report()
 	lock();
 
 	std::string temp;
-	char number[10];
+	char number[20];
 	std::string missing;
 	temp.clear();
 	temp.assign("{").append(rxhash).append("}");

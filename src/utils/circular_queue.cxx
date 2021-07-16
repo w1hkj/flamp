@@ -199,7 +199,7 @@ int  Circular_queue::lookAheadCRC(char *_buffer, int _size,
 	int count = 0;
 	int temp_index = 0;
 	int buffer_count = 0;
-	unsigned int crcval = *crcVal;
+//	unsigned int crcval = *crcVal;
 	char *cPtr = _buffer;
 
 	pthread_mutex_lock(&mutex);

@@ -131,7 +131,7 @@ void base128::remlf(std::string &in)
 std::string base128::encode(std::string &in)
 {
 	size_t n;
-	byte igroup[7], ogroup[8];
+	t_byte igroup[7], ogroup[8];
 	char insize[20];
 	snprintf(insize, sizeof(insize), "%d\n", (int)in.length());
 
@@ -149,7 +149,7 @@ std::string base128::encode(std::string &in)
 				ateof = true;
 				break;
 			}
-			igroup[n] = (byte)in[iocp];
+			igroup[n] = (t_byte)in[iocp];
 			iocp++;
 		}
 		if (n > 0) {
@@ -162,7 +162,7 @@ std::string base128::encode(std::string &in)
 			ogroup[6] = ((igroup[5] << 1) & 0x7E) | ((igroup[6] >> 7) & 0x01);
 			ogroup[7] =  (igroup[6]       & 0x7F);
 
-			for (int i = 0; i < 8; i++) temp += (byte)ogroup[i];
+			for (int i = 0; i < 8; i++) temp += (t_byte)ogroup[i];
 		}
 	}
 	escape (temp);
@@ -204,7 +204,7 @@ std::string base128::decode(std::string &in, bool &decode_error)
 	iocp = 0;
 	iolen = temp.length();
 
-	byte b[8], o[7];
+	t_byte b[8], o[7];
 	int k = 0;
 	while (iocp < nbr) {
 

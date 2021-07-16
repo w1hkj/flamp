@@ -1271,9 +1271,9 @@ void auto_load_tx_queue_from_list(void)
 	strncpy(path, cPtr,	FILENAME_MAX - 1);
 
 	if(size < 1)
-		strncpy(path, "./", 2);
+		strcpy(path, "./");
 	else if(path[size - 1] != '/')
-		strncat(path, "/", 1);
+		strcat(path, "/");
 
 	while(1) {
 
@@ -2649,7 +2649,7 @@ int parse_args(int argc, char **argv, int& idx)
 
 
 	if (strcasecmp(argv[idx], "--version") == 0) {
-		printf("Version: "VERSION"\n");
+		printf("Version: " VERSION "\n");
 		exit (0);
 	}
 	return 0;

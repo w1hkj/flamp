@@ -917,8 +917,7 @@ void cb_enable_txrx_interval(Fl_Check_Button *a, void *b)
 #include <iostream>
 void set_txt_tx_interval()
 {
-	char szT[15];
-	float t = cnt_tx_interval_mins->value();
+	char szT[25];
 	int mins = floor(cnt_tx_interval_mins->value());
 	int secs = round(60 * (cnt_tx_interval_mins->value() - mins));
 	snprintf(szT, sizeof(szT), "%02d:%02d", mins, secs);

@@ -113,7 +113,6 @@ void TagSearch::stringMatchingList(const char *mList[], int mlCount)
 void * tag_search_parser(void *ptr)
 {
 	TagSearch *ts_ptr = (TagSearch *)ptr;
-	int offset = 0;
 	int shift_buffer_count = 0;
 	int shift_buffer_size  = 0;
 	int count = 0;
@@ -192,7 +191,6 @@ void * tag_search_parser(void *ptr)
 				read_count = 0;
 
 				if(ts_ptr->inhibitDataOut == CQUE_RESUME) {
-					offset = (ts_ptr->matchFound)((void *)ts_ptr);
 					break;
 				}
 			}

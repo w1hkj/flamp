@@ -78,7 +78,7 @@ void base64::init(void)
 std::string base64::encode(std::string in)
 {
 	int n;
-	byte igroup[3], ogroup[4];
+	t_byte igroup[3], ogroup[4];
 
 	//	output = "\n";
 	output.clear();
@@ -95,7 +95,7 @@ std::string base64::encode(std::string in)
 				ateof = true;
 				break;
 			}
-			igroup[n] = (byte)in[iocp];
+			igroup[n] = (t_byte)in[iocp];
 			iocp++;
 		}
 		if (n > 0) {
@@ -112,7 +112,7 @@ std::string base64::encode(std::string in)
 						output += '\n';
 						linelength = 0;
 					}
-				output += (byte)ogroup[i];
+				output += (t_byte)ogroup[i];
 				if (crlf)
 					linelength++;
 			}
@@ -133,11 +133,11 @@ std::string base64::decode(std::string in, bool &decode_error)
 	output = "";
 	iocp = 0;
 	iolen = in.length();
-	byte c;
+	t_byte c;
 	decode_error = false;
 
 	while (iocp < iolen) {
-		byte a[4], b[4], o[3];
+		t_byte a[4], b[4], o[3];
 
 		for (i = 0; i < 4; i++) {
 			if (iocp == iolen) {
@@ -158,7 +158,7 @@ std::string base64::decode(std::string in, bool &decode_error)
 				return output;
 			}
 			a[i] = c;
-			b[i] = (byte)dtable[c];
+			b[i] = (t_byte)dtable[c];
 		}
 		o[0] = (b[0] << 2) | (b[1] >> 4);
 		o[1] = (b[1] << 4) | (b[2] >> 2);

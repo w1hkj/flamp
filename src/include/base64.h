@@ -28,7 +28,7 @@
 
 #include <string>
 
-typedef unsigned char byte;
+typedef unsigned char t_byte;
 
 class base64 {
 #define LINELEN 64
@@ -36,8 +36,8 @@ class base64 {
 private:
 	bool ateof;
 	bool crlf;
-	byte dtable[256];
-	byte etable[256];
+	t_byte dtable[256];
+	t_byte etable[256];
 	int linelength;
 	size_t iocp;
 	size_t iolen;

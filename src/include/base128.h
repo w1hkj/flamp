@@ -27,7 +27,7 @@
 
 #include <string>
 
-typedef unsigned char byte;
+typedef unsigned char t_byte;
 
 class base128 {
 #define LINELEN 64

@@ -285,7 +285,7 @@ void * create_tx_table(void *ptr)
 
 			LOG_DEBUG("Mode %s overhead=%f", mode_name.c_str(), overhead);
 
-			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, "P_RELSOL2", \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
+			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, " P_RELSOL2 ", \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
 			fflush(fd);
 
 			if(mode_name.find("Olivia") != string::npos || mode_name.find("MT63") != string::npos) {
@@ -1321,7 +1321,7 @@ bool check_block_tx_time(std::vector<std::string> &header,
 	float interval_time = (float) cnt_tx_interval_mins->value();
 	float tx_time = 0;
 	bool return_value = true;
-	char str_buffer[256];
+	char str_buffer[THREAD_ERR_MSG_SIZE];
 	std::string modem;
 
 	count = header.size();
@@ -1341,14 +1341,14 @@ bool check_block_tx_time(std::vector<std::string> &header,
 
 	if(max_tx_time > interval_time) {
 		memset(str_buffer, 0, sizeof(str_buffer));
-		snprintf(str_buffer, sizeof(str_buffer) - 1,
+		snprintf(str_buffer, sizeof(str_buffer),
 				 "Header Section Modem: %s\nRequired Block Tx time: %3.1f Mins.\nUse Faster Mode, Increase Interval Time,\nor decrease block size.", \
 				 modem.c_str(), max_tx_time);
 		LOG_INFO("%s", str_buffer);
 		return_value = false;
 		if(thread_ptr) {
 			memset(&thread_ptr->err_msg[0], 0, THREAD_ERR_MSG_SIZE);
-			strncpy(&thread_ptr->err_msg[0], str_buffer, THREAD_ERR_MSG_SIZE - 1);
+			strcpy(&thread_ptr->err_msg[0], str_buffer);
 			thread_ptr->err_flag = true;
 		}
 	}
@@ -1369,7 +1369,7 @@ bool check_block_tx_time(std::vector<std::string> &header,
 
 	if(max_tx_time > interval_time) {
 		memset(str_buffer, 0, sizeof(str_buffer));
-		snprintf(str_buffer, sizeof(str_buffer) - 1,
+		snprintf(str_buffer, sizeof(str_buffer),
 				 "Data Section Modem: %s\nRequired Block Tx time: %3.1f Mins.\nUse Faster Mode, Increase Interval Time,\nor decrease block size.", \
 				 modem.c_str(), max_tx_time);
 		LOG_INFO("%s", str_buffer);
@@ -1377,7 +1377,7 @@ bool check_block_tx_time(std::vector<std::string> &header,
 
 		if(thread_ptr) {
 			memset(&thread_ptr->err_msg[0], 0, THREAD_ERR_MSG_SIZE);
-			strncpy(&thread_ptr->err_msg[0], str_buffer, THREAD_ERR_MSG_SIZE - 1);
+			strcpy(&thread_ptr->err_msg[0], str_buffer);
 			thread_ptr->err_flag = true;
 		}
 	}
@@ -1596,7 +1596,7 @@ void * run_in_thread_destroy(TX_FLDIGI_THREAD *tx_thread, int level,
 
 		if(msg) {
 			memset(msg, 0, THREAD_ERR_MSG_SIZE);
-			strncpy(msg, tx_thread->err_msg, THREAD_ERR_MSG_SIZE - 1);
+			strcpy(msg, tx_thread->err_msg);
 			Fl::awake(thread_error_msg, (void *)msg);
 		}
 	}

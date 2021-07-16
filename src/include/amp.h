@@ -378,7 +378,8 @@ public:
 
 	const char* rx_sz_percent(void) {
 		static const char empty[] = "  0 %";
-		if (rxnumblocks == 0 || rx_ok_blocks == 0) return empty;		static char percent[6];
+		if (rxnumblocks == 0 || rx_ok_blocks == 0) return empty;
+		static char percent[6];
 		int nokb = rx_ok_blocks;
 		int nrxb = rxnumblocks + 1;
 		if(!rx_crc_flags)
