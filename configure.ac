@@ -125,7 +125,7 @@ fi
 # Define USE_FLXMLRPC in config.h
 # Substitute FLXMLRPC_CFLAGS and FLXMLRPC_LIBS in Makefile
 
-AC_FLAMP_PKG_CHECK([flxmlrpc], [flxmlrpc >= 0.1.0],
+AC_FLAMP_PKG_CHECK([flxmlrpc], [flxmlrpc >= 1.0.0],
   [yes], [yes], [use external flxmlrpc library @<:@autodetect@:>@],
   [ENABLE_FLXMLRPC])
 

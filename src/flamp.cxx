@@ -94,6 +94,8 @@ static const char *copyright[] = {
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
 
+#include "XmlRpcClient.h"
+
 using namespace std;
 
 std::string rx_buffer;
@@ -2668,8 +2670,17 @@ void exit_main(Fl_Widget *w)
 /** ********************************************************
  *
  ***********************************************************/
-int main(int argc, char *argv[])
+static std::string pname = "";
+
+int main (int argc, char *argv[])
 {
+	pname = argv[0];
+	size_t pn = pname.rfind("/");
+	if (pn != std::string::npos) pname.erase(0, pn + 1);
+	pn = pname.rfind("\\");
+	if (pn != std::string::npos) pname.erase(0, pn + 1);
+	XmlRpc::set_pname(pname);
+
 	NBEMS_dir.clear();
 	{
 		string appname = argv[0];

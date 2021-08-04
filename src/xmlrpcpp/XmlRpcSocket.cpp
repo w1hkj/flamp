@@ -59,7 +59,7 @@ static void initialize()
 
 #if defined(_WINDOWS)
     {
-        WORD wVersionRequested = MAKEWORD( 2, 0 );
+        WORD wVersionRequested = MAKEWORD( WSA_MAJOR, WSA_MINOR );
         WSADATA wsaData;
         WSAStartup(wVersionRequested, &wsaData);
        	atexit((void(*)(void)) WSACleanup);
