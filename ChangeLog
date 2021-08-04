@@ -1,10 +1,21 @@
-2019-03-07  David Freese  <w1hkj@bellsouth.net>
+2021-08-04  dave-w1hkj  <w1hkj@bellsouth.net>
 
+	e1c2142: Version 2.2.06
+	8ba02f0: Xmlrpc Client ID
+	9d5f47a: openSuse Tumbleweed
+
+2021-02-07  David Freese  <w1hkj@bellsouth.net>
+
+	b8597f6: macOS Info.index
+	1d8f4c1: MXE build
+	9ee7834: OS X build problem
+	07aa7f9: fltk 1.4
+	1b84267: fldigi i/o
+	acddaf5: Win/mxe heartburn
+	5414622: xml mod
+	880cc0a: Version 2.2.05
 	6386d8b: socket block size
-
-
-=Version 2.0.4=
-
+	9580294: Version 2.0.4
 	8e79231: Thumb Drive
 	d85070c: OS X build scripts
 	7752468: win-mingw
@@ -22,10 +33,7 @@
 2015-11-23  David Freese  <iam_w1hkj@w1hkj.com>
 
 	a7806a1: Fldigi on-line
-
-
-=Version 2.2.03=
-
+	28685e7: Version 2.2.03
 
 2015-09-20  Robert Stiles  <kk5vd@yahoo.com>
 
@@ -39,17 +47,11 @@
 
 	a7708a6: BUILD_{DATE,USER,HOST}
 
+2015-04-24  David Freese  <iam_w1hkj@w1hkj.com>
 
-=Version 2.2.02=
-
-
-2015-04-17  David Freese  <iam_w1hkj@w1hkj.com>
-
+	a5fe969: Version 2.2.02
 	9ff9236: xmlrpc
-
-
-=Version 2.2.01=
-
+	9c38240: Version 2.2.01
 	ae83438: FSF address
 	03ca8af: Bug Fixes/Enhancements
 
@@ -63,10 +65,7 @@
 	9c489e7: fileselect
 	4a9c8a0: subdir-objects
 	a01e276: On line help
-
-
-=Version 2.2.00=
-
+	da16fc2: Version 2.2.00
 	6bf63a9: STRNLEN
 
 2014-12-01  Robert Stiles  <kk5vd@yahoo.com>
@@ -74,22 +73,19 @@
 	9d5a8ac: FLTK 1.3.3 Update
 	9104fc0: Relay, Modems, Scripting, Documentation, and Notices
 
+2014-01-19  David Freese  <w1hkj@w1hkj.com>
 
-=Version 2.1.02=
+	0f8bb0b: Version 2.1.02
+
+2014-01-19  Robert Stiles  <kk5vd@yahoo.com>
 
 	ba49254: Transmit Event Continuous
 
+2014-01-17  David Freese  <w1hkj@w1hkj.com>
 
-=Version 2.1.01=
-
-
-2013-07-30  David Freese  <w1hkj@w1hkj.com>
-
+	6fbd877: Version 2.1.01
 	7f8ea32: 64 bit compile issues
-
-
-=Version 2.1.00=
-
+	27006e5: Version 2.1.00
 
 2013-07-29  Robert Stiles  <kk5vd@yahoo.com>
 
@@ -131,16 +127,10 @@
 
 	054a19e: About/Events
 	7c6cff5: Fltk backward compatibility
-
-
-=Version 2.0.00=
-
+	c716410: Version 2.0.00
 	4d6db34: THOR mode update
 	ddc7cf3: Fetch parser
-
-
-=Version 1.0.01=
-
+	1314b34: Version 1.0.01
 	6383a21: MODES
 	7be9727: ARQ mod
 	11c50fa: Documentation update
@@ -148,16 +138,10 @@
 	5c32740: Menu Folder
 	e6ca0f4: Tx Queue deselect
 	58c54dd: Repeat Critical
-
-
-=Version 1.0.0=
-
+	2c53ff6: Version 1.0.0
 	66084a5: On Line Help
 	1454965: MS NBEMSapps
 	c04a245: Fetch debug
 	cad1adc: Timed Events
 	98aa0b5: Initial Code Base
-
-
-=Version 0.3.0=
-
+	b022871: Version 0.3.0
