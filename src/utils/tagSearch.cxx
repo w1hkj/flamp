@@ -191,6 +191,7 @@ void * tag_search_parser(void *ptr)
 				read_count = 0;
 
 				if(ts_ptr->inhibitDataOut == CQUE_RESUME) {
+					(ts_ptr->matchFound)((void *)ts_ptr);
 					break;
 				}
 			}
