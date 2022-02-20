@@ -1,6 +1,8 @@
-2021-08-06  dave-w1hkj  <w1hkj@bellsouth.net>
+2022-02-20  dave-w1hkj  <w1hkj@bellsouth.net>
 
-	578aa5d: Version 2.2.07
+	0da4c38: alpha
+	9f9756a: namespace std
+	11c7859: Version 2.2.07
 	23b8ef8: tagSearch
 	b37035c: Version 2.2.06
 	8ba02f0: Xmlrpc Client ID
