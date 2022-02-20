@@ -34,7 +34,6 @@
 #include "circular_queue.h"
 
 
-using namespace std;
 
 /** ********************************************************
  *

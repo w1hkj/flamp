@@ -72,7 +72,7 @@ typedef struct _tx_fldigi_thread {
 	std::string header_modem;   //!< @brief Local storage for current selected header modem
 	std::string modem;          //!< @brief Local storage for current selected modem
 
-	vector<std::string> bc_modems; //!< @brief Local storage for hamcast modems.
+	std::vector<std::string> bc_modems; //!< @brief Local storage for hamcast modems.
 
 	void *data;                 //!< For future use
 
@@ -98,7 +98,7 @@ typedef struct _tx_fldigi_thread {
 extern std::string g_header_modem;
 extern std::string g_modem;
 extern unsigned int modem_rotation_index;
-extern vector<std::string> bc_modems;
+extern std::vector<std::string> bc_modems;
 
 extern class cAmpGlobal rx_amp;
 extern class cAmpGlobal tx_amp;

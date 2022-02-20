@@ -281,7 +281,7 @@ const char *s_basic_modes[] = {
 char *s_modes[sizeof(s_basic_modes)/sizeof(char *)];
 
 /** ********************************************************
- * A string table of event types
+ * A std::string table of event types
  ***********************************************************/
 const char *event_types[] = {
 	(char *) "5 min",
@@ -303,7 +303,7 @@ std::string valid_modes;
  ***********************************************************/
 bool valid_mode_check(std::string &md)
 {
-	return (valid_modes.find(md) != string::npos);
+	return (valid_modes.find(md) != std::string::npos);
 }
 
 /** ********************************************************
@@ -358,7 +358,7 @@ void update_cbo_modes(std::string &fldigi_modes)
  ***********************************************************/
 void init_cbo_modes()
 {
-	string min_modes;
+	std::string min_modes;
 	min_modes.assign("DOMX22|MFSK16|MFSK22|MFSK31|MFSK32|");
 	min_modes.append("MT63-500S|MT63-1KS|MT63-2KS|");
 	min_modes.append("MT63-500L|MT63-1KL|MT63-2KL|");
@@ -468,7 +468,7 @@ void cb_mnuCmdLineParams(void *, void *)
 		wCmdLine->begin();
 		Fl_Browser *bwsCmds = new Fl_Browser(2,2,600,400,"");
 		int i = 0;
-		string cmdline;
+		std::string cmdline;
 		while (options[i] != NULL) {
 			cmdline.assign("@f").append(options[i]);
 			bwsCmds->add(cmdline.c_str());

@@ -96,7 +96,6 @@ static const char *copyright[] = {
 
 #include "XmlRpcClient.h"
 
-using namespace std;
 
 std::string rx_buffer;
 std::string tx_buffer;
@@ -126,13 +125,13 @@ int repeatNN = 1;
 
 
 unsigned int modem_rotation_index = 0;
-vector<std::string> bc_modems;
+std::vector<std::string> bc_modems;
 std::string g_modem;
 std::string g_header_modem;
 
 int g_event_driven = 0;
 
-//! @brief Command line help string initialization
+//! @brief Command line help std::string initialization
 const char *options[] = {
 	"Flamp Unique Options",
 	"",
@@ -250,7 +249,7 @@ bool rx_complete = false;
 /** ********************************************************
  *
  ***********************************************************/
-bool isbinary(string s)
+bool isbinary(std::string s)
 {
 	for (size_t n = 0; n < s.length(); n++)
 		if ((s[n] & 0x80) == 0x80) return true;
@@ -448,11 +447,11 @@ void update_tx_panel(cAmp *amp)
 	amp->my_info(progStatus.my_info);
 	amp->xmt_blocksize(progStatus.blocksize);
 
-	string fn = amp->xmt_fname();
-	string ds = amp->xmt_descrip();
-	string ns = amp->xmt_numblocks();
-	string ts = amp->xmt_tosend();
-	string ct = amp->callto();
+	std::string fn = amp->xmt_fname();
+	std::string ds = amp->xmt_descrip();
+	std::string ns = amp->xmt_numblocks();
+	std::string ts = amp->xmt_tosend();
+	std::string ct = amp->callto();
 
 	txt_tx_filename->value(fn.c_str());
 	txt_tx_descrip->value(ds.c_str());
@@ -524,11 +523,11 @@ void update_tx_panel(cAmp *amp)
 
 	estimate(amp, true);
 
-	string fn = amp->xmt_fname();
-	string ds = amp->xmt_descrip();
-	string ns = amp->xmt_numblocks();
-	string ts = amp->xmt_tosend();
-	string ct = amp->callto();
+	std::string fn = amp->xmt_fname();
+	std::string ds = amp->xmt_descrip();
+	std::string ns = amp->xmt_numblocks();
+	std::string ts = amp->xmt_tosend();
+	std::string ct = amp->callto();
 
 	txt_tx_filename->value(fn.c_str());
 	txt_tx_descrip->value(ds.c_str());
@@ -668,7 +667,7 @@ int default_handler(int event)
 void checkdirectories(void)
 {
 	struct DIRS {
-		string& dir;
+		std::string& dir;
 		const char* suffix;
 		void (*new_dir_func)(void);
 	};
@@ -688,7 +687,7 @@ void checkdirectories(void)
 			NBEMS_dirs[i].dir.assign(NBEMS_dir).append(NBEMS_dirs[i].suffix).append("/");
 
 		if ((r = mkdir(NBEMS_dirs[i].dir.c_str(), 0777)) == -1 && errno != EEXIST) {
-			cerr << _("Could not make directory") << ' ' << NBEMS_dirs[i].dir
+			std::cerr << _("Could not make directory") << ' ' << NBEMS_dirs[i].dir
 			     << ": " << strerror(errno) << '\n';
 			exit(EXIT_FAILURE);
 		}
@@ -712,7 +711,7 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 
 	xmtfname.assign(sp->file());
 	xmt_fname = xmtfname;
-	string xmt_fname2 = xmtfname;
+	std::string xmt_fname2 = xmtfname;
 
 	desc.assign(sp->desc());
 
@@ -750,7 +749,7 @@ void addfile(ScriptParsing *sp, SCRIPT_COMMANDS *sc)
 			use_comp_on_file = 1;
 		}
 
-		// Looking for command/control strings. Force compression if found.
+		// Looking for command/control std::strings. Force compression if found.
 		if(tx_buffer.find(sz_flmsg) != std::string::npos) {
 			use_forced_comp_on_file = 1;
 		}
@@ -834,7 +833,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, \
              char *desc = (char *)0, char *callto = (char *)0)
 {
 	xmt_fname = xmtfname;
-	string xmt_fname2 = xmtfname;
+	std::string xmt_fname2 = xmtfname;
 	cAmp *rAmp = (cAmp *) rx;
 
 	int use_comp_on_file = 0;
@@ -876,7 +875,7 @@ void addfile(std::string xmtfname, void *rx, bool useCompression, \
 		use_comp_on_file = 1;
 	}
 
-	// Looking for command/control strings. Force compression if found.
+	// Looking for command/control std::strings. Force compression if found.
 	if(tx_buffer.find(sz_flmsg) != std::string::npos) {
 		use_forced_comp_on_file = 1;
 	}
@@ -1351,7 +1350,7 @@ void auto_load_tx_queue(void)
  ***********************************************************/
 void readfile()
 {
-	string xmtfname;
+	std::string xmtfname;
 	xmtfname.clear();
 	xmtfname = flampHomeDir;
 	const char *p = FSEL::select(_("Open file"), "*.*",
@@ -1394,7 +1393,7 @@ void show_rx_amp()
 	txt_relay_selected_blocks->value(amp->rx_relay_blocks().c_str());
 	rx_progress->set(amp->rx_blocks(), amp->rx_nblocks());
 	if (amp->rx_completed() && txt_rx_output->buffer()->length() == 0) {
-		string data = amp->rx_recvd_string();
+		std::string data = amp->rx_recvd_string();
 		decompress_maybe(data);
 		if (isbinary(data))
 			txt_rx_output->addstr("Data appears to be binary\n\nSave and view with appropriate software");
@@ -1472,13 +1471,13 @@ static const char *cont = "You are about to transmit! Continue?";
 
 void send_missing_report()
 {
-	string fname = txt_rx_filename->value();
+	std::string fname = txt_rx_filename->value();
 	if (fname.empty()) return;
 
 	cAmp * amp = rx_amp.get_amp();
 	if(!amp) return;
 
-	string report("\nDE ");
+	std::string report("\nDE ");
 	report.append(txt_tx_mycall->value());
 	report.append("\nFile : ").append(fname).append("\n");
 	report.append(amp->rx_report());
@@ -1721,7 +1720,7 @@ void auto_rx_save_file(cAmp *_amp)
 		return;
 	}
 
-	string data = _amp->rx_recvd_string();
+	std::string data = _amp->rx_recvd_string();
 	decompress_maybe(data);
 
 	size_t r = fwrite((void *)data.c_str(), 1, data.length(), dfile);
@@ -1784,7 +1783,7 @@ void writefile(int xfrFlag)
 		return;
 	}
 
-	string data = amp->rx_recvd_string();
+	std::string data = amp->rx_recvd_string();
 	decompress_maybe(data);
 
 	size_t r = fwrite((void *)data.c_str(), 1, data.length(), dfile);
@@ -2118,7 +2117,7 @@ int process_que(void *ptr)
  ***********************************************************/
 void process_missing_stream(void)
 {
-	string retbuff;
+	std::string retbuff;
 
 	char tag[32];
 	char crc[5];
@@ -2126,7 +2125,7 @@ void process_missing_stream(void)
 	int len = 0;
 	int conv = 0;
 	size_t count = 0;
-	string txrx_hash;
+	std::string txrx_hash;
 	size_t i = 0;
 	cAmp *ctmp = (cAmp *)0;
 
@@ -2169,7 +2168,7 @@ void process_missing_stream(void)
  ***********************************************************/
 void process_data_stream(void)
 {
-	string retbuff;
+	std::string retbuff;
 
 	char tag[32];
 	char crc[5];
@@ -2209,7 +2208,7 @@ void process_data_stream(void)
 			nu->rx_append(retbuff);
 			nu->rx_parse_buffer();
 			rx_amp.add(nu);
-			string s;
+			std::string s;
 			s.assign("@f").append(nu->rx_sz_percent()).append("\t").append(nu->rx_hash()).append("\t");
 			s.append(nu->get_rx_fname());
 			rx_queue->add(s.c_str());
@@ -2221,7 +2220,7 @@ void process_data_stream(void)
 
 		} else {
 
-			string bline;
+			std::string bline;
 			if (!existing->rx_completed()) {
 				existing->rx_append(retbuff);
 				existing->rx_parse_buffer();
@@ -2310,7 +2309,7 @@ void estimate(cAmp *amp, bool visable) {
 	}
 
 	amp->amp_update();
-	string xmtstr = amp->tx_string(" K\n");
+	std::string xmtstr = amp->tx_string(" K\n");
 
 	if(visable) {
 
@@ -2499,7 +2498,7 @@ void cb_exit()
  ***********************************************************/
 
 void test_for_fldigi()
-{	string test = get_io_mode();
+{	std::string test = get_io_mode();
 	if (test == "NIL" || test.empty()) {
 		fl_alert2(_("Start fldigi before flamp!"));
 		if (tcpip) {
@@ -2548,10 +2547,10 @@ int parse_args(int argc, char **argv, int& idx)
 	if (strstr(argv[idx], "--config-dir")) {
 		std::string temp_dir = "";
 		idx++;
-		string tmp = argv[idx];
+		std::string tmp = argv[idx];
 		if (!tmp.empty()) temp_dir = tmp;
-		size_t p = string::npos;
-		while ( (p = temp_dir.find("\\")) != string::npos)
+		size_t p = std::string::npos;
+		while ( (p = temp_dir.find("\\")) != std::string::npos)
 			temp_dir[p] = '/';
 		if (temp_dir[temp_dir.length()-1] != '/')
 			temp_dir += '/';
@@ -2683,14 +2682,14 @@ int main (int argc, char *argv[])
 
 	NBEMS_dir.clear();
 	{
-		string appname = argv[0];
-		string appdir = argv[0];
+		std::string appname = argv[0];
+		std::string appdir = argv[0];
 		size_t p;
 		char dirbuf[FL_PATH_MAX + 1];
 #ifdef __WOE32__
 		p = appdir.find("FL_APPS\\");
-		if (p == string::npos) p = appdir.find("FL_APPS/");
-		if (p == string::npos) {
+		if (p == std::string::npos) p = appdir.find("FL_APPS/");
+		if (p == std::string::npos) {
 			char dirbuf[FL_PATH_MAX + 1];
 			fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
 			NBEMS_dir.assign(dirbuf);
@@ -2701,10 +2700,10 @@ int main (int argc, char *argv[])
 		fl_filename_absolute(dirbuf, sizeof(dirbuf), argv[0]);
 		appdir.assign(dirbuf);
 		p = appdir.rfind("flamp");
-		if (p != string::npos)
+		if (p != std::string::npos)
 			appdir.erase(p);
 		p = appdir.find("FL_APPS/");
-		if (p != string::npos)
+		if (p != std::string::npos)
 			NBEMS_dir.assign(appdir.substr(0, p + 8));
 		else {
 			fl_filename_expand(dirbuf, FL_PATH_MAX, "$HOME/");
@@ -2712,7 +2711,7 @@ int main (int argc, char *argv[])
 		}
 
 		DIR *isdir = 0;
-		string test_dir;
+		std::string test_dir;
 		test_dir.assign(NBEMS_dir).append("NBEMS.files/");
 		isdir = opendir(test_dir.c_str());
 		if (isdir) {
@@ -2736,7 +2735,7 @@ int main (int argc, char *argv[])
 	checkdirectories();
 	progStatus.loadLastState();
 
-	string debug_file = flampHomeDir;
+	std::string debug_file = flampHomeDir;
 	debug_file.append("debug_log.txt");
 	debug::start(debug_file.c_str());
 
@@ -2765,14 +2764,14 @@ int main (int argc, char *argv[])
 	main_window->show(argc, argv);
 #endif
 
-	if (string(main_window->label()) == "") {
-		string main_label = PACKAGE_NAME;
+	if (std::string(main_window->label()) == "") {
+		std::string main_label = PACKAGE_NAME;
 		main_label.append(": ").append(PACKAGE_VERSION);
 		main_window->label(main_label.c_str());
 	}
 
-	string addr;
-	string port;
+	std::string addr;
+	std::string port;
 
 	if(progStatus.user_socket_addr.size())
 		addr.assign(progStatus.user_socket_addr);
@@ -2971,7 +2970,7 @@ void url_to_file(char *path, size_t buffer_length)
  ***********************************************************/
 void drop_file_changed(void)
 {
-	string buffer = Fl::event_text();
+	std::string buffer = Fl::event_text();
 	size_t length = Fl::event_length();
 	char *fname = (char *)0;
 	size_t n = 0;
@@ -2993,14 +2992,14 @@ void drop_file_changed(void)
 	memset(fname, 0, length + 1);
 	memcpy(fname, buffer.c_str(), length);
 
-	if ((n = buffer.find("file:///")) != string::npos) {
+	if ((n = buffer.find("file:///")) != std::string::npos) {
 		buffer.erase(n, 7);
 		memcpy(fname, buffer.c_str(), buffer.size());
 		url_to_file(fname, length);
 		valid = 1;
-	} else	if ((n = buffer.find(":\\")) != string::npos) {
+	} else	if ((n = buffer.find(":\\")) != std::string::npos) {
 		valid = 1;
-	} else 	if ((n = buffer.find("/")) != string::npos) {
+	} else 	if ((n = buffer.find("/")) != std::string::npos) {
 		valid = 1;
 	}
 

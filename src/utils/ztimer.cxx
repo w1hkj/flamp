@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -90,9 +91,9 @@ extern bool event_bail_flag;
 bool tx_ztimer_flag = false;
 
 /** ********************************************************
- * \brief Trim leading and trailing spaces from string.
- * \param s String to modify
- * \return s modified string.
+ * \brief Trim leading and trailing spaces from std::string.
+ * \param s std::string to modify
+ * \return s modified std::string.
  ***********************************************************/
 static inline std::string &trim(std::string &s) {
 	char *buffer = (char *)0;
@@ -461,7 +462,7 @@ void abort_flamp(void *)
 }
 
 void fldigi_ok()
-{	string test = get_io_mode();
+{	std::string test = get_io_mode();
 	if (test == "NIL" || test.empty()) {
 		Fl::remove_timeout(ztimer);
 		abort_flamp(0);

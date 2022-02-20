@@ -44,7 +44,6 @@
 #include "debug.h"
 #include "threads.h"
 
-using namespace std;
 using XmlRpc::XmlRpcValue;
 
 #define DEFAULT_XMLRPC_TIMEOUT 15.0
@@ -88,14 +87,14 @@ extern int errno;
 //=====================================================================
 int update_interval = XMLRPC_UPDATE_INTERVAL;
 
-string xmlcall = "";
+std::string xmlcall = "";
 
 void open_xmlrpc()
 {
 	pthread_mutex_lock(&mutex_xmlrpc);
 
-	string addr;
-	string port;
+	std::string addr;
+	std::string port;
 
 	// Check if address/port passed via command line
 
@@ -204,7 +203,7 @@ void send_clear_rx(void)
 	pthread_mutex_unlock(&mutex_xmlrpc);
 }
 
-void send_report(string report)
+void send_report(std::string report)
 {
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
@@ -287,12 +286,12 @@ std::string get_tx_timing(std::string data)
 {
 	XmlRpcValue status;
 	XmlRpcValue xmlData((void *)data.c_str(), data.size());
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(main_get_tx_timing, xmlData, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -308,21 +307,21 @@ std::string get_char_timing(int character)
 	pthread_mutex_lock(&mutex_xmlrpc);
 
 	XmlRpcValue status;
-	static string response;
+	static std::string response;
 	char buff[20];
 
 	memset(buff, 0, sizeof(buff));
 
 	snprintf(buff, sizeof(buff) - 1, "%d", character);
 
-	string data;
+	std::string data;
 	data.assign(buff);
 
 	XmlRpcValue xmlData((void *) data.c_str(), data.size());
 
 	try {
 		execute(main_get_char_timing, xmlData, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -364,16 +363,16 @@ void enable_kiss(void)
 // receive functions
 // --------------------------------------------------------------------
 
-string get_io_mode(void)
+std::string get_io_mode(void)
 {
 	XmlRpcValue status;
 	XmlRpcValue query;
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(io_in_use, query, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -388,7 +387,7 @@ string get_io_mode(void)
 
 static void set_combo(void *str)
 {
-	string s = (char *)str;
+	std::string s = (char *)str;
 
 	if(progStatus.use_header_modem != 0) return;
 
@@ -400,16 +399,16 @@ static void set_combo(void *str)
 	}
 }
 
-string get_rsid_state(void)
+std::string get_rsid_state(void)
 {
 	XmlRpcValue status;
 	XmlRpcValue query;
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(main_get_rsid, query, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -419,16 +418,16 @@ string get_rsid_state(void)
 	return response;
 }
 
-string get_trx_state()
+std::string get_trx_state()
 {
 	XmlRpcValue status;
 	XmlRpcValue query;
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(main_get_trx_state, query, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -439,16 +438,16 @@ string get_trx_state()
 	return response;
 }
 
-string get_char_rates()
+std::string get_char_rates()
 {
 	XmlRpcValue status;
 	XmlRpcValue query;
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(main_get_char_rates, query, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 	} catch (const XmlRpc::XmlRpcException& e) {
 		LOG_ERROR("%s xmlrpc_errno = %d", e.getMessage().c_str(), xmlrpc_errno);
@@ -464,12 +463,12 @@ static void get_fldigi_modem()
 
 	XmlRpcValue status;
 	XmlRpcValue query;
-	static string response;
+	static std::string response;
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
 		execute(modem_get_name, query, status);
-		string resp = status;
+		std::string resp = status;
 		response = resp;
 		if (!response.empty()) {
 			Fl::awake(set_combo, (void *)response.c_str());
@@ -489,7 +488,7 @@ static void get_fldigi_modems()
 
 	pthread_mutex_lock(&mutex_xmlrpc);
 	try {
-		string fldigi_modes("");
+		std::string fldigi_modes("");
 		execute(modem_get_names, query, status);
 		for (int i = 0; i < status.size(); i++) {
 			fldigi_modes.append((std::string)status[i]).append("|");

@@ -38,8 +38,7 @@
 #  include <arpa/inet.h>
 #endif
 
-//using namespace std;
-
+//
 enum {NONE, BASE64, BASE128, BASE256};
 
 extern Address *localaddr;

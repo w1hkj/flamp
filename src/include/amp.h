@@ -67,8 +67,8 @@ extern void preamble_detected(void);
 typedef struct relay_data {
 	class cAmp *amp;              //!< Enable relay fills using interval timer.
 	std::string serial_data;
-	vector<std::string>data;
-	vector<std::string>header;
+	std::vector<std::string>data;
+	std::vector<std::string>header;
 	relay_data() {
 		data.clear();
 		header.clear();
@@ -238,7 +238,7 @@ public:
 	std::string xmt_fname(void);
 	std::string xmt_full_path_fname();
 
-	void xmt_full_path_fname(string fname);
+	void xmt_full_path_fname(std::string fname);
 	std::string xmt_string(bool use_locks);
 
 	int xmt_vector_string(bool header_modem, bool unproto_markers, bool data_repeat_inhibit);
@@ -321,9 +321,9 @@ private:
 	AMPmap rxblocks;
 	AMPmap rxDataHeader;
 
-	void rx_parse_desc(string data);
+	void rx_parse_desc(std::string data);
 	void rx_parse_dttm_filename(char *, std::string data);
-	void rx_parse_size(string data);
+	void rx_parse_size(std::string data);
 
 public:
 
@@ -345,10 +345,10 @@ public:
 	std::string rx_desc(void) { return rxdesc; }
 	std::string rx_fsize(void) { return sz_num(rxfilesize); }
 	std::string rx_hash(void) { return rxhash; }
-	std::string rx_hash(string s) { rxhash = s; return s; }
+	std::string rx_hash(std::string s) { rxhash = s; return s; }
 	std::string rx_missing(void);
 	std::string rx_numblocks() { return sz_num(rxnumblocks); }
-	std::string rx_parse_hash_line(string data);
+	std::string rx_parse_hash_line(std::string data);
 	std::string rx_progname() { return rxprogname; }
 	std::string rx_raw_cntl(void) { return _rx_raw_cntl; }
 	std::string rx_raw_desc(void) { return _rx_raw_desc; }

@@ -41,12 +41,11 @@
 //#define DEBUG 1
 #undef DEBUG
 
-using namespace std;
 
 
 typedef struct {
 	void *widget;
-	string strValue;
+	std::string strValue;
 } STRING_VALUE;
 
 typedef struct {
@@ -82,10 +81,10 @@ extern pthread_mutex_t mutex_file_io;
 extern pthread_mutex_t mutex_xmlrpc;
 extern pthread_t *xmlrpc_thread;
 
-extern string buffer;
-extern string flamp_dir;
-extern string flampHomeDir;
-extern string title;
+extern std::string buffer;
+extern std::string flamp_dir;
+extern std::string flampHomeDir;
+extern std::string title;
 
 extern bool do_events_flag;
 extern bool tx_ztimer_flag;

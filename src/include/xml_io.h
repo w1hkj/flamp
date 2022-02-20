@@ -43,7 +43,7 @@ extern void send_abort(void);
 extern void send_clear_rx(void);
 extern void send_clear_tx(void);
 extern void send_new_modem(std::string modem);
-extern void send_report(string report);
+extern void send_report(std::string report);
 extern void send_rsid(void);
 extern void send_rx(void);
 extern void send_tune(void);

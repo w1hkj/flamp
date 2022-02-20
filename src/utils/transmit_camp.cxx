@@ -97,7 +97,7 @@ void transfer_in_main_thread(void *ptr)
 {
 	if (!ptr) return;
 
-	std::string *data = (string *)ptr;
+	std::string *data = (std::string *)ptr;
 
 	if (!bConnected) connect_to_fldigi(0);
 	if (!bConnected) return;
@@ -288,7 +288,7 @@ void * create_tx_table(void *ptr)
 			fprintf(fd, "\t{\n\t\t(char *) \"%s\", 1.0, " P_RELSOL2 ", \n\t\t{\n\t\t\t", mode_name.c_str(), overhead);
 			fflush(fd);
 
-			if(mode_name.find("Olivia") != string::npos || mode_name.find("MT63") != string::npos) {
+			if(mode_name.find("Olivia") != std::string::npos || mode_name.find("MT63") != std::string::npos) {
 				for(index = 0; index < 128; index++) {
 					if((index % 8) == 0 && index != 0) {
 						fprintf(fd, "\n\t\t\t");
@@ -533,10 +533,10 @@ void * transmit_serial_current(void *ptr)
 	float tx_time = 0;
 
 	cAmp *tx = 0;
-	string autosend = "";
-	string send_to  = "";
-	string temp     = "";
-	string temp2    = "";
+	std::string autosend = "";
+	std::string send_to  = "";
+	std::string temp     = "";
+	std::string temp2    = "";
 
 	autosend.clear();
 	send_to.clear();
@@ -618,10 +618,10 @@ void * transmit_serial_queued(void *ptr)
 		send_new_modem(thread->modem.c_str());
 
 	cAmp *tx;
-	string autosend    = "";
-	string null_string = "";
-	string temp        = "";
-	string terminator  = "";
+	std::string autosend    = "";
+	std::string null_string = "";
+	std::string temp        = "";
+	std::string terminator  = "";
 	bool fills = false;
 
 	autosend.clear();
@@ -724,10 +724,10 @@ void * transmit_serial_relay(void *ptr)
 	void * ret = 0;
 
 	cAmp *tx = 0;
-	string autosend = "";
-	string send_to  = "";
-	string temp     = "";
-	string temp2    = "";
+	std::string autosend = "";
+	std::string send_to  = "";
+	std::string temp     = "";
+	std::string temp2    = "";
 
 	if(in_use) {
 		return run_in_thread_destroy(t_ptr, 3, 0);

@@ -106,14 +106,13 @@ The filter type must be terminated with a '\n' on OS X or the application crashe
 
 */
 
-using namespace std;
 
 namespace FSEL {
 
 void create(void) {};
 void destroy(void) {};
 
-string filename, stitle, sfilter, sdef, sdirectory;
+std::string filename, stitle, sfilter, sdef, sdirectory;
 char dirbuf[FL_PATH_MAX + 1] = "";
 char msg[400];
 
@@ -133,7 +132,7 @@ filter: %s\n", dir, fname, filt);
 	fclose(f);
 }
 
-void dosfname(string &s)
+void dosfname(std::string &s)
 {
 	for (size_t i = 0; i < s.length(); i++)
 		if (s[i] == '/') s[i] = '\\';

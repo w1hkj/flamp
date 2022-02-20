@@ -268,7 +268,7 @@ std::string cAmp::_file_hash()
 
 	buf = new char[bc];
 	if(!buf)
-		return string("");
+		return std::string("");
 
 	memset(buf, 0, bc);
 	snprintf(buf, bc - 1, "%d", xmtblocksize);
@@ -459,7 +459,7 @@ std::string cAmp::xmt_string(bool use_locks = true)
 	std::string filename;
 	std::string statsline;
 	std::string idline;
-	std::string fstring; // file strings
+	std::string fstring; // file std::strings
 	std::string call_from_to;
 
 	xmtstring.clear();
@@ -468,7 +468,7 @@ std::string cAmp::xmt_string(bool use_locks = true)
 	filename.clear();
 	statsline.clear();
 	idline.clear();
-	fstring.clear(); // file strings
+	fstring.clear(); // file std::strings
 	call_from_to.clear();
 
 	if(xmtcallto.empty())
@@ -498,7 +498,7 @@ std::string cAmp::xmt_string(bool use_locks = true)
 			fstring.append(data_block(i + 1));
 		}
 	} else {
-		string blocks = tosend;
+		std::string blocks = tosend;
 		int bnbr;
 		while (!blocks.empty()) {
 			if (sscanf(blocks.c_str(), "%d", &bnbr) == 1) {
@@ -910,7 +910,7 @@ void cAmp::_time_stamp(time_t *tp)
 /** ********************************************************
  *
  ***********************************************************/
-void cAmp::rx_add_data(string data)
+void cAmp::rx_add_data(std::string data)
 {
 	int blknbr;
 
@@ -987,10 +987,10 @@ void cAmp::rx_parse_dttm_filename(char *crc, std::string data)
 /** ********************************************************
  *
  ***********************************************************/
-std::string cAmp::rx_parse_hash_line(string data)
+std::string cAmp::rx_parse_hash_line(std::string data)
 {
 	char hashval[5];
-	static string empty("");
+	static std::string empty("");
 
 	if (sscanf(data.c_str(), "{%4s}*", hashval) != 1) return empty;
 
@@ -1007,7 +1007,7 @@ std::string cAmp::rx_parse_hash_line(string data)
 /** ********************************************************
  *
  ***********************************************************/
-void cAmp::rx_parse_desc(string data)
+void cAmp::rx_parse_desc(std::string data)
 {
 	rxdesc = rx_parse_hash_line(data);
 }
@@ -1015,7 +1015,7 @@ void cAmp::rx_parse_desc(string data)
 /** ********************************************************
  *
  ***********************************************************/
-void cAmp::rx_parse_id(string data)
+void cAmp::rx_parse_id(std::string data)
 {
 	rxcall_info = rx_parse_hash_line(data);
 	rx_crc_flags &= ~ID_CRC_FLAG;
@@ -1024,7 +1024,7 @@ void cAmp::rx_parse_id(string data)
 /** ********************************************************
  *
  ***********************************************************/
-void cAmp::rx_parse_size(string data)
+void cAmp::rx_parse_size(std::string data)
 {
 	char hashval[5];
 	int fs, nb, bs;
@@ -1252,7 +1252,7 @@ void cAmp::tx_parse_report(void)
 	//       CCCC is crc16 of data field
 	//       cccc is crc16 of associated file
 	//       n1...nN are missing block numbers
-	// append each valid occurance to the tosend string
+	// append each valid occurance to the tosend std::string
 
 	lock();
 
@@ -1262,8 +1262,8 @@ void cAmp::tx_parse_report(void)
 	size_t p = 0, p1 = 0;
 	int len;
 	char crc[5];
-	string preamble_block;
-	string data;
+	std::string preamble_block;
+	std::string data;
 
 	p = report_buffer.find(sz_missing);
 
@@ -1295,9 +1295,9 @@ void cAmp::tx_parse_report(void)
 		p = report_buffer.find(sz_missing, p + 2);
 	}
 
-	// convert the updated tosend string to a vector of integers
+	// convert the updated tosend std::string to a vector of integers
 	// removing any duplicate values in the process
-	string blocks = tosend;
+	std::string blocks = tosend;
 
 	if(preamble_block.size()) {
 		blocks.append(preamble_block);
@@ -1316,8 +1316,8 @@ std::string cAmp::reformat_missing_blocks(std::string &missing_blocks)
 	std::string to_send_local;
 
 	int iblock;
-	list<int> iblocks;
-	list<int>::iterator pblock;
+	std::list<int> iblocks;
+	std::list<int>::iterator pblock;
 	bool insert_ok = false;
 	while (!missing_blocks.empty()) {
 		if (sscanf(missing_blocks.c_str(), "%d", &iblock) == 1) {
@@ -1331,7 +1331,7 @@ std::string cAmp::reformat_missing_blocks(std::string &missing_blocks)
 		while (!missing_blocks.empty() && !isdigit(missing_blocks[0]))
 			missing_blocks.erase(0,1);
 	}
-	// sort the vector and then reassemble as a string sequence of comma
+	// sort the vector and then reassemble as a std::string sequence of comma
 	// delimited values
 	iblocks.sort();
 	to_send_local.clear();
@@ -2086,7 +2086,7 @@ std::string cAmp::xmt_full_path_fname()
 /** ********************************************************
  *
  ***********************************************************/
-void cAmp::xmt_full_path_fname(string fname)
+void cAmp::xmt_full_path_fname(std::string fname)
 {
 	lock();
 	xmtfilename_fullpath = fname;

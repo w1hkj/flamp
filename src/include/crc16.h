@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include "debug.h"
 
-using namespace std;
 
 class Ccrc16 {
 private:
@@ -40,9 +39,9 @@ public:
 	~Ccrc16() {};
 	void reset() { crcval = 0xFFFF;}
 	unsigned int val() {return (crcval & 0xFFFF);}
-	string sval() {
+	std::string sval() {
 		snprintf((char *) ss, sizeof(ss), "%04X", val());
-		return string(ss);
+		return std::string(ss);
 	}
 
 	void update(unsigned int c) {
@@ -67,13 +66,13 @@ public:
 		return val();
 	}
 
-	unsigned int crc16(string s) {
+	unsigned int crc16(std::string s) {
 		reset();
 		for (size_t i = 0; i < s.length(); i++)
 			update((unsigned int)(s[i] & 0xFF));  // only use lower half of unicode
 		return val();
 	}
-	string scrc16(string s) {
+	std::string scrc16(std::string s) {
 		crc16(s);
 		return sval();
 	}

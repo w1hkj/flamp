@@ -49,7 +49,6 @@
 #include "gettext.h"
 #include "flamp.h"
 
-using namespace std;
 
 #define MAX_LINES 65536
 
@@ -59,7 +58,7 @@ static int rfd;
 
 static Fl_Double_Window*	window;
 static Fl_Browser*			btext;
-static string dbg_buffer;
+static std::string dbg_buffer;
 
 debug* debug::inst = 0;
 debug::level_e debug::level = debug::INFO_LEVEL;
@@ -144,7 +143,7 @@ void debug::stop(void)
 
 static char fmt[1024];
 static char sztemp[1024];
-static string estr = "";
+static std::string estr = "";
 bool   debug_in_use = false;
 
 /** ********************************************************
@@ -232,7 +231,7 @@ void debug::sync_text(void *arg)
 {
 	debug_in_use = true;
 	size_t p0 = 0, p1 = estr.find('\n');
-	while (p1 != string::npos) {
+	while (p1 != std::string::npos) {
 		btext->insert(1, estr.substr(p0,p1-p0).c_str());
 		dbg_buffer.append(estr.substr(p0, p1 - p0)).append("\n");
 		p0 = p1 + 1;
@@ -264,7 +263,7 @@ void debug::append_dbg_buffer(char * message)
 
 	size_t p1 = msg.find('\n');
 
-	if(p1 == string::npos) {
+	if(p1 == std::string::npos) {
 		msg.append("\n");
 	}
 
@@ -329,7 +328,7 @@ static void synctext(void *d)
 	for (size_t n = 0; n < estr.length(); n++)
 		if (estr[n] < '\n') estr[n] = ' ';
 	size_t p0 = 0, p1 = estr.find('\n');
-	while (p1 != string::npos) {
+	while (p1 != std::string::npos) {
 		btext->insert(1, estr.substr(p0,p1-p0).c_str());
 		p0 = p1 + 1;
 		p1 = estr.find('\n', p0);
@@ -363,10 +362,10 @@ static void clear_cb(Fl_Widget* w, void*)
 static void save_cb(Fl_Widget* w, void*)
 {
 	if (!btext->size()) return;
-	string filename = flampHomeDir;
+	std::string filename = flampHomeDir;
 	filename.append("events.txt");
-	ofstream out;
-	out.open(filename.c_str(), ios::app);
+	std::ofstream out;
+	out.open(filename.c_str(), std::ios::app);
 	out << dbg_buffer;
 	out.close();
 	fl_alert2("Saved in %s", filename.c_str());

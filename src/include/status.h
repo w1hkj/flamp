@@ -28,7 +28,6 @@
 
 #include <string>
 
-using namespace std;
 
 struct status {
 	int		mainX;
@@ -62,7 +61,7 @@ struct status {
 
 	int repeat_every;
 	bool repeat_at_times;
-	string repeat_times;
+	std::string repeat_times;
 	bool repeat_forever;
 
 	bool use_txrx_interval;
@@ -86,7 +85,7 @@ struct status {
 
 	bool auto_load_queue;
 	bool load_from_tx_folder;
-	string auto_load_queue_path;
+	std::string auto_load_queue_path;
 
 	bool hamcast_mode_cycle;
 

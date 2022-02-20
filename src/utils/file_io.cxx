@@ -83,7 +83,6 @@
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
 
-using namespace std;
 
 Socket *tcpip      = (Socket *)0;
 Address *localaddr = (Address *)0;
@@ -96,20 +95,20 @@ const char *b128_end   = "\n[b128:end]";
 const char *b256_start = "[b256:start]";
 const char *b256_end   = "\n[b256:end]";
 
-string errtext;
+std::string errtext;
 
 base64 b64; // use b65(1) to insert lf for ease of viewing required
 base128 b128;
 base256 b256;
 
-string inptext = "";
-string wtext   = "";
-string check   = "";
-string wrap_outfilename  = "";
-string wrap_inpfilename  = "";
-string wrap_inpshortname = "";
-string wrap_outshortname = "";
-string wrap_foldername   = "";
+std::string inptext = "";
+std::string wtext   = "";
+std::string check   = "";
+std::string wrap_outfilename  = "";
+std::string wrap_inpfilename  = "";
+std::string wrap_inpshortname = "";
+std::string wrap_outshortname = "";
+std::string wrap_foldername   = "";
 
 pthread_mutex_t mutex_comp_data   = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutex_decomp_data = PTHREAD_MUTEX_INITIALIZER;
@@ -117,9 +116,9 @@ pthread_mutex_t mutex_decomp_data = PTHREAD_MUTEX_INITIALIZER;
 /** ********************************************************
  *
  ***********************************************************/
-static void base64encode(string &inptext)
+static void base64encode(std::string &inptext)
 {
-	string outtext;
+	std::string outtext;
 	outtext.clear();
 	outtext.reserve(inptext.size() + 100);
 	outtext.assign(b64.encode(inptext));
@@ -131,9 +130,9 @@ static void base64encode(string &inptext)
 /** ********************************************************
  *
  ***********************************************************/
-static void base128encode(string &inptext)
+static void base128encode(std::string &inptext)
 {
-	string outtext;
+	std::string outtext;
 	outtext.clear();
 	outtext.reserve(inptext.size() + 100);
 	outtext.assign(b128.encode(inptext));
@@ -145,9 +144,9 @@ static void base128encode(string &inptext)
 /** ********************************************************
  *
  ***********************************************************/
-static void base256encode(string &inptext)
+static void base256encode(std::string &inptext)
 {
-	string outtext;
+	std::string outtext;
 	outtext.clear();
 	outtext.reserve(inptext.size() + 100);
 	outtext.assign(b256.encode(inptext));
@@ -161,11 +160,11 @@ static void base256encode(string &inptext)
 /** ********************************************************
  *
  ***********************************************************/
-static void convert2crlf(string &s)
+static void convert2crlf(std::string &s)
 {
 	size_t p = s.find('\n', 0);
 
-	while (p != string::npos) {
+	while (p != std::string::npos) {
 		s.replace(p, 1, "\r\n");
 		p = s.find('\n', p + 2);
 	}
@@ -174,12 +173,12 @@ static void convert2crlf(string &s)
 /** ********************************************************
  *
  ***********************************************************/
-static bool convert2lf(string &s)
+static bool convert2lf(std::string &s)
 {
 	bool converted = false;
 	size_t p = s.find("\r\n", 0);
 
-	while (p != string::npos) {
+	while (p != std::string::npos) {
 		s.replace(p, 2, "\n");
 		p = s.find("\r\n", p + 1);
 		converted = true;
@@ -193,7 +192,7 @@ static bool convert2lf(string &s)
 /** ********************************************************
  *
  ***********************************************************/
-void compress_maybe(string& input, int encode_with, bool try_compress)
+void compress_maybe(std::string& input, int encode_with, bool try_compress)
 {
 	// allocate 110% of the original size for the output buffer
 	guard_lock mcd(&mutex_comp_data);
@@ -205,7 +204,7 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
 	unsigned char outprops[LZMA_PROPS_SIZE];
 	uint32_t origlen = htonl(input.length());
 
-	string bufstr;
+	std::string bufstr;
 
 	if (try_compress) {
 		// replace input with: LZMA_STR + original size (in network byte order) + props + data
@@ -255,31 +254,31 @@ void compress_maybe(string& input, int encode_with, bool try_compress)
 /** ********************************************************
  *
  ***********************************************************/
-void decompress_maybe(string& input)
+void decompress_maybe(std::string& input)
 {
 	guard_lock mdd(&mutex_decomp_data);
 
 	int decode = NONE; //BASE64;
 	bool decode_error = false;
 
-	size_t	p0 = string::npos,
-	p1 = string::npos,
-	p2 = string::npos,
-	p3 = string::npos;
-	if ((p0 = p1 = input.find(b64_start)) != string::npos) {
+	size_t	p0 = std::string::npos,
+	p1 = std::string::npos,
+	p2 = std::string::npos,
+	p3 = std::string::npos;
+	if ((p0 = p1 = input.find(b64_start)) != std::string::npos) {
 		p1 += strlen(b64_start);
 		p2 = input.find(b64_end, p1);
-	} else if ((p0 = p1 = input.find(b128_start)) != string::npos) {
+	} else if ((p0 = p1 = input.find(b128_start)) != std::string::npos) {
 		p1 += strlen(b128_start);
 		p2 = input.find(b128_end, p1);
 		decode = BASE128;
-	} else if ((p0 = p1 = input.find(b256_start)) != string::npos) {
+	} else if ((p0 = p1 = input.find(b256_start)) != std::string::npos) {
 		p1 += strlen(b256_start);
 		p2 = input.find(b256_end, p1);
 		decode = BASE256;
 	}
 
-	if (p2 == string::npos) {
+	if (p2 == std::string::npos) {
 		switch (decode) {
 			case BASE64 :
 				fprintf(stderr, "Base 64 decode failed\n");
@@ -305,7 +304,7 @@ void decompress_maybe(string& input)
 			p3 = p2 + strlen(b64_end);
 	}
 
-	string cmpstr = input.substr(p1, p2-p1);
+	std::string cmpstr = input.substr(p1, p2-p1);
 
 	switch (decode) {
 		case BASE128 :
@@ -322,7 +321,7 @@ void decompress_maybe(string& input)
 		return;
 	}
 
-	if (cmpstr.find(LZMA_STR) == string::npos) {
+	if (cmpstr.find(LZMA_STR) == std::string::npos) {
 		input.replace(p0, p3 - p0, cmpstr);
 		return;
 	}
@@ -435,7 +434,7 @@ void transfer(std::string tosend)
 	return;
 }
 
-string rx_buff;
+std::string rx_buff;
 
 /** ********************************************************
  *
