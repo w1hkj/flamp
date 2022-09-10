@@ -1,171 +1,259 @@
+// ----------------------------------------------------------------------------
+// Copyright (C) 2014
+//              David Freese, W1HKJ
+//
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// ----------------------------------------------------------------------------
+
+#include <iostream>
+#include <string>
+
 #include <cstring>
 #include <cstdlib>
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
+#include <FL/Fl_Output.H>
 
+#include "config.h"
 #include "combo.h"
 
 void popbrwsr_cb (Fl_Widget *v, long d);
 
-/** ********************************************************
- *
- ***********************************************************/
-Fl_PopBrowser::Fl_PopBrowser (int X, int Y, int W, int H, retvals R)
-: Fl_Window (X, Y, W, H, "")
+Fl_PopBrowser::Fl_PopBrowser (int X, int Y, int W, int H, const char *label)
+ : Fl_Double_Window (X, Y, W, H, label)
 {
-	Rvals = R;
 	hRow  = H;
 	wRow  = W;
 	clear_border();
 	box(FL_BORDER_BOX);
-	popbrwsr = new Fl_Select_Browser(0,0,wRow,hRow,0);
+	align(FL_ALIGN_INSIDE);
+
+	popbrwsr = new Fl_Select_Browser(0,0,wRow,hRow, "");
 	popbrwsr->callback ( (Fl_Callback*)popbrwsr_cb);
-	parent = 0;
+	popbrwsr->align(FL_ALIGN_INSIDE);
+	// DST Need to mark the Fl_Select_Browser as INVISIBLE at initialization by calling 'hide'.
+	//     The 'visible_r' test will initially indicate that this
+	//     widget is visible because both it and its parent window
+	//     i.e., the PopBrowser/Fl_Window, do not have their INVISIBLE flag
+	//     set, even though the Fl_Select_Browser has not been shown.
+	//     The CB handle function needs to respond to the FL_KEYUP
+	//     associated with the user pressing down-arrow over the
+	//     input box IF and ONLY IF the Fl_Select_Browser is not shown.
+	popbrwsr->hide();
+	parentCB = 0;
+	parentWindow = 0;
 	end();
 	set_modal();
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 Fl_PopBrowser::~Fl_PopBrowser ()
 {
+	delete popbrwsr;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 int Fl_PopBrowser::handle(int event)
 {
-	if (!Fl::event_inside( child(0) ) && event == FL_PUSH) {
+	Fl_ComboBox *cbx = (Fl_ComboBox*)this->parent();
+	// Can't use 'event_inside(widget *)' because the PopBrowser is a
+	// (sub)window and the event_x and event_y coordinates are translated
+	// to the subwindow frame origin before this 'handle' function is called.
+	if (!Fl::event_inside(0, 0, this->w(), this->h()) && event == FL_PUSH) {
 		pophide();
 		return 1;
+	}
+
+	if (event == FL_KEYDOWN) {
+		int kbd = Fl::event_key();
+		char key = Fl::event_text()[0];
+		if (kbd == FL_Down) {
+			if (popbrwsr->value() < popbrwsr->size())
+				popbrwsr->select(popbrwsr->value() + 1);
+			return 1;
+		}
+		if (kbd == FL_Up && popbrwsr->value() > 1) {
+			popbrwsr->select(popbrwsr->value() - 1);
+			return 1;
+		}
+		if (key == '\r' || kbd == FL_Enter) { // kbd test for OS X
+			int n = popbrwsr->value() - 1;
+			pophide();
+			cbx->index(n);
+			cbx->do_callback();
+			return 1;
+		}
+		if (key == '\b' || kbd == FL_BackSpace) { // kbd test for OS X
+			if (!keystrokes.empty())
+				keystrokes.erase(keystrokes.length() - 1, 1);
+			return 1;
+		}
+		if (key == 0x1b || kbd == FL_Escape) { // kbd test for OS X
+			pophide();
+			return 1;
+		}
+		if (key >= ' ' && key <= 0x7f) {
+			keystrokes += key;
+			for (int i = 0; i < cbx->listsize; i++) {
+				if (strncasecmp(keystrokes.c_str(),
+					cbx->datalist[i]->s,
+					keystrokes.length()) == 0) {
+					popbrwsr->select(i+1);
+					popbrwsr->show(i+1);
+					return 1;
+				}
+			}
+			return 0;
+		}
 	}
 	return Fl_Group::handle(event);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::add(char *s, void *d)
 {
 	popbrwsr->add(s,d);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::clear()
 {
 	popbrwsr->clear();
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::sort()
 {
 	return;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::popshow (int x, int y)
 {
-	int nRows = parent->numrows();
+	int nRows = parentCB->numrows();
 	int fh = fl_height();
 	int height = nRows * fh + 4;
 
 	if (popbrwsr->size() == 0) return;
-	if (nRows > parent->lsize()) nRows = parent->lsize();
+	if (nRows > parentCB->lsize()) nRows = parentCB->lsize();
 
-	// locate first occurance of Output string value in the list
-	// and display that if found
-	int i = parent->index();
-	if (!(i >= 0 && i < parent->listsize)) {
-		for (i = 0; i < parent->listsize; i++)
-			if (!strcmp(parent->Output->value(), parent->datalist[i]->s))
-				break;
-		if (i == parent->listsize)
-			i = 0;
-	}
+// Resize and reposition the popup to insure that it is within the bounds
+// of the uppermost parent widget.
+// Preferred position is just below and at the same x position as the
+// parent widget.
 
-	// resize and reposition the popup to insure that it is within the bounds
-	// of the uppermost parent widget
-	// preferred position is just below and at the same x position as the
-	// parent widget
+	Fl_Widget *gparent = parentCB;
+	int hp = gparent->h();
 
-	Fl_Widget *gparent = parent;
-	int	xp = gparent->x(),
-	yp = gparent->y(),
-	hp = gparent->h();
 	while ((gparent = gparent->parent())) {
-		xp = gparent->x();
-		yp = gparent->y();
 		hp = gparent->h();
+		parentWindow = gparent;
 	}
 
 	int nu = nRows, nl = nRows;
 	int hu = nu * fh + 4, hl = nl * fh + 4;
-	int yu = parent->y() - hu;
+	int yu = parentCB->y() - hu;
 	int yl = y;
 
 	while (nl > 1 && (yl + hl > hp)) { nl--; hl -= fh; }
 	while (nu > 1 && yu < 0) { nu--; yu += fh; hu -= fh; }
 
-	if (nl >= nu) { y = yl; height = hl; }
-	else { y = yu; height = hu; }
-
-	x += xp;
-	y += yp;
-
+	y = yl; height = hl;
+	if (nl < nu) {
+		y = yu;
+		height = hu;
+	}
+	wRow = parentCB->w();
 	popbrwsr->size (wRow, height);
+
 	resize (x, y, wRow, height);
 
-	popbrwsr->topline (i);
-	show();
+	popbrwsr->redraw();
 
+	// Locate first occurrence of input string value in the list
+	// and ensure it's in view when browser pops up; starts list
+	// at beginning if no match.
+
+	// This search needs to respect the uniqueness and case sensitivity spec
+	int i = parentCB->index();
+	if (i >= 0 && i < parentCB->listsize) {
+		for (i = 0; i < parentCB->listsize; i++) {
+			if (parentCB->type_ == COMBOBOX) {
+				if ((parentCB->listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE)
+					if (!strcasecmp(parentCB->val->value(), parentCB->datalist[i]->s))
+						break;
+				else // case sensitive test
+					if (!strcmp(parentCB->val->value(), parentCB->datalist[i]->s))
+						break;
+			} else { // LISTBOX case
+				if ((parentCB->listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE)
+					if (!strcasecmp(parentCB->valbox->label(), parentCB->datalist[i]->s))
+						break;
+				else // case sensitive test
+					if (!strcmp(parentCB->valbox->label(), parentCB->datalist[i]->s))
+						break;
+			}
+		}
+		if (i == parentCB->listsize)
+			i = 0;
+	}
+
+	popbrwsr->select (i+1);
+
+	keystrokes.clear();
+
+	popbrwsr->show();
+	show();
+	for (const Fl_Widget* o = popbrwsr; o; o = o->parent())
+		((Fl_Widget *)o)->set_visible();
+
+	if (parentWindow) {
+		parentWindow->damage(FL_DAMAGE_ALL);
+		parentWindow->redraw();
+	}
+	// 'Grab' mouse events so that we can close the
+	// Fl_Select_Browser if user clicks outside its window.
 	Fl::grab(this);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::pophide ()
 {
 	hide ();
-	Fl::release();
+	if (parentWindow) {
+		parentWindow->damage(FL_DAMAGE_ALL);
+		parentWindow->redraw();
+	}
+	Fl::grab(0);
+	Fl::focus(((Fl_ComboBox*)parent())->btn);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_PopBrowser::popbrwsr_cb_i (Fl_Widget *v, long d)
 {
-	Fl_PopBrowser *me = (Fl_PopBrowser *)(v->parent());
-	Fl_Input *tgt = me->Rvals.Inp;
-	// update the return values
-	int row = (me->popbrwsr)->value();
-	if (row == 0) return;
-	me->popbrwsr->deselect();
+// update the return values
+	Fl_Select_Browser *SB = (Fl_Select_Browser *)(v);
+	Fl_PopBrowser *PB = (Fl_PopBrowser *)(SB->parent());
+	Fl_ComboBox *CB = (Fl_ComboBox *)(PB->parent());
 
-	if (tgt) {
-		tgt->value ((me->popbrwsr)->text (row));
-		me->Rvals.retval = (me->popbrwsr)->data (row);
-		*(me->Rvals.idx) = row - 1;
-	}
-	me->pophide();
-	// user selected an item from the browser list, so execute the
-	// callback if one is registered.
-	if (me->parent)
-		(me->parent)->do_callback();
+	int row = SB->value();
+
+	if (row == 0) return;
+	SB->deselect();
+
+	CB->index(row - 1);
+
+	PB->pophide();
+
+	CB->do_callback();
+
 	return;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void popbrwsr_cb (Fl_Widget *v, long d)
 {
 	((Fl_PopBrowser *)(v))->popbrwsr_cb_i (v, d);
@@ -173,64 +261,82 @@ void popbrwsr_cb (Fl_Widget *v, long d)
 }
 
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::fl_popbrwsr(Fl_Widget *p)
 {
 	int xpos = p->x(), ypos = p->h() + p->y();
-	if (Brwsr == 0) {
-		Brwsr = new Fl_PopBrowser(xpos, ypos, width, height, R);
-	}
-	// pass the calling widget to the popup browser so that the
-	// correct callback function can be called when the user selects an item
-	// from the browser list
-	Brwsr->parent = (Fl_ComboBox *) p;
+// pass the calling widget to the popup browser so that the
+// correct callback function can be called when the user selects an item
+// from the browser list
+	Brwsr->parentCB = (Fl_ComboBox *) p;
+	Brwsr->clear_kbd();
 	Brwsr->popshow(xpos, ypos);
 	return;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void btnComboBox_cb (Fl_Widget *v, void *d)
 {
-	Fl_Widget *p = v->parent();
-	((Fl_ComboBox *)p)->fl_popbrwsr (p);
+	Fl_ComboBox *p = (Fl_ComboBox *)(v->parent());
+	p->fl_popbrwsr (p);
 	return;
 }
 
-
-/** ********************************************************
- *
- ***********************************************************/
-Fl_ComboBox::Fl_ComboBox (int X,int Y,int W,int H, const char *L)
-: Fl_Group (X, Y, W, H, L)
+void val_callback(Fl_Widget *w, void *d)
 {
-	width = W; height = H - 4;
-	Btn = new Fl_Button (X + W - 18, Y + 1, 18, H - 2, "@#-32>");
-	Btn->callback ((Fl_Callback *)btnComboBox_cb, 0);
-	Output = new Fl_Input (X, Y, W-18, H);
+	Fl_Input *inp = (Fl_Input *)(w);
+	Fl_ComboBox *cbx = (Fl_ComboBox *)(d);
+	if (!inp->readonly()) {
+		cbx->add(inp->value());
+		cbx->sort();
+	}
+}
+
+Fl_ComboBox::Fl_ComboBox (int X,int Y,int W,int H, const char *lbl, int wtype)
+ : Fl_Group (X, Y, W, H, lbl)
+{
+	width = W; height = H;
+
+	type_ = wtype;
+
+	valbox = new Fl_Box (FL_DOWN_BOX, X, Y, W-H, H, "");
+		valbox->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+		valbox->color(FL_BACKGROUND2_COLOR);
+	val    = new Fl_Input (X, Y, W-H, H, "");
+		val->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+		val->callback((Fl_Callback *)val_callback, this);
+		val->when(FL_WHEN_RELEASE);
+		val->value("");
+
+	if (type_ == LISTBOX) {
+		valbox->show();
+		val->hide();
+	} else {
+		val->show();
+		valbox->hide();
+	}
+
+	btn = new Fl_Button (X + W - H + 1, Y, H - 1, H, "@2>");
+	btn->callback ((Fl_Callback *)btnComboBox_cb, 0);
 
 	Brwsr = 0;
 	datalist = new datambr *[FL_COMBO_LIST_INCR];
 	maxsize = FL_COMBO_LIST_INCR;
 	for (int i = 0; i < FL_COMBO_LIST_INCR; i++) datalist[i] = 0;
 	listsize = 0;
-	listtype = 0;
+	listtype = FL_COMBO_UNIQUE_NOCASE;
+
+	Brwsr = new Fl_PopBrowser(X, Y, W, H, "");
+	Brwsr->align(FL_ALIGN_INSIDE);
+
+	idx = 0;
+
 	end();
-	R.Inp = Output;
-	R.retval = retdata;
-	R.idx = &idx;
+
 	numrows_ = 8;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 Fl_ComboBox::~Fl_ComboBox()
 {
-	if (Brwsr) delete Brwsr;
+	delete Brwsr;
 	for (int i = 0; i < listsize; i++) {
 		if (datalist[i]) {
 			if (datalist[i]->s) delete [] datalist[i]->s;
@@ -240,139 +346,236 @@ Fl_ComboBox::~Fl_ComboBox()
 	delete [] datalist;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
+int Fl_ComboBox::handle(int event)
+{
+
+	if (Fl::event_inside(this)) {
+
+		// The 'down arrow' can be used to pop up the browser if the browser
+		// is not already visible.  If the browser IS visible, IT will use
+		// the 'down arrow' keypress to scroll its list.
+		bool sb_visible_r = Brwsr->sb()->visible_r();
+		if (event == FL_KEYUP && !sb_visible_r) {
+			int  kbd = Fl::event_key();
+			if (kbd == FL_Down) {
+				fl_popbrwsr (this);
+				return 1;
+			}
+		}
+		if (event == FL_MOUSEWHEEL) {
+			if (listsize == 0) return 0;
+			int d = Fl::event_dy();
+			if (d) {
+				if (d > 0) idx ++;
+				else idx--;
+				if (idx < 0) idx = 0;
+				if (idx >= listsize) idx = listsize - 1;
+				if (type_ == LISTBOX) {
+					valbox->label(datalist[idx]->s);
+					valbox->redraw_label();
+				} else {
+					val->value( datalist[idx]->s);
+					val->redraw();
+				}
+				Fl_Group::do_callback();
+				return 1;
+			}
+		}
+	}
+	return Fl_Group::handle(event);
+}
+
 void Fl_ComboBox::type (int t)
 {
 	listtype = t;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
-void Fl_ComboBox::readonly()
+void Fl_ComboBox::readonly(bool yes)
 {
-	Output->type(FL_NORMAL_OUTPUT);
+	if (type_ == LISTBOX) return;
+	val->readonly(yes);
+	if (yes)
+		val->selection_color(fl_rgb_color(173,216,230));
+	else
+		val->selection_color(FL_SELECTION_COLOR);
 }
 
-// ComboBox value is contained in the Output widget
+// ComboBox value is contained in the val widget
 
-/** ********************************************************
- *
- ***********************************************************/
-void Fl_ComboBox::value( const char *s )
+const char *Fl_ComboBox::value()
 {
-	int i = 0;
-	if(!s)
-		return;
+	if (type_ == LISTBOX)
+		return valbox->label();
+	else
+		return val->value();
+}
 
+void Fl_ComboBox::value( std::string s )
+{
+	while (s[0] == ' ') { s.erase(0,1); }
+	if (s.empty()) {
+		if (type_ == LISTBOX) {
+			valbox->label("");
+			valbox->redraw_label();
+		} else {
+			val->value("");
+			val->redraw();
+		}
+		return;
+	}
+	int i;
 	if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
 		for (i = 0; i < listsize; i++) {
-			if (strcasecmp (s, datalist[i]->s) == 0)
+			if (strcasecmp (s.c_str(), datalist[i]->s) == 0)
 				break;
 		}
 	} else {
 		for (i = 0; i < listsize; i++) {
-			if (strcmp (s, datalist[i]->s) == 0)
+			if (strcmp (s.c_str(), datalist[i]->s) == 0)
 				break;
 		}
 	}
 	if ( i < listsize) {
-		//Output->value(datalist[i]->s);
-		index(i);
+		idx = i;
+		if (type_ == LISTBOX) {
+			valbox->label(datalist[idx]->s);
+			valbox->redraw_label();
+		} else {
+			val->value(datalist[idx]->s);
+			val->redraw();
+		}
+	} else {
+		if (type_ == LISTBOX) {
+			valbox->label("");
+			valbox->redraw_label();
+		}
+		else if (type_ != LISTBOX && !val->readonly()) {
+			insert(s.c_str(), 0);
+			for (i = 0; i < listsize; i++) {
+				if (strcmp (s.c_str(), datalist[i]->s) == 0) {
+					idx = i;
+					val->value(datalist[idx]->s);
+					break;
+				}
+				val->redraw();
+			}
+		} else {
+			val->value("");
+			val->redraw();
+		}
 	}
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::put_value(const char *s)
 {
 	value(s);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::index(int i)
 {
-	if (i >= 0 && i < listsize)
-		Output->value( datalist[idx = i]->s);
+	if (i >= 0 && i < listsize) {
+		idx = i;
+		if (type_ == LISTBOX) {
+			valbox->label(datalist[idx]->s);
+			valbox->redraw_label();
+		} else {
+			val->value( datalist[idx]->s);
+			val->redraw();
+		}
+	}
 }
 
-
-/** ********************************************************
- *
- ***********************************************************/
-const char *Fl_ComboBox::value()
-{
-	return (Output->value ());
-}
-
-/** ********************************************************
- *
- ***********************************************************/
 int Fl_ComboBox::index() {
 	return idx;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void * Fl_ComboBox::data() {
 	return retdata;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
-void Fl_ComboBox::add( const char *s, void * d)
+void Fl_ComboBox::insert(const char *str, void *d)
 {
-	if (Brwsr == 0) {
-		Brwsr = new Fl_PopBrowser(0, 0, width, height, R);
-	}
-	// test for uniqueness of entry if required
-	if ((listtype & FL_COMBO_UNIQUE) == FL_COMBO_UNIQUE) {
-		if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
-			for (int i = 0; i < listsize; i++) {
-				if (strcasecmp (s, datalist[i]->s) == 0)
-					return;
-			}
-		} else {
-			for (int i = 0; i < listsize; i++) {
-				if (strcmp (s, datalist[i]->s) == 0)
-					return;
-			}
-		}
-	}
-	// not unique or not in list, so add this entry
 	datalist[listsize] = new datambr;
-	datalist[listsize]->s = new char [strlen(s) + 1];
+	datalist[listsize]->s = new char [strlen(str) + 1];
 	datalist[listsize]->s[0] = 0;
-	strcpy (datalist[listsize]->s, s);
-	datalist[listsize]->d = d;
+	strcpy (datalist[listsize]->s, str);
+	datalist[listsize]->d = 0;
 	Brwsr->add(datalist[listsize]->s,d);
 	listsize++;
 	if (listsize == maxsize) {
 		int nusize = maxsize + FL_COMBO_LIST_INCR;
 		datambr **temparray = new datambr *[nusize];
-		for (int i = 0; i < listsize; i++)	temparray[i] = datalist[i];
+		for (int i = 0; i < listsize; i++)
+			temparray[i] = datalist[i];
 		delete [] datalist;
 		datalist = temparray;
 		maxsize = nusize;
 	}
 }
 
-/** ********************************************************
- *
- ***********************************************************/
+// Add a single value, or a '|' delimited set of values, to
+// the datalist depending on the uniqueness and case comparision specification.
+void Fl_ComboBox::add( const char *s, void * d)
+{
+	std::string str = s;
+	std::string sinsert;
+	size_t p = str.find("|");
+	bool found = false;
+	bool last_one = false;
+	if (p != std::string::npos) {
+		while (true) {
+			sinsert = str.substr(0, p);
+			found = false;
+			// test for in list
+			for (int i = 0; i < listsize; i++) {
+				if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
+					if (strcasecmp (sinsert.c_str(), datalist[i]->s) == 0) {
+						found = true;
+						break;
+					}
+				} else // case sensitive test
+					if (strcmp (sinsert.c_str(), datalist[i]->s) == 0) {
+						found = true;
+						break;
+					}
+			}
+			// not in list, so add this entry
+			if (!found) insert(sinsert.c_str(), 0);
+
+			// if not the last item, erase entry in original string
+			if (last_one) break;
+			str.erase(0, p+1);
+
+			// Look for another entry; note that there should
+			// always be another entry past the last delimiter.
+			if (str.find('|') == std::string::npos) {
+				p = str.length(); last_one = true;
+			} else
+				p = str.find("|");
+		}
+	} else {
+		// Single entry case
+		// Still need to test a single entry to avoid duplication in the list
+		for (int i = 0; i < listsize; i++) {
+			if ((listtype & FL_COMBO_UNIQUE_NOCASE) == FL_COMBO_UNIQUE_NOCASE) {
+				if (strcasecmp (str.c_str(), datalist[i]->s) == 0) {
+					found = true;
+					break;
+				}
+			} else // case sensitive test
+				if (strcmp (str.c_str(), datalist[i]->s) == 0) {
+					found = true;
+					break;
+				}
+		}
+		// Single entry - not in list, so add this entry
+		if (!found) insert(str.c_str(), 0);
+	}
+}
+
 void Fl_ComboBox::clear()
 {
-	if (Brwsr == 0)
-		Brwsr = new Fl_PopBrowser(0, 0, width, height, R);
-	else
-		Brwsr->clear();
+	Brwsr->clear();
 
 	if (listsize == 0) return;
 	for (int i = 0; i < listsize; i++) {
@@ -382,9 +585,6 @@ void Fl_ComboBox::clear()
 	listsize = 0;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 int DataCompare( const void *x1, const void *x2 )
 {
 	int cmp;
@@ -399,52 +599,69 @@ int DataCompare( const void *x1, const void *x2 )
 	return 0;
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::sort() {
 	Brwsr->clear ();
 	qsort (&datalist[0],
-		   listsize,
-		   sizeof (datambr *),
-		   DataCompare);
+		 listsize,
+		 sizeof (datambr *),
+		 DataCompare);
 	for (int i = 0; i < listsize; i++)
 		Brwsr->add (datalist[i]->s, datalist[i]->d);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::textfont (int fnt)
 {
-	Output->textfont (fnt);
+	if (type_ == LISTBOX)
+		valbox->labelfont (fnt);
+	else
+		val->textfont (fnt);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::textsize (uchar n)
 {
-	Output->textsize (n);
+	if (type_ == LISTBOX)
+		valbox->labelsize(n);
+	else
+		val->textsize (n);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::textcolor( Fl_Color c)
 {
-	Output->textcolor (c);
+	if (type_ == LISTBOX)
+		valbox->labelcolor (c);
+	else
+		val->textcolor (c);
 }
 
-/** ********************************************************
- *
- ***********************************************************/
 void Fl_ComboBox::color(Fl_Color c)
 {
 	_color = c;
-	Output->color(c);
+	if (type_ == LISTBOX) {
+		valbox->color(c);
+		valbox->redraw();
+	} else {
+		val->color(c);
+		val->redraw();
+	}
 	if (Brwsr) Brwsr->color(c);
 }
 
+int Fl_ComboBox::find_index(const char *str)
+{
+	if((listsize < 1) || !str)
+		return -1;
 
+	for (int i = 0; i < listsize; i++) {
+		if(datalist[i]->s)
+			if(strncmp(datalist[i]->s, str, FILENAME_MAX) == 0)
+				return i;
+	}
 
+	return -1;
+}
+
+void Fl_ComboBox::position(int n)
+{
+	if (type_ != LISTBOX)
+		val->position(n, n);
+}
